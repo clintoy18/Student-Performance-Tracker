@@ -1,0 +1,30 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+	<PropertyGroup>
+		<TargetFramework>net8.0</TargetFramework>
+		<Nullable>enable</Nullable>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<RootNamespace>Student_Performance_Tracker_ReactAsp.Server</RootNamespace>
+		<SpaRoot>..\frontend</SpaRoot>
+
+		<!-- Commented out so backend won’t auto-run frontend -->
+		<!-- <SpaProxyLaunchCommand>npm run dev</SpaProxyLaunchCommand> -->
+		<!-- <SpaProxyServerUrl>https://localhost:5173</SpaProxyServerUrl> -->
+	</PropertyGroup>
+
+	<ItemGroup>
+		<!-- You can also remove SpaProxy completely if not needed -->
+		<!-- <PackageReference Include="Microsoft.AspNetCore.SpaProxy" Version="9.0.8" /> -->
+		<PackageReference Include="Swashbuckle.AspNetCore" Version="9.0.4" />
+	</ItemGroup>
+
+	<!-- If you don’t want backend tied to the frontend project, comment this too -->
+	<!--
+  <ItemGroup>
+    <ProjectReference Include="..\frontend\student-performance-tracker-reactasp.client.esproj">
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+  </ItemGroup>
+  -->
+
+</Project>

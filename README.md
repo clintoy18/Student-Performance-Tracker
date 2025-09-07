@@ -6,3 +6,10 @@ cd frontend
 npm install
 
 npm run dev
+
+
+# backend command
+
+cd ../backend
+
+dotnet run

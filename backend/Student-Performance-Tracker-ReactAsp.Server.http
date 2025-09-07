@@ -1,0 +1,6 @@
+@Student_Performance_Tracker_ReactAsp.Server_HostAddress = http://localhost:5125
+
+GET {{Student_Performance_Tracker_ReactAsp.Server_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
