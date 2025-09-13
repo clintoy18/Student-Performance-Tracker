@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Student_Performance_Tracker_React_Asp.Server.Model;
 
 namespace Student_Performance_Tracker_React_Asp.Server.Controllers
 {
@@ -29,5 +30,8 @@ namespace Student_Performance_Tracker_React_Asp.Server.Controllers
             })
             .ToArray();
         }
+
     }
+     
+
 }
