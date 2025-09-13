@@ -1,9 +1,9 @@
-import AuthPage from "./pages/AuthPage";
+import DashboardLayout from "./components/layout/DashboardLayout";
 
 export default function App() {
     return (
-        <div className="min-h-screen flex justify-center items-center bg-gray-100">
-            <AuthPage />
-        </div>
+        <>
+            <DashboardLayout />
+        </>
     );
 }
