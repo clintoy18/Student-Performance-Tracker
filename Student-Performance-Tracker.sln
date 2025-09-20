@@ -5,11 +5,11 @@ VisualStudioVersion = 17.14.36414.22
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "backend", "backend", "{1AE8ACA6-933B-BF2A-3671-3E2EAC007D16}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Student-Performance-Tracker-React-Asp.Server", "backend\Student-Performance-Tracker-React-Asp.Server.csproj", "{690EB9EA-518F-4679-836F-CCCD4DD11E5E}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Student-Performance-Tracker.Backend", "backend\Student-Performance-Tracker.Backend.csproj", "{690EB9EA-518F-4679-836F-CCCD4DD11E5E}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "frontend", "frontend", "{CE609670-85B9-0D16-FB54-ED063D5D8A6D}"
 EndProject
-Project("{54A90642-561A-4BB1-A94E-469ADEE60C69}") = "student-performance-tracker-react-asp.client", "frontend\student-performance-tracker-react-asp.client.esproj", "{63283263-104A-49BA-9207-F814B1213F96}"
+Project("{54A90642-561A-4BB1-A94E-469ADEE60C69}") = "Student-Performance-Tracker.Frontend", "frontend\Student-Performance-Tracker.Backend.csproj", "{63283263-104A-49BA-9207-F814B1213F96}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
