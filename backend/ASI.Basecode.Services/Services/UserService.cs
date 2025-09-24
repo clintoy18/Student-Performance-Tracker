@@ -1,0 +1,94 @@
+﻿using ASI.Basecode.Data.Interfaces;
+using ASI.Basecode.Data.Models;
+using ASI.Basecode.Services.Interfaces;
+using ASI.Basecode.Services.Manager;
+using ASI.Basecode.Services.ServiceModels;
+using AutoMapper;
+using System;
+using System.Data.Entity;
+using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
+using static ASI.Basecode.Resources.Constants.Enums;
+
+namespace ASI.Basecode.Services.Services
+{
+    public class UserService : IUserService
+    {
+        private readonly IUserRepository _repository;
+        private readonly IMapper _mapper;
+
+        public UserService(IUserRepository repository, IMapper mapper)
+        {
+            _mapper = mapper;
+            _repository = repository;
+        }
+
+        public LoginResult AuthenticateUser(string userId, string password)
+        {
+            var passwordKey = PasswordManager.EncryptPassword(password);
+            var user = _repository.GetUsers().Where(x => x.UserId == userId &&
+                                                     x.HashedPassword == passwordKey).FirstOrDefault();
+
+            return user != null ? LoginResult.Success : LoginResult.Failed;
+        }
+
+        public User FetchUser(string userId)
+        {
+            if (_repository.UserExists(userId))
+            {
+                return _repository.GetUser(userId);
+            }
+            else
+            {
+                throw new InvalidDataException(Resources.Messages.Errors.UserExists);
+            }
+        }
+
+        public void RegisterUser(RegisterUserViewModel model)
+        {
+            ArgumentNullException.ThrowIfNull(model);
+            var user = new User();
+            if (!_repository.UserExists(model.UserId))
+            {
+                _mapper.Map(model, user);
+                user.HashedPassword = PasswordManager.EncryptPassword(model.Password);
+                _repository.AddUser(user);
+            }
+            else
+            {
+                throw new InvalidDataException(Resources.Messages.Errors.UserExists);
+            }
+        }
+
+        // Not an admin method
+        public void UpdateUser(RegisterUserViewModel model)
+        {
+            ArgumentNullException.ThrowIfNull(model);
+
+            var existingUser =  _repository.GetUser(model.UserId);    // Fetch the existing user to preserve current password if not updating
+            var userToUpdate = _mapper.Map<User>(model);    // Map the view model to a new user entity
+
+            // Password update logic
+            if (!string.IsNullOrWhiteSpace(model.Password))
+            {
+                userToUpdate.HashedPassword = PasswordManager.EncryptPassword(model.Password);
+            }
+            else
+            {
+                userToUpdate.HashedPassword = existingUser.HashedPassword;
+            }
+           _repository.UpdateUser(userToUpdate);
+        }
+
+        public void DeleteUser(string userId)
+        {
+            if (!_repository.UserExists(userId))
+            {
+                throw new InvalidDataException("User not found.");
+            }
+
+            _repository.DeleteUserById(userId);
+        }
+    }
+}
