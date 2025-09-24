@@ -24,20 +24,20 @@ namespace ASI.Basecode.Services.Services
             _repository = repository;
         }
 
-        public async Task<LoginResult> AuthenticateUser(string userId, string password)
+        public LoginResult AuthenticateUser(string userId, string password)
         {
             var passwordKey = PasswordManager.EncryptPassword(password);
-            var user = await _repository.GetUsers().Where(x => x.UserId == userId &&
-                                                     x.HashedPassword == passwordKey).FirstOrDefaultAsync();
+            var user = _repository.GetUsers().Where(x => x.UserId == userId &&
+                                                     x.HashedPassword == passwordKey).FirstOrDefault();
 
             return user != null ? LoginResult.Success : LoginResult.Failed;
         }
 
-        public async Task<User> FetchUser(string userId)
+        public User FetchUser(string userId)
         {
-            if (await _repository.UserExistsAsync(userId))
+            if (_repository.UserExists(userId))
             {
-                return await _repository.GetUserAsync(userId);
+                return _repository.GetUser(userId);
             }
             else
             {
@@ -45,15 +45,15 @@ namespace ASI.Basecode.Services.Services
             }
         }
 
-        public async Task RegisterUser(RegisterUserViewModel model)
+        public void RegisterUser(RegisterUserViewModel model)
         {
             ArgumentNullException.ThrowIfNull(model);
             var user = new User();
-            if (await _repository.UserExistsAsync(model.UserId))
+            if (!_repository.UserExists(model.UserId))
             {
                 _mapper.Map(model, user);
                 user.HashedPassword = PasswordManager.EncryptPassword(model.Password);
-                await _repository.AddUserAsync(user);
+                _repository.AddUser(user);
             }
             else
             {
@@ -62,11 +62,11 @@ namespace ASI.Basecode.Services.Services
         }
 
         // Not an admin method
-        public async Task UpdateUser(RegisterUserViewModel model)
+        public void UpdateUser(RegisterUserViewModel model)
         {
             ArgumentNullException.ThrowIfNull(model);
 
-            var existingUser = await _repository.GetUserAsync(model.UserId);    // Fetch the existing user to preserve current password if not updating
+            var existingUser =  _repository.GetUser(model.UserId);    // Fetch the existing user to preserve current password if not updating
             var userToUpdate = _mapper.Map<User>(model);    // Map the view model to a new user entity
 
             // Password update logic
@@ -78,17 +78,17 @@ namespace ASI.Basecode.Services.Services
             {
                 userToUpdate.HashedPassword = existingUser.HashedPassword;
             }
-            await _repository.UpdateUserAsync(userToUpdate);
+           _repository.UpdateUser(userToUpdate);
         }
 
-        public async Task DeleteUser(string userId)
+        public void DeleteUser(string userId)
         {
-            if (!await _repository.UserExistsAsync(userId))
+            if (!_repository.UserExists(userId))
             {
                 throw new InvalidDataException("User not found.");
             }
 
-            await _repository.DeleteUserByIdAsync(userId);
+            _repository.DeleteUserById(userId);
         }
     }
 }

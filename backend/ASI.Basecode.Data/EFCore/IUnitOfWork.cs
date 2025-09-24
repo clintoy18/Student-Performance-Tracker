@@ -23,13 +23,6 @@ namespace ASI.Basecode.Data.EFCore
         /// </summary>
         void SaveChanges();
 
-        /// <summary>
-        /// Asynchronously save changes to database
-        /// </summary>
-        /// <returns></returns>
-        Task SaveChangesAsync();
-        Task SaveChangesAsync(CancellationToken cancellationToken);
-
         IDbContextTransaction CreateTransaction();
     }
 
