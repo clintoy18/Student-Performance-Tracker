@@ -56,12 +56,22 @@ namespace ASI.Basecode.WebApp.Services
             try
             {
                 var tokenConfig = _configuration.GetSection("TokenAuthentication");
+                if (tokenConfig == null) 
+                {
+                    throw new ArgumentNullException("TokenAuthentication configuration section is missing");
+                }
+
                 var secretKey = tokenConfig["SecretKey"];
+                if (string.IsNullOrEmpty(secretKey))
+                {
+                    throw new ArgumentNullException("SecretKey is missing in configuration");
+                }
                 var audience = tokenConfig["Audience"];
                 var issuer = Const.Issuer;
 
                 var tokenHandler = new JwtSecurityTokenHandler();
                 var key = Encoding.ASCII.GetBytes(secretKey);
+
 
                 var validationParameters = new TokenValidationParameters
                 {

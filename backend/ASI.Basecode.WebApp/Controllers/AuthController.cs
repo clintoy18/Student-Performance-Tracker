@@ -1,4 +1,5 @@
 using ASI.Basecode.Services.Interfaces;
+using ASI.Basecode.Services.ServiceModels;
 using ASI.Basecode.WebApp.Models;
 using ASI.Basecode.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -9,11 +10,13 @@ using static ASI.Basecode.Resources.Constants.Enums;
 using ASI.Basecode.Data.Models;
 using Microsoft.Extensions.Options;
 using ASI.Basecode.Resources.Constants;
+using System.IO;
+using System.Linq;
 
 namespace ASI.Basecode.WebApp.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/auth/")]
     public class AuthController : ControllerBase
     {
         private readonly IUserService _userService;
@@ -26,25 +29,36 @@ namespace ASI.Basecode.WebApp.Controllers
         }
 
         [HttpPost("login")]
-        public async Task<IActionResult> Login([FromBody] LoginRequest request)
+        public IActionResult Login([FromBody] LoginRequest request)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            var loginResult = await _userService.AuthenticateUser(request.UserId, request.Password);
-
-            if (loginResult == Enums.LoginResult.Success)
+            if (request == null)
             {
-                var user = await _userService.FetchUser(request.UserId);
+                return BadRequest(new { message = "Request is null" });
+            }
+
+            var loginResult = _userService.AuthenticateUser(request.UserId, request.Password);
+
+            if (loginResult == LoginResult.Success)
+            {
+                var user = _userService.FetchUser(request.UserId);
+
+                if (user == null)
+                {
+                    return Unauthorized(new { message = "User not found" });
+                }
+
                 var token = _jwtService.GenerateToken(user.LastName, user.Role);
 
                 return Ok(new LoginResponse
                 {
                     Message = "Login successful",
                     Token = token,
-                    User = {
+                    User = new UserDto {
                         UserId = user.UserId,
                         LastName = user.LastName,
                         Role = user.Role.ToString()
@@ -57,56 +71,39 @@ namespace ASI.Basecode.WebApp.Controllers
             }
         }
         
-        // [HttpPost("register")]
-        // public IActionResult Register([FromBody] RegistrationRequest request)
-        // {
-        //     if (!ModelState.IsValid)
-        //     {
-        //         return BadRequest(new { message = "Invalid request format." });
-        //     }
+        [HttpPost("register")]
+        public IActionResult Register([FromBody] RegisterUserViewModel request)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(new { message = "Invalid request format.", errors = ModelState.Values.SelectMany(v => v.Errors) });
+            }
 
-        //     try
-        //     {
-        //         var userViewModel = new UserViewModel
-        //         {
-        //             UserId = request.UserId,
-        //             Name = request.Name,
-        //             Password = request.Password
-        //         };
+            try
+            {
+                var userViewModel = new RegisterUserViewModel
+                {
+                    UserId = request.UserId,
+                    FirstName = request.FirstName,
+                    MiddleName = request.MiddleName,
+                    LastName = request.LastName,
+                    Password = request.Password,
+                    Program = request.Program
+                    // Add Role if needed, e.g., Role = UserRoles.User
+                };
 
-        //         _userService.AddUser(userViewModel);
+                _userService.RegisterUser(userViewModel);
 
-        //         return Ok(new { message = "User registered successfully." });
-        //     }
-        //     catch (InvalidDataException ex)
-        //     {
-        //         return BadRequest(new { message = ex.Message });
-        //     }
-        //     catch
-        //     {
-        //         return StatusCode(500, new { message = "An internal server error has occurred." });
-        //     }
-        // }
-
-        // private string GenerateJwtToken(User user)
-        // {
-        //     var tokenHandler = new JwtSecurityTokenHandler();
-        //     var key = Encoding.ASCII.GetBytes(_configuration["TokenAuthentication:SecretKey"]);
-        //     var tokenDescriptor = new SecurityTokenDescriptor
-        //     {
-        //         Subject = new ClaimsIdentity(new[]
-        //         {
-        //             new Claim(ClaimTypes.NameIdentifier, user.UserId),
-        //             new Claim(ClaimTypes.Name, $"{user.LastName}"),
-        //             new Claim(ClaimTypes.Role, $"{user.Role}")
-        //         }),
-        //         Expires = DateTime.UtcNow.AddHours(1),
-        //         SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature),
-        //         Audience = _configuration["TokenAuthentication:Audience"],
-        //         Issuer = ASI.Basecode.Resources.Constants.Const.Issuer
-        //     };
-        //     var token = tokenHandler.CreateToken(tokenDescriptor);
-        //     return tokenHandler.WriteToken(token);
-        // }
+                return Ok(new { message = "User registered successfully." });
+            }
+            catch (InvalidDataException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+            catch
+            {
+                return StatusCode(500, new { message = "An internal server error has occurred." });
+            }
+        }
     }
 }

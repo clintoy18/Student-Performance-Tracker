@@ -7,10 +7,10 @@ namespace ASI.Basecode.Services.Interfaces
 {
     public interface IUserService
     {
-        Task<LoginResult> AuthenticateUser(string userId, string password);
-        Task RegisterUser(RegisterUserViewModel model);
-        Task<User> FetchUser(string userId);
-        Task UpdateUser(RegisterUserViewModel model);
-        Task DeleteUser(string userId);
+        LoginResult AuthenticateUser(string userId, string password);
+        void RegisterUser(RegisterUserViewModel model);
+        User FetchUser(string userId);
+        void UpdateUser(RegisterUserViewModel model);
+        void DeleteUser(string userId);
     }
 }

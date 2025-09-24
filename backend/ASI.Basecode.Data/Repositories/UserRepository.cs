@@ -5,8 +5,6 @@ using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ASI.Basecode.Data.Repositories
 {
@@ -22,36 +20,35 @@ namespace ASI.Basecode.Data.Repositories
             return GetDbSet<User>();
         }
 
-        public async Task<User> GetUserAsync(string userId)
+        public User GetUser(string userId)
         {
-            return await GetDbSet<User>().FirstOrDefaultAsync(u => u.UserId == userId);
+            return GetDbSet<User>().FirstOrDefault(u => u.UserId == userId);
         }
 
-        public async Task<bool> UserExistsAsync(string userId)
+        public bool UserExists(string userId)
         {
-            return await GetDbSet<User>().AnyAsync(x => x.UserId == userId);
+            return GetDbSet<User>().Any(x => x.UserId == userId);
         }
 
-        public async Task AddUserAsync(User user)
+        public void AddUser(User user)
         {
             ArgumentNullException.ThrowIfNull(user);
-            await GetDbSet<User>().AddAsync(user);
-            await UnitOfWork.SaveChangesAsync();
+            GetDbSet<User>().Add(user);
+            UnitOfWork.SaveChanges();
         }
 
-        public async Task UpdateUserAsync(User user)
+        public void UpdateUser(User user)
         {
             ArgumentNullException.ThrowIfNull(user);
             GetDbSet<User>().Update(user);
-            await UnitOfWork.SaveChangesAsync();
+            UnitOfWork.SaveChanges();
         }
 
-        public async Task DeleteUserByIdAsync(string userId)
+        public void DeleteUserById(string userId)
         {
-            var user = await GetDbSet<User>().FindAsync(userId);
+            var user = GetDbSet<User>().Find(userId);
             GetDbSet<User>().Remove(user);
-            await UnitOfWork.SaveChangesAsync();
+            UnitOfWork.SaveChanges();
         }
-
     }
 }

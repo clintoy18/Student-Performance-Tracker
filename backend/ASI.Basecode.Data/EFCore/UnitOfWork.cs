@@ -46,22 +46,6 @@ namespace ASI.Basecode.Data.EFCore
         }
 
         /// <summary>
-        /// Asynchronously saves changes to the database.
-        /// </summary>
-        public async Task SaveChangesAsync()
-        {
-            await Database.SaveChangesAsync();
-        }
-
-        /// <summary>
-        /// Asynchronously saves changes to the database with a cancellation token.
-        /// </summary>
-        public async Task SaveChangesAsync(CancellationToken cancellationToken)
-        {
-            await Database.SaveChangesAsync(cancellationToken);
-        }
-
-        /// <summary>
         /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
         /// </summary>
         public void Dispose()
