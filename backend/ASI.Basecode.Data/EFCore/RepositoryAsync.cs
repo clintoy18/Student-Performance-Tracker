@@ -5,7 +5,7 @@ using ASI.Basecode.Data.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.IdentityModel.Tokens;
-using Basecode.Data.Repositories;
+using ASI.Basecode.Data.Repositories;
 using System.Reflection;
 using ASI.Basecode.Data.EFCore.Paging;
 using Microsoft.EntityFrameworkCore.ChangeTracking;

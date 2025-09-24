@@ -1,16 +1,14 @@
 using ASI.Basecode.Services.Interfaces;
-using ASI.Basecode.Services.ServiceModels;
-using ASI.Basecode.Data.Models;
-using System.IdentityModel.Tokens.Jwt;
-using Microsoft.IdentityModel.Tokens;
-using System.ComponentModel.DataAnnotations;
+using ASI.Basecode.WebApp.Models;
+using ASI.Basecode.Services;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Configuration;
 using System.Security.Claims;
-using System.Text;
-using System;
-using System.IO;
+using System.Threading.Tasks;
+using System.Collections.Generic;
 using static ASI.Basecode.Resources.Constants.Enums;
+using ASI.Basecode.Data.Models;
+using Microsoft.Extensions.Options;
+using ASI.Basecode.Resources.Constants;
 
 namespace ASI.Basecode.WebApp.Controllers
 {
@@ -19,37 +17,37 @@ namespace ASI.Basecode.WebApp.Controllers
     public class AuthController : ControllerBase
     {
         private readonly IUserService _userService;
-        private readonly IConfiguration _configuration;
+        private readonly IJwtService _jwtService;
 
-        public AuthController(IUserService userService, IConfiguration configuration)
+        public AuthController(IJwtService jwtService, IUserService userService)
         {
+            _jwtService = jwtService;
             _userService = userService;
-            _configuration = configuration;
         }
 
         [HttpPost("login")]
-        public IActionResult Login([FromBody] LoginRequest request)
+        public async Task<IActionResult> Login([FromBody] LoginRequest request)
         {
             if (!ModelState.IsValid)
             {
-                return BadRequest(new { message = "Invalid request format." });
+                return BadRequest(ModelState);
             }
 
-            User user = new();
-            var loginResult = _userService.AuthenticateUser(request.UserId, request.Password, ref user);
+            var loginResult = await _userService.AuthenticateUser(request.UserId, request.Password);
 
-            if (loginResult == LoginResult.Success)
+            if (loginResult == Enums.LoginResult.Success)
             {
-                var token = GenerateJwtToken(user);
+                var user = await _userService.FetchUser(request.UserId);
+                var token = _jwtService.GenerateToken(user.LastName, user.Role);
 
                 return Ok(new LoginResponse
                 {
                     Message = "Login successful",
                     Token = token,
-                    User = new UserDto
-                    {
+                    User = {
                         UserId = user.UserId,
-                        Name = user.Name
+                        LastName = user.LastName,
+                        Role = user.Role.ToString()
                     }
                 });
             }
@@ -58,96 +56,57 @@ namespace ASI.Basecode.WebApp.Controllers
                 return Unauthorized(new { message = "Invalid user ID or password." });
             }
         }
+        
+        // [HttpPost("register")]
+        // public IActionResult Register([FromBody] RegistrationRequest request)
+        // {
+        //     if (!ModelState.IsValid)
+        //     {
+        //         return BadRequest(new { message = "Invalid request format." });
+        //     }
 
-        [HttpPost("register")]
-        public IActionResult Register([FromBody] RegistrationRequest request)
-        {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(new { message = "Invalid request format." });
-            }
+        //     try
+        //     {
+        //         var userViewModel = new UserViewModel
+        //         {
+        //             UserId = request.UserId,
+        //             Name = request.Name,
+        //             Password = request.Password
+        //         };
 
-            try
-            {
-                var userViewModel = new UserViewModel
-                {
-                    UserId = request.UserId,
-                    Name = request.Name,
-                    Password = request.Password
-                };
+        //         _userService.AddUser(userViewModel);
 
-                _userService.AddUser(userViewModel);
+        //         return Ok(new { message = "User registered successfully." });
+        //     }
+        //     catch (InvalidDataException ex)
+        //     {
+        //         return BadRequest(new { message = ex.Message });
+        //     }
+        //     catch
+        //     {
+        //         return StatusCode(500, new { message = "An internal server error has occurred." });
+        //     }
+        // }
 
-                return Ok(new { message = "User registered successfully." });
-            }
-            catch (InvalidDataException ex)
-            {
-                return BadRequest(new { message = ex.Message });
-            }
-            catch
-            {
-                return StatusCode(500, new { message = "An internal server error has occurred." });
-            }
-        }
-
-        private string GenerateJwtToken(ASI.Basecode.Data.Models.User user)
-        {
-            var tokenHandler = new JwtSecurityTokenHandler();
-            var key = Encoding.ASCII.GetBytes(_configuration["TokenAuthentication:SecretKey"]);
-            var tokenDescriptor = new SecurityTokenDescriptor
-            {
-                Subject = new ClaimsIdentity(new[]
-                {
-                    new Claim(ClaimTypes.NameIdentifier, user.UserId),
-                    new Claim(ClaimTypes.Name, user.Name)
-                }),
-                Expires = DateTime.UtcNow.AddHours(1),
-                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature),
-                Audience = _configuration["TokenAuthentication:Audience"],
-                Issuer = ASI.Basecode.Resources.Constants.Const.Issuer
-            };
-            var token = tokenHandler.CreateToken(tokenDescriptor);
-            return tokenHandler.WriteToken(token);
-        }
-
-        public class LoginRequest
-        {
-            [Required]
-            public string UserId { get; set; }
-            
-            [Required]
-            public string Password { get; set; }
-        }
-
-        public class RegistrationRequest
-        {
-            [Required]
-            [StringLength(20, MinimumLength = 3)]
-            public string UserId { get; set; }
-
-            [Required]
-            [StringLength(100)]
-            public string Name { get; set; }
-
-            [Required]
-            [StringLength(100, MinimumLength = 6)]
-            public string Password { get; set; }
-            
-            // Add other registration fields as needed
-            // public string Email { get; set; }
-        }
-
-        public class LoginResponse
-        {
-            public string Message { get; set; }
-            public string Token { get; set; }
-            public UserDto User { get; set; }
-        }
-
-        public class UserDto
-        {
-            public string UserId { get; set; }
-            public string Name { get; set; }
-        }
+        // private string GenerateJwtToken(User user)
+        // {
+        //     var tokenHandler = new JwtSecurityTokenHandler();
+        //     var key = Encoding.ASCII.GetBytes(_configuration["TokenAuthentication:SecretKey"]);
+        //     var tokenDescriptor = new SecurityTokenDescriptor
+        //     {
+        //         Subject = new ClaimsIdentity(new[]
+        //         {
+        //             new Claim(ClaimTypes.NameIdentifier, user.UserId),
+        //             new Claim(ClaimTypes.Name, $"{user.LastName}"),
+        //             new Claim(ClaimTypes.Role, $"{user.Role}")
+        //         }),
+        //         Expires = DateTime.UtcNow.AddHours(1),
+        //         SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature),
+        //         Audience = _configuration["TokenAuthentication:Audience"],
+        //         Issuer = ASI.Basecode.Resources.Constants.Const.Issuer
+        //     };
+        //     var token = tokenHandler.CreateToken(tokenDescriptor);
+        //     return tokenHandler.WriteToken(token);
+        // }
     }
 }

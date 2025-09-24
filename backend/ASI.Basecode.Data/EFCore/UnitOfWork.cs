@@ -1,9 +1,11 @@
-﻿using System;
+﻿using ASI.Basecode.Data.Interfaces;
+using System;
 using System.Collections.Generic;
-using ASI.Basecode.Data.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.IdentityModel.Tokens;
+using System.Threading.Tasks;
+using System.Threading;
 
 namespace ASI.Basecode.Data.EFCore
 {
@@ -41,6 +43,22 @@ namespace ASI.Basecode.Data.EFCore
         public void SaveChanges()
         {
             Database.SaveChanges();
+        }
+
+        /// <summary>
+        /// Asynchronously saves changes to the database.
+        /// </summary>
+        public async Task SaveChangesAsync()
+        {
+            await Database.SaveChangesAsync();
+        }
+
+        /// <summary>
+        /// Asynchronously saves changes to the database with a cancellation token.
+        /// </summary>
+        public async Task SaveChangesAsync(CancellationToken cancellationToken)
+        {
+            await Database.SaveChangesAsync(cancellationToken);
         }
 
         /// <summary>

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
 using ASI.Basecode.Data.Models;
+using static ASI.Basecode.Resources.Constants.Enums;
 
 namespace ASI.Basecode.Data
 {
@@ -21,39 +22,42 @@ namespace ASI.Basecode.Data
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            // ALIN: Use Fluent API to add constraints to model
             modelBuilder.Entity<User>(entity =>
             {
                 entity.HasIndex(e => e.UserId, "UQ__Users__1788CC4D5F4A160F")
                     .IsUnique();
 
-                entity.Property(e => e.CreatedBy)
-                    .IsRequired()
-                    .HasMaxLength(50)
-                    .IsUnicode(false);
-
-                entity.Property(e => e.CreatedTime).HasColumnType("datetime");
-
-                entity.Property(e => e.Name)
-                    .IsRequired()
-                    .HasMaxLength(50)
-                    .IsUnicode(false);
-
-                entity.Property(e => e.Password)
-                    .IsRequired()
-                    .HasMaxLength(50)
-                    .IsUnicode(false);
-
-                entity.Property(e => e.UpdatedBy)
-                    .IsRequired()
-                    .HasMaxLength(50)
-                    .IsUnicode(false);
-
-                entity.Property(e => e.UpdatedTime).HasColumnType("datetime");
-
                 entity.Property(e => e.UserId)
                     .IsRequired()
                     .HasMaxLength(50)
                     .IsUnicode(false);
+
+                entity.Property(e => e.FirstName)
+                    .IsRequired()
+                    .HasMaxLength(100);
+
+                entity.Property(e => e.MiddleName)
+                    .HasMaxLength(100);
+
+                entity.Property(e => e.LastName)
+                    .IsRequired()
+                    .HasMaxLength(100);
+
+                entity.Property(e => e.Program)
+                    .HasMaxLength(100);
+
+                entity.Property(e => e.HashedPassword)
+                    .IsRequired();
+
+                entity.Property(e => e.CreatedTime)
+                    .HasColumnType("datetime")
+                    .HasDefaultValueSql("GETDATE()");   // Only for SQL Server, adds default datetime as current datetime
+
+                entity.Property(e => e.Role)
+                    .IsRequired()
+                    .HasDefaultValue(UserRoles.Student)  // Defaults to Student
+                    .HasConversion<string>();   // Stores role as string instead of int
             });
 
             OnModelCreatingPartial(modelBuilder);

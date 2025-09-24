@@ -1,7 +1,6 @@
 ﻿using ASI.Basecode.Data;
 using ASI.Basecode.Resources.Constants;
 using ASI.Basecode.Services.Manager;
-using ASI.Basecode.WebApp.Authentication;
 using ASI.Basecode.WebApp.Extensions.Configuration;
 using ASI.Basecode.WebApp.Models;
 using Microsoft.AspNetCore.Builder;
@@ -55,7 +54,6 @@ namespace ASI.Basecode.WebApp
 
             var token = this.Configuration.GetTokenAuthentication();
             this._signingKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(token.SecretKey));
-            this._tokenProviderOptions = TokenProviderOptionsFactory.Create(token, this._signingKey);
             this._tokenValidationParameters = new TokenValidationParameters
             {
                 ValidateIssuerSigningKey = true,
@@ -84,11 +82,12 @@ namespace ASI.Basecode.WebApp
 
             // Register SQL database configuration context as services.
             services.AddDbContext<AsiBasecodeDBContext>(options =>
-            {
-                options.UseSqlServer(
-                    Configuration.GetConnectionString("DefaultConnection"),
-                    sqlServerOptions => sqlServerOptions.CommandTimeout(120));
-            });
+                options
+                    .UseSqlServer(
+                        Configuration.GetConnectionString("DefaultConnection"),
+                        b => b.MigrationsAssembly("ASI.Basecode.WebApp")
+                    )
+            );
 
             // services.AddControllersWithViews();
             // services.AddRazorPages().AddRazorRuntimeCompilation();
@@ -115,15 +114,6 @@ namespace ASI.Basecode.WebApp
                         new string[] {}
                     }
                 });
-            });
-
-            //Configuration
-            services.Configure<TokenAuthentication>(Configuration.GetSection("TokenAuthentication"));
-
-            // Session
-            services.AddSession(options =>
-            {
-                options.Cookie.Name = Const.Issuer;
             });
 
             // DI Services AutoMapper(Add Profile)
@@ -162,10 +152,8 @@ namespace ASI.Basecode.WebApp
 
             this.ConfigureLogger();
 
-            this._app.UseTokenProvider(_tokenProviderOptions);
-
             this._app.UseHttpsRedirection();
-            this._app.UseStaticFiles();
+            // this._app.UseStaticFiles();      // Not needed I think
 
             // Enable Swagger middleware
             this._app.UseSwagger();
@@ -179,7 +167,6 @@ namespace ASI.Basecode.WebApp
             var options = this._app.ApplicationServices.GetService<IOptions<RequestLocalizationOptions>>();
             this._app.UseRequestLocalization(options.Value);
 
-            this._app.UseSession();
             this._app.UseRouting();
 
             this._app.UseAuthentication();

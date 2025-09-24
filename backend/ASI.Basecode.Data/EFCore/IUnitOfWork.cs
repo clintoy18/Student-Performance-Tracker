@@ -1,6 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using System;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace ASI.Basecode.Data.EFCore
 {
@@ -20,6 +22,13 @@ namespace ASI.Basecode.Data.EFCore
         /// Saves the changes to database
         /// </summary>
         void SaveChanges();
+
+        /// <summary>
+        /// Asynchronously save changes to database
+        /// </summary>
+        /// <returns></returns>
+        Task SaveChangesAsync();
+        Task SaveChangesAsync(CancellationToken cancellationToken);
 
         IDbContextTransaction CreateTransaction();
     }

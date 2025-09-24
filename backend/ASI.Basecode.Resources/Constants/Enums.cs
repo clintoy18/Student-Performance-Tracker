@@ -23,5 +23,15 @@
             Success = 0,
             Failed = 1,
         }
+
+        /// <summary>
+        /// User Roles Enum
+        /// </summary>
+        public enum UserRoles
+        {
+            Student,
+            Teacher,
+            Admin
+        }
     }
 }

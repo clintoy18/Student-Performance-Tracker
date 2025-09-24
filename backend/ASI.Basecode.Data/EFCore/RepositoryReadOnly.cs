@@ -5,7 +5,7 @@ using ASI.Basecode.Data.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.IdentityModel.Tokens;
-using Basecode.Data.Repositories;
+using ASI.Basecode.Data.Repositories;
 using System.Reflection;
 
 namespace ASI.Basecode.Data.EFCore

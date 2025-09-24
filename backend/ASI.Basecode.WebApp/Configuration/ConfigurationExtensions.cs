@@ -1,4 +1,4 @@
-﻿using ASI.Basecode.WebApp.Models;
+using ASI.Basecode.WebApp.Models;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 

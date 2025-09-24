@@ -1,12 +1,14 @@
-﻿using ASI.Basecode.WebApp.Authentication;
-using ASI.Basecode.WebApp.Extensions.Configuration;
+﻿using ASI.Basecode.WebApp.Extensions.Configuration;
 using ASI.Basecode.Resources.Constants;
+using ASI.Basecode.WebApp.Services;
+using ASI.Basecode.Services.Interfaces;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
-using Microsoft.AspNetCore.Mvc.Authorization;
+using System;
+using System.Text;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace ASI.Basecode.WebApp
 {
@@ -15,37 +17,65 @@ namespace ASI.Basecode.WebApp
     {
         private readonly SymmetricSecurityKey _signingKey;
         private readonly TokenValidationParameters _tokenValidationParameters;
-        private readonly TokenProviderOptions _tokenProviderOptions;
 
         /// <summary>
         /// Configure authorization
         /// </summary>
+                // Updated ConfigureAuthorization method in StartupConfigurer
         private void ConfigureAuthorization()
         {
             var token = Configuration.GetTokenAuthentication();
-            var tokenProviderOptionsFactory = this._services.BuildServiceProvider().GetService<TokenProviderOptionsFactory>();
-            var tokenValidationParametersFactory = this._services.BuildServiceProvider().GetService<TokenValidationParametersFactory>();
-            var tokenValidationParameters = tokenValidationParametersFactory.Create();
+            var signingKey = new SymmetricSecurityKey(
+                Encoding.ASCII.GetBytes(token.SecretKey)
+            );
+            
+            var tokenValidationParameters = new TokenValidationParameters
+            {
+                ValidateIssuerSigningKey = true,
+                IssuerSigningKey = signingKey,
+                ValidateIssuer = true,
+                ValidIssuer = Const.Issuer,
+                ValidateAudience = true,
+                ValidAudience = token.Audience,
+                ValidateLifetime = true,
+                ClockSkew = TimeSpan.Zero
+            };
 
-            this._services.AddAuthentication(Const.AuthenticationScheme)
-            .AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, options =>
-            {
-                options.TokenValidationParameters = tokenValidationParameters;
-            })
-            .AddCookie(Const.AuthenticationScheme, options =>
-            {
-                options.Cookie = new CookieBuilder()
+            this._services.AddAuthentication(options =>
                 {
-                    IsEssential = true,
-                    SameSite = SameSiteMode.Lax,
-                    SecurePolicy = CookieSecurePolicy.SameAsRequest,
-                    Name = $"{this._environment.ApplicationName}_{token.CookieName}"
-                };
-                options.LoginPath = new PathString("/Account/Login");
-                options.AccessDeniedPath = new PathString("/html/Forbidden.html");
-                options.ReturnUrlParameter = "ReturnUrl";
-                options.TicketDataFormat = new CustomJwtDataFormat(SecurityAlgorithms.HmacSha256, _tokenValidationParameters, Configuration, tokenProviderOptionsFactory);
-            });
+                    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+                })
+                .AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, options =>
+                {
+                    options.TokenValidationParameters = tokenValidationParameters;
+                    options.SaveToken = true;
+                    options.Events = new JwtBearerEvents
+                    {
+                        OnMessageReceived = context =>
+                        {
+                            // Read token from Authorization header (for localStorage)
+                            var authHeader = context.Request.Headers["Authorization"].FirstOrDefault();
+                            if (!string.IsNullOrEmpty(authHeader) && authHeader.StartsWith("Bearer "))
+                            {
+                                context.Token = authHeader.Substring("Bearer ".Length).Trim();
+                            }
+                            
+                            // Fallback to cookie if needed
+                            if (string.IsNullOrEmpty(context.Token))
+                            {
+                                context.Token = context.Request.Cookies["accessToken"];
+                            }
+                            
+                            return Task.CompletedTask;
+                        },
+                        OnAuthenticationFailed = context =>
+                        {
+                            Console.WriteLine($"Authentication failed: {context.Exception.Message}");
+                            return Task.CompletedTask;
+                        }
+                    };
+                });
 
             this._services.AddAuthorization(options =>
             {
@@ -53,15 +83,18 @@ namespace ASI.Basecode.WebApp
                 {
                     policy.RequireAuthenticatedUser();
                 });
+                
+                // Optional: Add role-based policies
+                options.AddPolicy("Admin", policy => 
+                    policy.RequireRole("Admin"));
+                options.AddPolicy("User", policy => 
+                    policy.RequireRole("User", "Admin"));
             });
 
-            // Fucking bullshit nga line of code, kuwang nuon kog tug run adlawa giatay mani ui
-            this._services.AddMvc(options =>
-            {
-                // MUST be commented out. Probably legacy code from razor pages days
-                // Adds authentication to all mvc routes
-                // options.Filters.Add(new AuthorizeFilter("RequireAuthenticatedUser"));
-            });
+            // Register JWT service
+            this._services.AddScoped<IJwtService, JwtService>();
+
+            this._services.AddMvc();
         }
     }
 }

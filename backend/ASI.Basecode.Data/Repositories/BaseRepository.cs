@@ -8,7 +8,7 @@ using System;
 using System.Linq.Expressions;
 using System.Linq;
 
-namespace Basecode.Data.Repositories
+namespace ASI.Basecode.Data.Repositories
 {
     public class BaseRepository<T> : IReadRepository<T>
         where T : class

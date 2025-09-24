@@ -5,8 +5,10 @@ using ASI.Basecode.Services.Manager;
 using ASI.Basecode.Services.ServiceModels;
 using AutoMapper;
 using System;
+using System.Data.Entity;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using static ASI.Basecode.Resources.Constants.Enums;
 
 namespace ASI.Basecode.Services.Services
@@ -22,34 +24,71 @@ namespace ASI.Basecode.Services.Services
             _repository = repository;
         }
 
-        public LoginResult AuthenticateUser(string userId, string password, ref User user)
+        public async Task<LoginResult> AuthenticateUser(string userId, string password)
         {
-            user = new User();
             var passwordKey = PasswordManager.EncryptPassword(password);
-            user = _repository.GetUsers().Where(x => x.UserId == userId &&
-                                                     x.Password == passwordKey).FirstOrDefault();
+            var user = await _repository.GetUsers().Where(x => x.UserId == userId &&
+                                                     x.HashedPassword == passwordKey).FirstOrDefaultAsync();
 
             return user != null ? LoginResult.Success : LoginResult.Failed;
         }
 
-        public void AddUser(UserViewModel model)
+        public async Task<User> FetchUser(string userId)
         {
-            var user = new User();
-            if (!_repository.UserExists(model.UserId))
+            if (await _repository.UserExistsAsync(userId))
             {
-                _mapper.Map(model, user);
-                user.Password = PasswordManager.EncryptPassword(model.Password);
-                user.CreatedTime = DateTime.Now;
-                user.UpdatedTime = DateTime.Now;
-                user.CreatedBy = System.Environment.UserName;
-                user.UpdatedBy = System.Environment.UserName;
-
-                _repository.AddUser(user);
+                return await _repository.GetUserAsync(userId);
             }
             else
             {
                 throw new InvalidDataException(Resources.Messages.Errors.UserExists);
             }
+        }
+
+        public async Task RegisterUser(RegisterUserViewModel model)
+        {
+            ArgumentNullException.ThrowIfNull(model);
+            var user = new User();
+            if (await _repository.UserExistsAsync(model.UserId))
+            {
+                _mapper.Map(model, user);
+                user.HashedPassword = PasswordManager.EncryptPassword(model.Password);
+                await _repository.AddUserAsync(user);
+            }
+            else
+            {
+                throw new InvalidDataException(Resources.Messages.Errors.UserExists);
+            }
+        }
+
+        // Not an admin method
+        public async Task UpdateUser(RegisterUserViewModel model)
+        {
+            ArgumentNullException.ThrowIfNull(model);
+
+            var existingUser = await _repository.GetUserAsync(model.UserId);    // Fetch the existing user to preserve current password if not updating
+            var userToUpdate = _mapper.Map<User>(model);    // Map the view model to a new user entity
+
+            // Password update logic
+            if (!string.IsNullOrWhiteSpace(model.Password))
+            {
+                userToUpdate.HashedPassword = PasswordManager.EncryptPassword(model.Password);
+            }
+            else
+            {
+                userToUpdate.HashedPassword = existingUser.HashedPassword;
+            }
+            await _repository.UpdateUserAsync(userToUpdate);
+        }
+
+        public async Task DeleteUser(string userId)
+        {
+            if (!await _repository.UserExistsAsync(userId))
+            {
+                throw new InvalidDataException("User not found.");
+            }
+
+            await _repository.DeleteUserByIdAsync(userId);
         }
     }
 }

@@ -1,4 +1,4 @@
-﻿namespace ASI.Basecode.WebApp.Models
+namespace ASI.Basecode.WebApp.Models
 {
     /// <summary>
     /// Token Authentication

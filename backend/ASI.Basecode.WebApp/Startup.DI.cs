@@ -5,7 +5,6 @@ using ASI.Basecode.Data.Repositories;
 using ASI.Basecode.Services.Interfaces;
 using ASI.Basecode.Services.ServiceModels;
 using ASI.Basecode.Services.Services;
-using ASI.Basecode.WebApp.Authentication;
 using ASI.Basecode.WebApp.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
@@ -28,9 +27,6 @@ namespace ASI.Basecode.WebApp
             this._services.TryAddSingleton<IActionContextAccessor, ActionContextAccessor>();
 
             // Common
-            this._services.AddScoped<TokenProvider>();
-            this._services.TryAddSingleton<TokenProviderOptionsFactory>();
-            this._services.TryAddSingleton<TokenValidationParametersFactory>();
             this._services.AddScoped<IUnitOfWork>(provider =>
             {
                 var context = provider.GetRequiredService<AsiBasecodeDBContext>();
@@ -38,7 +34,6 @@ namespace ASI.Basecode.WebApp
             });
 
             // Services
-            this._services.TryAddSingleton<TokenValidationParametersFactory>();
             this._services.AddScoped<IUserService, UserService>();
           
 
@@ -47,8 +42,6 @@ namespace ASI.Basecode.WebApp
 
 
             // Manager Class
-            this._services.AddScoped<SignInManager>();
-
             this._services.AddHttpClient();
         }
     }
