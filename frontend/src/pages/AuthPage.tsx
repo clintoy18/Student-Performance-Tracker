@@ -3,15 +3,34 @@ import Button from '../components/common/Button';
 import { useState } from 'react';
 import LoginForm from '../components/auth/LoginForm';
 import RegisterForm from '../components/auth/RegisterForm';
+import { useAuth } from '../context/AuthContext';
 
 type AuthAction = 'signIn' | 'signUp';
 
 const AuthPage: React.FC = () => {
-    const [authAction, setAuthAction] = useState<AuthAction>('signIn');
+    const { handleLogin, handleFetchUser } = useAuth();
+  const [authAction, setAuthAction] = useState<AuthAction>('signIn');
+  const [loginError, setLoginError] = useState<string | null>(null);
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
 
-    const handleAction = (action: AuthAction): void => {
-        setAuthAction(action);
-    };
+  const handleLoginSubmit = async (credentials: { userId: string; password: string }) => {
+    setIsLoggingIn(true);
+    setLoginError(null);
+    try {
+      await handleLogin(credentials);
+      await handleFetchUser(); // refresh user in context
+      // ✅ Optionally redirect if using React Router
+    } catch (err) {
+      setLoginError('Invalid User ID or password.');
+    } finally {
+      setIsLoggingIn(false);
+    }
+  };
+
+  const handleAction = (action: AuthAction) => {
+    setAuthAction(action);
+    setLoginError(null); // clear error when switching tabs
+  };
 
     const getButtonStyle = (action: AuthAction) => {
         return authAction === action
@@ -49,7 +68,15 @@ const AuthPage: React.FC = () => {
                 </div>
 
                 {/* Form */}
-                {authAction === 'signIn' ? <LoginForm /> : <RegisterForm />}
+                {authAction === 'signIn' ? (
+                    <LoginForm
+                        onLogin={handleLoginSubmit}
+                        isLoading={isLoggingIn}
+                        error={loginError}
+                    />
+                ): (
+                    <RegisterForm />
+                )}
             </div>
 
             {/* Info Section */}

@@ -9,6 +9,7 @@ interface InputFieldProps {
   placeholder?: string;
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   disabled?: boolean; // ✅ renamed to match input attribute
+  required?: boolean
 }
 
 const TextInputField: React.FC<InputFieldProps> = ({
@@ -19,6 +20,7 @@ const TextInputField: React.FC<InputFieldProps> = ({
   placeholder,
   onChange,
   disabled = false, // ✅ default false
+  required = false
 }) => {
   const [isVisible, setIsVisible] = useState(false);
 
@@ -58,6 +60,7 @@ const TextInputField: React.FC<InputFieldProps> = ({
           placeholder={placeholder}
           onChange={onChange}
           disabled={disabled}
+          required={required}
         />
       </div>
     </div>
