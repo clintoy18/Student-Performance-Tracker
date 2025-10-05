@@ -12,6 +12,10 @@ export const loginUser = async (credentials: ILoginRequest) => {
     return response.data;
   };
 
+export const logoutUser = async () => {
+  sessionStorage.removeItem('accessToken')
+}
+
 export const registerStudent = async(userData: IRegisterRequest) => {
     const response = await auth.post('/register', userData);
     return response.data;
@@ -20,4 +24,10 @@ export const registerStudent = async(userData: IRegisterRequest) => {
 export const fetchUser = async() => {
     const response = await auth.get('/me')
     return response.data
+}
+
+export const isAccessTokenInSession = () => {
+  const token = sessionStorage.getItem('accessToken') 
+  if (token) return true
+  else return false
 }

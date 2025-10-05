@@ -1,5 +1,11 @@
 import { createContext, useContext, useState, useEffect } from "react";
-import { loginUser, registerStudent, fetchUser } from "@services";
+import {
+  loginUser,
+  logoutUser,
+  isAccessTokenInSession,
+  registerStudent,
+  fetchUser,
+} from "@services";
 import type { IAuthContext, ILoginRequest, IUser } from "@interfaces";
 
 type TNullableUser = IUser | null;
@@ -12,33 +18,48 @@ export const AuthProvider = ({ children }) => {
 
   const handleFetchUser = async () => {
     try {
-      const response = await fetchUser();
-      setUser(response.data);
-      return true;
+      const data = await fetchUser();
+      const transformedUser: IUser = {
+        UserId: data.userId,
+        FirstName: data.firstName,
+        LastName: data.lastName,
+        Role: data.role,
+        MiddleName: "",
+        Program: "",
+        CreatedTime: "",
+      };
+      setUser(transformedUser);
+      return transformedUser;
     } catch (error) {
       console.error("Failed to fetch user: ", error);
       setUser(null);
-      throw error;
+      return null;
     }
   };
 
   const handleLogin = async (credentials: ILoginRequest) => {
     try {
       await loginUser(credentials);
+      await handleFetchUser();
     } catch (error) {
       console.error("Failed to login user: ", error);
     }
   };
 
+  const handleLogout = () => {
+    logoutUser();
+    setUser(null);
+  };
+
   useEffect(() => {
     const checkAuth = async () => {
-      try {
+      const isToken = isAccessTokenInSession();
+      if (isToken) {
         await handleFetchUser();
-      } catch (err) {
-        throw err;
-      } finally {
-        setIsLoading(false);
+      } else {
+        setUser(null);
       }
+      setIsLoading(false);
     };
 
     checkAuth();
@@ -47,8 +68,9 @@ export const AuthProvider = ({ children }) => {
   const contextValue: IAuthContext = {
     handleFetchUser,
     handleLogin,
+    handleLogout,
     user,
-    isLoading
+    isLoading,
   };
 
   return (

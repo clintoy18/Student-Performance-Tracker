@@ -1,13 +1,14 @@
 import axios from 'axios'
 
-const baseUrl = 'https://localhost:54926/api'
+const baseUrl = 'http://localhost:54927' // url sa backend
+const apiUrl = `${baseUrl}/api`
 
 export const api = axios.create({
-    baseURL: baseUrl   // url sa backend
+    baseURL: apiUrl  
 })
 
 export const auth = axios.create({
-    baseURL: `${baseUrl}/auth/`
+    baseURL: `${apiUrl}/auth`
 })
 
 auth.interceptors.request.use((config) => {
