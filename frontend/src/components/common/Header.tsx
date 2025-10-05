@@ -1,12 +1,15 @@
 import { GraduationCap, User, LogOut } from "lucide-react";
+import { useAuth } from "../../context/AuthContext";
 import Button from "./Button";
 
 const Header = () => {
   const name = "James Walker";
   const role = "Teacher";
 
-  const handleLogout = () => {
-    // TODO: Hook into your auth/logout logic
+  const { handleLogout } = useAuth()
+
+  const handleLogoutHandler = () => {
+    handleLogout()
     console.log("Logging out...");
   };
 
@@ -39,7 +42,7 @@ const Header = () => {
 
         {/* Sign Out Button */}
         <Button
-          onClick={handleLogout}
+          onClick={handleLogoutHandler}
           label="Sign out"
           icon={<LogOut className="w-4 h-4" />}
           iconPosition="right"

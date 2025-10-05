@@ -22,8 +22,8 @@ namespace ASI.Basecode.WebApp.Models
         /// </summary>
         public string CookieName { get; set; }
         /// <summary>
-        /// Gets or sets the expiration minutes.
+        /// Gets or sets the expiration hours.
         /// </summary>
-        public int ExpirationMinutes { get; set; }
+        public int ExpirationHours { get; set; }
     }
 }

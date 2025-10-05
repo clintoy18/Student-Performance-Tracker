@@ -88,7 +88,7 @@ namespace ASI.Basecode.WebApp.Extensions.Configuration
                 Audience = configuration.GetSection("TokenAuthentication:Audience").Value,
                 TokenPath = configuration.GetSection("TokenAuthentication:TokenPath").Value,
                 CookieName = configuration.GetSection("TokenAuthentication:CookieName").Value,
-                ExpirationMinutes = int.Parse(configuration.GetSection("TokenAuthentication:ExpirationMinutes").Value)
+                ExpirationHours = int.Parse(configuration.GetSection("TokenAuthentication:ExpirationHours").Value)
             };
         }
     }

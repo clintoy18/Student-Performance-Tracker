@@ -6,12 +6,13 @@ using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using System.Collections.Generic;
-using static ASI.Basecode.Resources.Constants.Enums;
 using ASI.Basecode.Data.Models;
 using Microsoft.Extensions.Options;
 using ASI.Basecode.Resources.Constants;
 using System.IO;
 using System.Linq;
+using System;
+using static ASI.Basecode.Resources.Constants.Enums;
 
 namespace ASI.Basecode.WebApp.Controllers
 {
@@ -28,6 +29,18 @@ namespace ASI.Basecode.WebApp.Controllers
             _userService = userService;
         }
 
+        /// <summary>
+        /// Authenticates a user and returns a JWT access token.
+        /// </summary>
+        /// <param name="request">The login credentials containing UserId and Password.</param>
+        /// <returns>
+        /// Returns a 200 OK with a JWT token and user info if credentials are valid.
+        /// Returns 400 Bad Request if the request is malformed.
+        /// Returns 401 Unauthorized if credentials are invalid.
+        /// </returns>
+        /// <response code="200">Login successful. Returns token and user details.</response>
+        /// <response code="400">Invalid request format or missing fields.</response>
+        /// <response code="401">Invalid UserId or password.</response>
         [HttpPost("login")]
         public IActionResult Login([FromBody] LoginRequest request)
         {
@@ -52,7 +65,7 @@ namespace ASI.Basecode.WebApp.Controllers
                     return Unauthorized(new { message = "User not found" });
                 }
 
-                var token = _jwtService.GenerateToken(user.LastName, user.Role);
+                var token = _jwtService.GenerateToken(user.UserId, user.Role);
 
                 return Ok(new LoginResponse
                 {
@@ -71,6 +84,18 @@ namespace ASI.Basecode.WebApp.Controllers
             }
         }
         
+        /// <summary>
+        /// Registers a new user in the system.
+        /// </summary>
+        /// <param name="request">User registration data including UserId, name, password, and program.</param>
+        /// <returns>
+        /// Returns 200 OK if user is registered successfully.
+        /// Returns 400 Bad Request if UserId already exists or model validation fails.
+        /// Returns 500 Internal Server Error for unexpected failures.
+        /// </returns>
+        /// <response code="200">User registered successfully.</response>
+        /// <response code="400">UserId already exists or invalid input data.</response>
+        /// <response code="500">Internal server error during registration.</response>
         [HttpPost("register")]
         public IActionResult Register([FromBody] RegisterUserViewModel request)
         {
@@ -104,6 +129,58 @@ namespace ASI.Basecode.WebApp.Controllers
             {
                 return StatusCode(500, new { message = "An internal server error has occurred." });
             }
+        }
+
+        /// <summary>
+        /// Retrieves the profile of the currently authenticated user based on the provided JWT token.
+        /// </summary>
+        /// <returns>
+        /// Returns 200 OK with user details (UserId, FirstName, LastName, Role) if token is valid.
+        /// Returns 401 Unauthorized if token is missing, invalid, expired, or user not found.
+        /// </returns>
+        /// <response code="200">User profile retrieved successfully.</response>
+        /// <response code="401">Missing, invalid, or expired token; or user not found.</response>
+        [HttpGet("me")]
+        public IActionResult GetCurrentUser()
+        {
+            // Get token from Authorization header: "Bearer <token>"
+            var authHeader = Request.Headers["Authorization"].FirstOrDefault();
+            
+            if (string.IsNullOrEmpty(authHeader) || !authHeader.StartsWith("Bearer "))
+            {
+                return Unauthorized(new { message = "Missing or invalid authorization header." });
+            }
+
+            var token = authHeader["Bearer ".Length..].Trim();
+
+            // Validate token
+            var claimsPrincipal = _jwtService.ValidateToken(token);
+            if (claimsPrincipal == null)
+            {
+                return Unauthorized(new { message = "Invalid or expired token." });
+            }
+
+            var userId = claimsPrincipal.FindFirst(ClaimTypes.NameIdentifier)?.Value; // exxtract userId from claims principal
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Unauthorized(new { message = "Token missing user identifier." });
+            }
+
+            // Optional: Fetch full user from DB (if needed)
+            var user = _userService.FetchUser(userId);
+            if (user == null)
+            {
+                return Unauthorized(new { message = "User not found." });
+            }
+
+            // Return user info (safe subset)
+            return Ok(new
+            {
+                user.UserId,
+                user.FirstName,
+                user.LastName,
+                Role = user.Role.ToString()
+            });
         }
     }
 }

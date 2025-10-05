@@ -22,7 +22,7 @@ namespace ASI.Basecode.WebApp.Services
             _configuration = configuration;
         }
 
-        public string GenerateToken(string username, Enums.UserRoles role)
+        public string GenerateToken(string userId, Enums.UserRoles role)
         {
             var tokenConfig = _configuration.GetSection("TokenAuthentication");
             var secretKey = tokenConfig["SecretKey"];
@@ -35,7 +35,7 @@ namespace ASI.Basecode.WebApp.Services
 
             var claims = new List<Claim>
             {
-                new Claim(ClaimTypes.Name, username),
+                new Claim(ClaimTypes.NameIdentifier, userId),
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
                 new Claim(ClaimTypes.Role, role.ToString())
             };

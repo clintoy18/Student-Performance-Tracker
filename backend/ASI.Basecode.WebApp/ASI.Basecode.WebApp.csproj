@@ -4,6 +4,8 @@
     <TargetFramework>net9.0</TargetFramework>
     <TypeScriptToolsVersion>4.4</TypeScriptToolsVersion>
     <UserSecretsId>872bac6a-ed64-4226-a559-064bd37b166e</UserSecretsId>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);1591</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
@@ -43,6 +45,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="wwwroot\img\" />
+    <Folder Include="wwwroot\" />
   </ItemGroup>
 </Project>

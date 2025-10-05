@@ -35,7 +35,7 @@ namespace ASI.Basecode.WebApp
 
             // Services
             this._services.AddScoped<IUserService, UserService>();
-          
+
 
             // Repositories
             this._services.AddScoped<IUserRepository, UserRepository>();
@@ -43,6 +43,26 @@ namespace ASI.Basecode.WebApp
 
             // Manager Class
             this._services.AddHttpClient();
+
+            
+            // Add CORS services
+            this._services.AddCors(options =>
+            {
+                options.AddPolicy("AllowSpecificOrigin", policy =>
+                {
+                    policy.WithOrigins("http://localhost:5173")
+                        .AllowAnyHeader()
+                        .AllowAnyMethod();
+                });
+                
+                // Add other policies as needed
+                options.AddPolicy("AllowDevelopment", policy =>
+                {
+                    policy.AllowAnyOrigin()
+                        .AllowAnyHeader()
+                        .AllowAnyMethod();
+                });
+            });
         }
     }
 }

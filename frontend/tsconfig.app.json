@@ -16,12 +16,19 @@
     "jsx": "react-jsx",
 
     /* Linting */
-    "strict": true,
+    // "strict": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     // "erasableSyntaxOnly": true,
     "noFallthroughCasesInSwitch": true,
-    "noUncheckedSideEffectImports": true
+    "noUncheckedSideEffectImports": true,
+    "baseUrl": "./src",
+    "paths": {
+      "@interfaces": ["./interfaces"],
+      "@interfaces/*": ["./interfaces/*"],
+      "@services": ["./services"],
+      "@services/*": ["./services/*"],
+    }
   },
   "include": ["src"]
 }

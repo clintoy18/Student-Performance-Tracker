@@ -21,7 +21,7 @@ namespace ASI.Basecode.WebApp
         /// <summary>
         /// Configure authorization
         /// </summary>
-                // Updated ConfigureAuthorization method in StartupConfigurer
+        // Updated ConfigureAuthorization method in StartupConfigurer
         private void ConfigureAuthorization()
         {
             var token = Configuration.GetTokenAuthentication();

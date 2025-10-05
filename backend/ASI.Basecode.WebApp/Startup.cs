@@ -114,6 +114,12 @@ namespace ASI.Basecode.WebApp
                         new string[] {}
                     }
                 });
+                var xmlFile = $"{System.Reflection.Assembly.GetExecutingAssembly().GetName().Name}.xml";
+                var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+                if (File.Exists(xmlPath))
+                {
+                    c.IncludeXmlComments(xmlPath);
+                }
             });
 
             // DI Services AutoMapper(Add Profile)
@@ -152,7 +158,11 @@ namespace ASI.Basecode.WebApp
 
             this.ConfigureLogger();
 
-            this._app.UseHttpsRedirection();
+            if (!this._environment.IsDevelopment())
+            {
+                this._app.UseHttpsRedirection();
+            }
+            
             // this._app.UseStaticFiles();      // Not needed I think
 
             // Enable Swagger middleware
@@ -167,6 +177,8 @@ namespace ASI.Basecode.WebApp
             var options = this._app.ApplicationServices.GetService<IOptions<RequestLocalizationOptions>>();
             this._app.UseRequestLocalization(options.Value);
 
+            // Add CORS middleware HERE (before UseRouting)
+            this._app.UseCors("AllowSpecificOrigin");
             this._app.UseRouting();
 
             this._app.UseAuthentication();
