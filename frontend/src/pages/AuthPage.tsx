@@ -9,10 +9,12 @@ import { useNavigate } from "react-router-dom";
 type AuthAction = "signIn" | "signUp";
 
 const AuthPage: React.FC = () => {
-  const { handleLogin } = useAuth();
+  const { handleLogin, handleRegister } = useAuth();
   const [authAction, setAuthAction] = useState<AuthAction>("signIn");
   const [loginError, setLoginError] = useState<string | null>(null);
+  const [registerError, setRegisterError] = useState<string | null>(null);
   const [isLoggingIn, setIsLoggingIn] = useState(false);
+  const [isRegistering, setIsRegistering] = useState(false);
   const navigate = useNavigate();
 
   const handleLoginSubmit = async (credentials: {
@@ -25,15 +27,43 @@ const AuthPage: React.FC = () => {
       await handleLogin(credentials);
       navigate("/home");
     } catch (err) {
-      setLoginError("Invalid User ID or password.");
+      if (err?.response?.data?.message) {
+        setRegisterError(err.response.data.message);
+      } else if (err?.message) {
+        setRegisterError(err.message);
+      } else {
+        setRegisterError("Login failed. Please try again.");
+      }
     } finally {
       setIsLoggingIn(false);
     }
   };
 
+  const handleRegisterSubmit = async (credentials: any) => {
+    setIsRegistering(true);
+    setRegisterError(null);
+    try {
+      await handleRegister(credentials);
+      // After successful registration, navigate to home
+      navigate("/home");
+    } catch (err: any) {
+      // Handle different error types
+      if (err?.response?.data?.message) {
+        setRegisterError(err.response.data.message);
+      } else if (err?.message) {
+        setRegisterError(err.message);
+      } else {
+        setRegisterError("Registration failed. Please try again.");
+      }
+    } finally {
+      setIsRegistering(false);
+    }
+  };
+
   const handleAction = (action: AuthAction) => {
     setAuthAction(action);
-    setLoginError(null); // clear error when switching tabs
+    setLoginError(null);
+    setRegisterError(null);
   };
 
   const getButtonStyle = (action: AuthAction) => {
@@ -83,7 +113,11 @@ const AuthPage: React.FC = () => {
             error={loginError}
           />
         ) : (
-          <RegisterForm />
+          <RegisterForm
+            onRegister={handleRegisterSubmit}
+            isLoading={isRegistering}
+            error={registerError}
+          />
         )}
       </div>
 

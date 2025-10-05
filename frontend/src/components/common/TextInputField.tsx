@@ -10,6 +10,7 @@ interface InputFieldProps {
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   disabled?: boolean; // ✅ renamed to match input attribute
   required?: boolean
+  error?: string // For form errors
 }
 
 const TextInputField: React.FC<InputFieldProps> = ({
@@ -20,9 +21,19 @@ const TextInputField: React.FC<InputFieldProps> = ({
   placeholder,
   onChange,
   disabled = false, // ✅ default false
-  required = false
+  required = false,
+  error
 }) => {
   const [isVisible, setIsVisible] = useState(false);
+
+  // Determine border color based on error state
+  const borderColor = error 
+    ? "border-red-500" 
+    : "border-gray-300";
+
+  const focusRingColor = error 
+    ? "focus:ring-red-500" 
+    : "focus:ring-blue-500";
 
   const handleToggle = () => {
     setIsVisible((prevState) => !prevState);
@@ -51,8 +62,9 @@ const TextInputField: React.FC<InputFieldProps> = ({
 
         {/* Input field */}
         <input
-          className="w-full text-sm py-2 px-4 bg-transparent border border-gray-300 rounded-md 
-                     focus:outline-none focus:ring-2 focus:ring-blue-500 font-sans disabled:bg-gray-100 disabled:cursor-not-allowed"
+          className={`w-full text-sm py-2 px-4 bg-transparent border rounded-md 
+            focus:outline-none focus:ring-2 ${focusRingColor} font-sans 
+            disabled:bg-gray-100 disabled:cursor-not-allowed ${borderColor}`}
           id={id}
           type={isVisible && type === "password" ? "text" : type}
           name={id}
@@ -62,6 +74,17 @@ const TextInputField: React.FC<InputFieldProps> = ({
           disabled={disabled}
           required={required}
         />
+
+        {/* Error message */}
+        {error && (
+          <p 
+            id={`${id}-error`}
+            className="mt-1 text-xs text-red-600 font-sans"
+          >
+            {error}
+          </p>
+        )}
+
       </div>
     </div>
   );

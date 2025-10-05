@@ -6,7 +6,7 @@ import {
   registerStudent,
   fetchUser,
 } from "@services";
-import type { IAuthContext, ILoginRequest, IUser } from "@interfaces";
+import type { IAuthContext, ILoginRequest, IRegisterRequest, IUser } from "@interfaces";
 
 type TNullableUser = IUser | null;
 
@@ -14,7 +14,7 @@ export const AuthContext = createContext<IAuthContext | undefined>(undefined);
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState<TNullableUser>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
 
   const handleFetchUser = async () => {
     try {
@@ -46,6 +46,19 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const handleRegister = async (credentials: IRegisterRequest) => {
+    try {
+      await registerStudent(credentials)
+      const loginCredentials: ILoginRequest = {
+        userId: credentials.userId,
+        password: credentials.password
+      }
+      await handleLogin(loginCredentials)
+    } catch (error) {
+      console.error("Failed to register user: ", error)
+    }
+  }
+
   const handleLogout = () => {
     logoutUser();
     setUser(null);
@@ -59,7 +72,7 @@ export const AuthProvider = ({ children }) => {
       } else {
         setUser(null);
       }
-      setIsLoading(false);
+      setIsLoading(false)
     };
 
     checkAuth();
@@ -69,6 +82,7 @@ export const AuthProvider = ({ children }) => {
     handleFetchUser,
     handleLogin,
     handleLogout,
+    handleRegister,
     user,
     isLoading,
   };
