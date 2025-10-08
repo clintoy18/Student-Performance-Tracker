@@ -46,7 +46,7 @@ namespace ASI.Basecode.Data.Repositories
 
         public void DeleteUserById(string userId)
         {
-            var user = GetDbSet<User>().Find(userId);
+            var user = GetDbSet<User>().FirstOrDefault(u => u.UserId = userId);
             GetDbSet<User>().Remove(user);
             UnitOfWork.SaveChanges();
         }

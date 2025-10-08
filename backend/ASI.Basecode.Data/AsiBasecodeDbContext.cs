@@ -153,7 +153,7 @@ namespace ASI.Basecode.Data
                     .IsUnicode(false);
 
                 entity.Property(e => e.StudentCourseId)
-                    .IsRequired()
+                    .IsRequired(false)
                     .HasMaxLength(50);
 
                 // Relationships
@@ -167,7 +167,7 @@ namespace ASI.Basecode.Data
                     .WithMany()
                     .HasForeignKey(gf => gf.StudentCourseId)
                     .HasPrincipalKey(u => u.StudentCourseId)
-                    .OnDelete(DeleteBehavior.Cascade);
+                    .OnDelete(DeleteBehavior.ClientSetNull);
             });
 
             OnModelCreatingPartial(modelBuilder);
