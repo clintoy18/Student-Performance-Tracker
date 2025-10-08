@@ -3,7 +3,7 @@ using System.Linq;
 
 namespace ASI.Basecode.Data.Interfaces
 {
-    public interface IGradeFeedback
+    public interface IGradeFeedbackRepository
     {
         public IQueryable<GradeFeedback> GetGradeFeedbacks();
 

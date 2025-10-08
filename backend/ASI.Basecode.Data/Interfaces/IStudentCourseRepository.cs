@@ -5,7 +5,7 @@ namespace ASI.Basecode.Data.Interfaces
 {
     public interface IStudentCourseRepository
     {
-        public IQueryable<StudentCourse> GetStudentCourse();
+        public IQueryable<StudentCourse> GetStudentCourses();
 
         public StudentCourse GetStudentCourse(string studentCourseId);
 

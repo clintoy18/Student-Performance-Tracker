@@ -45,7 +45,7 @@ namespace ASI.Basecode.Data.Repositories
 
         public void DeleteStudentCourseByStudentCourseId(string studentCourseId)
         {
-            var studentCourse = GetDbSet<StudentCourse>().FirstOrDefault(sc => sc.StudentCourseId = studentCourseId);
+            var studentCourse = GetDbSet<StudentCourse>().FirstOrDefault(sc => sc.StudentCourseId == studentCourseId);
             GetDbSet<StudentCourse>().Remove(studentCourse);
             UnitOfWork.SaveChanges();
         }

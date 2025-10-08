@@ -22,7 +22,9 @@ namespace ASI.Basecode.Data.Repositories
 
         public User GetUser(string userId)
         {
-            return GetDbSet<User>().FirstOrDefault(u => u.UserId == userId);
+            var user = GetDbSet<User>().FirstOrDefault(u => u.UserId == userId);
+            ArgumentNullException.ThrowIfNull(user);
+            return user;
         }
 
         public bool UserExists(string userId)
@@ -46,7 +48,7 @@ namespace ASI.Basecode.Data.Repositories
 
         public void DeleteUserById(string userId)
         {
-            var user = GetDbSet<User>().FirstOrDefault(u => u.UserId = userId);
+            var user = GetDbSet<User>().FirstOrDefault(u => u.UserId == userId);
             GetDbSet<User>().Remove(user);
             UnitOfWork.SaveChanges();
         }

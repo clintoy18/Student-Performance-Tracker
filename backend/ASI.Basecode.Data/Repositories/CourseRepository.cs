@@ -12,7 +12,6 @@ namespace ASI.Basecode.Data.Repositories
     {
         public CourseRepository(IUnitOfWork unitOfWork) : base(unitOfWork)
         {
-
         }
 
         public IQueryable<Course> GetCourses()
@@ -46,7 +45,7 @@ namespace ASI.Basecode.Data.Repositories
 
         public void DeleteCourseByCourseCode(string courseCode)
         {
-            var course = GetDbSet<Course>().FirstOrDefault(c => c.CourseCode = courseCode);
+            var course = GetDbSet<Course>().FirstOrDefault(c => c.CourseCode == courseCode);
             GetDbSet<Course>().Remove(course);
             UnitOfWork.SaveChanges();
         }

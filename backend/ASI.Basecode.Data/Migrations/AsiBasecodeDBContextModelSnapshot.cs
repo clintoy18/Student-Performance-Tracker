@@ -62,7 +62,7 @@ namespace ASI.Basecode.Data.Migrations
                     b.HasIndex(new[] { "CourseCode" }, "UQ__Courses__CourseCode")
                         .IsUnique();
 
-                    b.ToTable("Courses");
+                    b.ToTable("Courses", (string)null);
                 });
 
             modelBuilder.Entity("ASI.Basecode.Data.Models.GradeFeedback", b =>
@@ -98,7 +98,7 @@ namespace ASI.Basecode.Data.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("GradeFeedbacks");
+                    b.ToTable("GradeFeedbacks", (string)null);
                 });
 
             modelBuilder.Entity("ASI.Basecode.Data.Models.StudentCourse", b =>
@@ -139,7 +139,7 @@ namespace ASI.Basecode.Data.Migrations
                     b.HasIndex(new[] { "StudentCourseId" }, "UQ__StudentCourses__StudentCourseId")
                         .IsUnique();
 
-                    b.ToTable("StudentCourses");
+                    b.ToTable("StudentCourses", (string)null);
                 });
 
             modelBuilder.Entity("ASI.Basecode.Data.Models.User", b =>
@@ -194,7 +194,7 @@ namespace ASI.Basecode.Data.Migrations
                     b.HasIndex(new[] { "UserId" }, "UQ__Users__1788CC4D5F4A160F")
                         .IsUnique();
 
-                    b.ToTable("Users");
+                    b.ToTable("Users", (string)null);
                 });
 
             modelBuilder.Entity("ASI.Basecode.Data.Models.Course", b =>
