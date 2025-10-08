@@ -2,8 +2,8 @@ command to update dotnet ef:
 dotnet tool update --global dotnet-ef
 
 run migrations:
-1. cd backend/ASI.Basecode.Data
-2. dotnet ef migrations add <MigrationName>
+1. cd backend/ASI.Basecode.WebApp
+2. dotnet ef migrations add <MigrationName> --project ../ASI.Basecode.Data
 3. dotnet ef database update
 
 IF MIGRATIONS DONT WORK!
@@ -13,6 +13,5 @@ IF MIGRATIONS DONT WORK!
 -To match version, do:
 1. dotnet tool uninstall --global dotnet-ef
 2. dotnet tool install --global dotnet-ef --version 9.0.6
-=It could also be because you're not migrating in the right directory
--You must be in: backend/ASI.Basecode.WebApp
-=If nothing else works, try to migrate in Visual Studio Nuget console
+
+=> Make sure you're migrating at the right folder! ASI.Basecode.WebApp

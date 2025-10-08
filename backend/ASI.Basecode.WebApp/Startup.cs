@@ -84,8 +84,8 @@ namespace ASI.Basecode.WebApp
             services.AddDbContext<AsiBasecodeDBContext>(options =>
                 options
                     .UseSqlServer(
-                        Configuration.GetConnectionString("DefaultConnection"),
-                        b => b.MigrationsAssembly("ASI.Basecode.WebApp")
+                        Configuration.GetConnectionString("DefaultConnection")
+                        // b => b.MigrationsAssembly("ASI.Basecode.WebApp")
                     )
             );
 
