@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace ASI.Basecode.Data.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class InitialCreate3 : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -92,7 +92,7 @@ namespace ASI.Basecode.Data.Migrations
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Feedback = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: false),
-                    StudentCourseId = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    StudentCourseId = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
                     UserId = table.Column<string>(type: "varchar(50)", unicode: false, maxLength: 50, nullable: true),
                     CreatedTime = table.Column<DateTime>(type: "datetime", nullable: false, defaultValueSql: "GETDATE()")
                 },
@@ -103,8 +103,7 @@ namespace ASI.Basecode.Data.Migrations
                         name: "FK_GradeFeedbacks_StudentCourses_StudentCourseId",
                         column: x => x.StudentCourseId,
                         principalTable: "StudentCourses",
-                        principalColumn: "StudentCourseId",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "StudentCourseId");
                     table.ForeignKey(
                         name: "FK_GradeFeedbacks_Users_UserId",
                         column: x => x.UserId,

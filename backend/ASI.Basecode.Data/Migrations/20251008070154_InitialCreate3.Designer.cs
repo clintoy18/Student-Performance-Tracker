@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ASI.Basecode.Data.Migrations
 {
     [DbContext(typeof(AsiBasecodeDBContext))]
-    [Migration("20251008053940_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20251008070154_InitialCreate3")]
+    partial class InitialCreate3
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -87,7 +87,6 @@ namespace ASI.Basecode.Data.Migrations
                         .HasColumnType("nvarchar(1000)");
 
                     b.Property<string>("StudentCourseId")
-                        .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
@@ -217,9 +216,7 @@ namespace ASI.Basecode.Data.Migrations
                     b.HasOne("ASI.Basecode.Data.Models.StudentCourse", "StudentCourse")
                         .WithMany()
                         .HasForeignKey("StudentCourseId")
-                        .HasPrincipalKey("StudentCourseId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasPrincipalKey("StudentCourseId");
 
                     b.HasOne("ASI.Basecode.Data.Models.User", "User")
                         .WithMany()

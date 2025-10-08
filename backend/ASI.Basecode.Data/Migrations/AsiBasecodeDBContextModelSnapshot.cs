@@ -84,7 +84,6 @@ namespace ASI.Basecode.Data.Migrations
                         .HasColumnType("nvarchar(1000)");
 
                     b.Property<string>("StudentCourseId")
-                        .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
@@ -214,9 +213,7 @@ namespace ASI.Basecode.Data.Migrations
                     b.HasOne("ASI.Basecode.Data.Models.StudentCourse", "StudentCourse")
                         .WithMany()
                         .HasForeignKey("StudentCourseId")
-                        .HasPrincipalKey("StudentCourseId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasPrincipalKey("StudentCourseId");
 
                     b.HasOne("ASI.Basecode.Data.Models.User", "User")
                         .WithMany()
