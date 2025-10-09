@@ -6,41 +6,40 @@ const LoginForm = ({ onLogin, isLoading = false, error = null }) => {
   const [userId, setUserId] = useState('')
   const [password, setPassword] = useState('')
 
-  // Handle form submission
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onLogin({ userId, password });
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 w-full">
-      {/* Email Field */}
+    <form onSubmit={handleSubmit} className="">
       <TextInputField
         id="userId"
         label="User ID"
         value={userId}
         onChange={(e) => setUserId(e.target.value)}
-        placeholder="e.g. jdoe123"
-        required={true}
+        placeholder="Enter your user ID"
+        required
       />
 
-      {/* Password Field */}
       <TextInputField
         id="password"
         label="Password"
         type="password"
         value={password}
         onChange={(e) => setPassword(e.target.value)}
-        placeholder="••••••••"
-        required={true}
+        placeholder="Enter your password"
+        required
       />
 
-      {error && <p className="text-red-500 text-sm">{error}</p>}
-      {/* Submit Button */}
+      {error && (
+        <p className="text-red-600 text-sm">{error}</p>
+      )}
+      
       <Button
-        className='text-lg bg-black text-white p-2 rounded-sm'
+        className="w-full bg-gray-900 text-white py-3 rounded hover:bg-gray-800 disabled:opacity-50"
         label={isLoading ? 'Signing in...' : 'Sign in'}
-        type="submit" // Only 'type="submit"' needed for form submission
+        type="submit"
         disabled={isLoading}
       />
     </form>

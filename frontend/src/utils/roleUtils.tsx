@@ -2,6 +2,7 @@ import Profile from '../components/dashboard/Profile';
 import Overview from '../components/dashboard/student/Overview';
 import AdminOverView from '../components/dashboard/admin/AdminOverview';
 import Subjects from '../components/dashboard/admin/Subjects';
+import UserTable from '../components/dashboard/user-management/Table';
 
 export type Role = 'Student' | 'Teacher' | 'Admin';
 
@@ -21,7 +22,7 @@ export const teacherTabs = [
 
 export const adminTabs = [
     { label: "Overview", content: <AdminOverView /> },
-    { label: "Users", content: <p>Admin manages users</p> },
+    { label: "Users", content: <UserTable /> },
     { label: "Subjects", content: <Subjects /> },
     { label: "Profile", content: <Profile /> },
 ];

@@ -3,13 +3,12 @@ import ProfileForm from './ProfileForm'
 
 const Profile = () => {
   return (
-    <div className='p-4 border'>
-        <div>
-            <h3>Profile Settings</h3>
-            <p>Update your personal information and profile photo</p>
-        </div>
-        <ProfileForm />
-
+    <div className='bg-white rounded-lg border border-gray-200 p-4 sm:p-6'>
+      <div className="mb-6">
+        <h3 className="text-lg font-semibold text-gray-900">Profile Settings</h3>
+        <p className="text-sm text-gray-500 mt-1">Update your personal information</p>
+      </div>
+      <ProfileForm />
     </div>
   )
 }

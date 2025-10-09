@@ -11,13 +11,13 @@ interface User {
 
 const RecentUsers: React.FC<{ users: User[] }> = ({ users }) => {
   return (
-    <div className="bg-white rounded-xl shadow-sm p-5">
-      <h3 className="text-sm font-semibold text-gray-700">Recent Users</h3>
-      <p className="text-xs text-gray-500 mb-4">
-        Latest users who joined the system
-      </p>
+    <div className="bg-white rounded-lg border border-gray-200 p-4 sm:p-6">
+      <div className="mb-4">
+        <h3 className="text-base font-semibold text-gray-900">Recent Users</h3>
+        <p className="text-sm text-gray-500 mt-1">Latest registered users</p>
+      </div>
 
-      <div className="flex flex-col gap-3">
+      <div className="space-y-3">
         {users.map((user) => (
           <UserCard key={user.id} user={user} />
         ))}
