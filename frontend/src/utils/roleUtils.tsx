@@ -3,20 +3,23 @@ import Overview from '../components/dashboard/student/Overview';
 import AdminOverView from '../components/dashboard/admin/AdminOverview';
 import Subjects from '../components/dashboard/admin/Subjects';
 import UserTable from '../components/dashboard/user-management/Table';
+import { Grade } from '../components/dashboard/student/Grade';
+import { ManageStudents } from '../components/dashboard/teacher/ManageStudents';
+import { StudentSubjects } from '../components/dashboard/student/StudentSubjects';
 
 export type Role = 'Student' | 'Teacher' | 'Admin';
 
 
 export const studentTabs = [
     { label: "Overview", content: <Overview /> },
-    { label: "Subjects", content: <p>Subjects</p> },
-    { label: "My Grades", content: <p>My Grades</p> },
+    { label: "Subjects", content: <StudentSubjects /> },
+    { label: "My Grades", content: <Grade /> },
     { label: "Profile", content: <Profile /> },
 ];
 
 export const teacherTabs = [
     { label: "My Subjects", content: <p>Manage the subjects you handle.</p> },
-    { label: "Manage Students", content: <p>Record and update student grades.</p> },
+    { label: "Manage Students", content: <ManageStudents />},
     { label: "Profile", content: <Profile /> },
 ];
 

@@ -1,9 +1,9 @@
 import Tabs from '../navigation/Tabs';
-import type { Role } from '../../utils/RoleUtils';
-import { getRoleConfig } from '../../utils/RoleUtils';
+import type { Role } from '../../utils/roleUtils';
+import { getRoleConfig } from '../../utils/roleUtils';
 
 const MainContent = () => {
-  const role: Role = "Admin";
+  const role: Role = "Teacher";
   const { tabs, description } = getRoleConfig(role);
 
   return (

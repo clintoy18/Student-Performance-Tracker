@@ -22,7 +22,7 @@ export default function App() {
 
           {/* Protected Routes */}
           {/* <Route element={<ProtectedRoute />}> */}
-            <Route path="/home" element={<DashboardLayout />} />
+            <Route path="/dashboard" element={<DashboardLayout />} />
           {/* </Route> */}
 
         </Routes>

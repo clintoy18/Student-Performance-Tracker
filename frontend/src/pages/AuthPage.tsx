@@ -22,7 +22,7 @@ const AuthPage: React.FC = () => {
     setLoginError(null);
     try {
       await new Promise(resolve => setTimeout(resolve, 300));
-      navigate("/home");
+      navigate("/dashboard");
     } catch (err) {
       setLoginError("Login failed");
     } finally {
