@@ -85,7 +85,7 @@ namespace ASI.Basecode.WebApp
                 options
                     .UseSqlite(
                         Configuration.GetConnectionString("DefaultConnection")
-                        // b => b.MigrationsAssembly("ASI.Basecode.WebApp")
+                    // b => b.MigrationsAssembly("ASI.Basecode.WebApp")
                     )
             );
 
@@ -104,7 +104,12 @@ namespace ASI.Basecode.WebApp
                     Scheme = "bearer",
                     BearerFormat = "JWT",
                     In = Microsoft.OpenApi.Models.ParameterLocation.Header,
-                    Description = "JWT Authorization header using the Bearer scheme. Example: 'Bearer {token}'"
+                    Description = "JWT Authorization header using the Bearer scheme. Example: 'Bearer {token}'",
+                    Reference = new Microsoft.OpenApi.Models.OpenApiReference
+                    {
+                        Type = Microsoft.OpenApi.Models.ReferenceType.SecurityScheme,
+                        Id = "Bearer"
+                    }
                 };
                 c.AddSecurityDefinition("Bearer", securityScheme);
                 c.AddSecurityRequirement(new Microsoft.OpenApi.Models.OpenApiSecurityRequirement
@@ -162,7 +167,7 @@ namespace ASI.Basecode.WebApp
             {
                 this._app.UseHttpsRedirection();
             }
-            
+
             // this._app.UseStaticFiles();      // Not needed I think
 
             // Enable Swagger middleware

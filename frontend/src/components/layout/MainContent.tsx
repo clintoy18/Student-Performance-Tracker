@@ -3,7 +3,7 @@ import type { Role } from '../../utils/roleUtils';
 import { getRoleConfig } from '../../utils/roleUtils';
 
 const MainContent = () => {
-  const role: Role = "Teacher";
+  const role: Role = "Admin";
   const { tabs, description } = getRoleConfig(role);
 
   return (

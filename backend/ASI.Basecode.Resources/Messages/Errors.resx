@@ -123,4 +123,7 @@
   <data name="UserExists" xml:space="preserve">
     <value>UserId already exists!</value>
   </data>
+  <data name="UserNotExist" xml:space="preserve">
+    <value>User does not exist!</value>
+  </data>
 </root>

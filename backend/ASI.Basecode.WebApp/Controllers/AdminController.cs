@@ -1,0 +1,216 @@
+using ASI.Basecode.Services.Interfaces;
+using ASI.Basecode.Services.ServiceModels;
+using ASI.Basecode.WebApp.Models;
+using ASI.Basecode.Services;
+using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
+using System.Threading.Tasks;
+using System.Collections.Generic;
+using ASI.Basecode.Data.Models;
+using Microsoft.Extensions.Options;
+using ASI.Basecode.Resources.Constants;
+using System.IO;
+using System.Linq;
+using System;
+using static ASI.Basecode.Resources.Constants.Enums;
+using Microsoft.Extensions.Logging;
+
+namespace ASI.Basecode.WebApp.Controllers
+{
+    [ApiController]
+    [Route("api/admin/")]
+    public class AdminController : ControllerBase
+    {
+        private readonly IUserService _userService;
+        private readonly IJwtService _jwtService;
+        private readonly ILogger<AdminController> _logger;
+
+        public AdminController(
+            IJwtService jwtService,
+            IUserService userService,
+            ILogger<AdminController> logger)
+        {
+            _jwtService = jwtService;
+            _userService = userService;
+            _logger = logger;
+        }
+
+        /// <summary>
+        /// Creates a new user account with admin privileges
+        /// </summary>
+        /// <param name="request">User registration data including credentials and role</param>
+        /// <returns>Success message or error details</returns>
+        /// <response code="200">User created successfully</response>
+        /// <response code="400">Invalid request data or user already exists</response>
+        /// <response code="500">Internal server error</response>
+        [HttpPost("user/create/")]
+        public IActionResult CreateUser([FromBody] RegisterUserAdminModel request)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(new { message = "Invalid request format.", errors = ModelState.Values.SelectMany(v => v.Errors) });
+            }
+
+            try
+            {               
+                var userViewModel = new RegisterUserAdminModel
+                {
+                    UserId = request.UserId,
+                    FirstName = request.FirstName,
+                    MiddleName = request.MiddleName,
+                    LastName = request.LastName,
+                    Password = request.Password,
+                    Program = request.Program,
+                    Role = request.Role
+                };
+
+                _userService.RegisterUserAdmin(userViewModel);
+
+                return Ok(new { message = "User registered successfully." });
+            }
+            catch (InvalidDataException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Internal server error occurred while creating user.");
+                return StatusCode(500, new { message = "An internal server error has occurred." });
+            }
+        }
+
+        /// <summary>
+        /// Updates an existing user's information
+        /// </summary>
+        /// <param name="userId">The ID of the user to update</param>
+        /// <param name="request">Updated user data (password optional)</param>
+        /// <returns>Success message or error details</returns>
+        /// <response code="200">User updated successfully</response>
+        /// <response code="400">Invalid request data or ID mismatch</response>
+        /// <response code="404">User not found</response>
+        /// <response code="500">Internal server error</response>
+        [HttpPut("user/update/{userId}")]
+        public IActionResult UpdateUser(string userId, [FromBody] RegisterUserAdminModel request)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(new { message = "Invalid request format.", errors = ModelState.Values.SelectMany(v => v.Errors) });
+            }
+
+            if (userId != request.UserId)
+            {
+                return BadRequest(new { message = "User ID in route does not match User ID in request body." });
+            }
+
+            try
+            {
+                var userViewModel = new RegisterUserAdminModel
+                {
+                    UserId = request.UserId,
+                    FirstName = request.FirstName,
+                    MiddleName = request.MiddleName,
+                    LastName = request.LastName,
+                    Password = request.Password, // Can be null/empty to preserve current password
+                    Program = request.Program,
+                    Role = request.Role
+                };
+
+                _userService.UpdateUserAdmin(userViewModel);
+
+                return Ok(new { message = "User updated successfully." });
+            }
+            catch (InvalidDataException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "An internal server error has occurred.");
+                return StatusCode(500, new { message = "An internal server error has occurred.", error = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Deletes a user account
+        /// </summary>
+        /// <param name="userId">The ID of the user to delete</param>
+        /// <returns>Success message or error details</returns>
+        /// <response code="200">User deleted successfully</response>
+        /// <response code="400">Invalid user ID</response>
+        /// <response code="404">User not found</response>
+        /// <response code="500">Internal server error</response>
+        [HttpDelete("user/delete/{userId}")]
+        public IActionResult DeleteUser(string userId)
+        {
+            if (string.IsNullOrWhiteSpace(userId))
+            {
+                return BadRequest(new { message = "User ID is required." });
+            }
+
+            try
+            {
+                _userService.DeleteUser(userId);
+
+                return Ok(new { message = "User deleted successfully." });
+            }
+            catch (InvalidDataException ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "An internal server error has occurred.", error = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Retrieves a specific user's information
+        /// </summary>
+        /// <param name="userId">The ID of the user to retrieve</param>
+        /// <returns>User data without password information</returns>
+        /// <response code="200">User data retrieved successfully</response>
+        /// <response code="400">Invalid user ID</response>
+        /// <response code="404">User not found</response>
+        /// <response code="500">Internal server error</response>
+        [HttpGet("user/{userId}")]
+        public IActionResult GetUser(string userId)
+        {
+            if (string.IsNullOrWhiteSpace(userId))
+            {
+                return BadRequest(new { message = "User ID is required." });
+            }
+
+            try
+            {
+                var user = _userService.FetchUser(userId);
+
+                if (user == null)
+                {
+                    return NotFound(new { message = "User not found." });
+                }
+
+                var userModel = new RegisterUserAdminModel
+                {
+                    UserId = user.UserId,
+                    FirstName = user.FirstName,
+                    MiddleName = user.MiddleName,
+                    LastName = user.LastName,
+                    Program = user.Program,
+                    Role = user.Role
+                    // Note: Password fields are not returned for security
+                };
+
+                return Ok(userModel);
+            }
+            catch (InvalidDataException ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "An internal server error has occurred.", error = ex.Message });
+            }
+        }
+    }
+
+}

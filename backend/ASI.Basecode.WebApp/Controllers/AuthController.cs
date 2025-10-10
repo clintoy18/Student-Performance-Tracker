@@ -178,7 +178,9 @@ namespace ASI.Basecode.WebApp.Controllers
             {
                 user.UserId,
                 user.FirstName,
+                user.MiddleName,
                 user.LastName,
+                user.Program,
                 Role = user.Role.ToString()
             });
         }
