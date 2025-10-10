@@ -29,13 +29,12 @@ namespace ASI.Basecode.Data
             // User model
             modelBuilder.Entity<User>(entity =>
             {
-                entity.HasIndex(e => e.UserId, "UQ__Users__1788CC4D5F4A160F")
+                entity.HasIndex(e => e.UserId)
                     .IsUnique();
 
                 entity.Property(e => e.UserId)
                     .IsRequired()
-                    .HasMaxLength(50)
-                    .IsUnicode(false);
+                    .HasMaxLength(50);
 
                 entity.Property(e => e.FirstName)
                     .IsRequired()
@@ -54,9 +53,13 @@ namespace ASI.Basecode.Data
                 entity.Property(e => e.HashedPassword)
                     .IsRequired();
 
+                // entity.Property(e => e.CreatedTime)
+                //     .HasColumnType("datetime")
+                //     .HasDefaultValueSql("GETDATE()");   // Only for SQL Server, adds default datetime as current datetime
+
                 entity.Property(e => e.CreatedTime)
-                    .HasColumnType("datetime")
-                    .HasDefaultValueSql("GETDATE()");   // Only for SQL Server, adds default datetime as current datetime
+                    .IsRequired(); // Will have to validate application layer
+
 
                 entity.Property(e => e.Role)
                     .IsRequired()
@@ -67,13 +70,12 @@ namespace ASI.Basecode.Data
             // Course model
             modelBuilder.Entity<Course>(entity =>
             {
-                entity.HasIndex(e => e.CourseCode, "UQ__Courses__CourseCode")
+                entity.HasIndex(e => e.CourseCode)
                     .IsUnique();
 
                 entity.Property(e => e.CourseCode)
                     .IsRequired()
-                    .HasMaxLength(50)
-                    .IsUnicode(false);
+                    .HasMaxLength(50);
 
                 entity.Property(e => e.CourseName)
                     .IsRequired()
@@ -83,13 +85,11 @@ namespace ASI.Basecode.Data
                     .HasMaxLength(1000);
 
                 entity.Property(e => e.CreatedAt)
-                    .HasColumnType("datetime")
-                    .HasDefaultValueSql("GETDATE()");
+                    .IsRequired();
 
                 entity.Property(e => e.UserId)
                     .IsRequired(false)
-                    .HasMaxLength(50)
-                    .IsUnicode(false);
+                    .HasMaxLength(50);
 
                 // Relationship: Course has one Teacher (User)
                 entity.HasOne(c => c.User)
@@ -102,7 +102,7 @@ namespace ASI.Basecode.Data
             // StudentCourse configuration (many-to-many junction table)
             modelBuilder.Entity<StudentCourse>(entity =>
             {
-                entity.HasIndex(sc => sc.StudentCourseId, "UQ__StudentCourses__StudentCourseId")
+                entity.HasIndex(sc => sc.StudentCourseId)
                     .IsUnique();
 
                 entity.Property(e => e.StudentCourseId)
@@ -110,8 +110,7 @@ namespace ASI.Basecode.Data
                     .HasMaxLength(50);
 
                 entity.Property(e => e.CreatedTime)
-                    .HasColumnType("datetime")
-                    .HasDefaultValueSql("GETDATE()");
+                    .IsRequired();
 
                 entity.Property(e => e.UserId)
                     .IsRequired()
@@ -144,13 +143,11 @@ namespace ASI.Basecode.Data
                     .HasMaxLength(1000);
 
                 entity.Property(e => e.CreatedTime)
-                    .HasColumnType("datetime")
-                    .HasDefaultValueSql("GETDATE()");
+                    .IsRequired();
 
                 entity.Property(e => e.UserId)
                     .IsRequired(false)
-                    .HasMaxLength(50)
-                    .IsUnicode(false);
+                    .HasMaxLength(50);
 
                 entity.Property(e => e.StudentCourseId)
                     .IsRequired(false)

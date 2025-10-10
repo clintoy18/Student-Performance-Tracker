@@ -16,7 +16,7 @@ namespace ASI.Basecode.Data.Models
         public string LastName { get; set; }
         public string HashedPassword { get; set; }  // Passwords stored in database must always be hashed
         public string Program { get; set; }
-        public DateTime CreatedTime { get; set; }
+        public DateTime CreatedTime { get; set; } = DateTime.UtcNow;
         public UserRoles Role { get; set; } // ALIN: Himoan nakog UserRoles enums sa ASI.Basecode.Resources/Constants/Enums.cs
     }
 }

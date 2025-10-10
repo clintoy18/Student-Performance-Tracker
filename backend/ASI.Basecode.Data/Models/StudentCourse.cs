@@ -11,7 +11,7 @@ namespace ASI.Basecode.Data.Models
         public string StudentCourseId { get; set; }
         public string UserId { get; set; }
         public string CourseCode { get; set; }
-        public DateTime CreatedTime { get; set; }
+        public DateTime CreatedTime { get; set; } = DateTime.UtcNow;
         public User User { get; set; }  // Student user
         public Course Course { get; set; }
     }

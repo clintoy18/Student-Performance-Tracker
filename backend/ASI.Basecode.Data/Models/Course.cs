@@ -13,7 +13,7 @@ namespace ASI.Basecode.Data.Models
         public string CourseDescription { get; set; }
 
         public string UserId { get; set; }
-        public DateTime CreatedAt { get; set; }
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public User User { get; set; }  // Teacher only. Validate data in Service layer
     }
 }
