@@ -15,3 +15,7 @@ IF MIGRATIONS DONT WORK!
 2. dotnet tool install --global dotnet-ef --version 9.0.6
 
 => Make sure you're migrating at the right folder! ASI.Basecode.WebApp
+
+Commands:
+dotnet add package Microsoft.EntityFrameworkCore.Sqlite --version 9.0.6
+dotnet remove package Microsoft.EntityFrameworkCore.SqlServer
