@@ -9,40 +9,45 @@ interface User {
   createdAt: string;
 }
 
-const roleColors: Record<User["role"], string> = {
-  Student: "bg-green-100 text-green-600",
-  Teacher: "bg-blue-100 text-blue-600",
-  Admin: "bg-red-100 text-red-600",
-};
-
-const roleIcons: Record<User["role"], React.ReactNode> = {
-  Student: <User className="w-5 h-5 text-green-500" />,
-  Teacher: <GraduationCap className="w-5 h-5 text-blue-500" />,
-  Admin: <Shield className="w-5 h-5 text-red-500" />,
+const roleConfig: Record<User["role"], { color: string; icon: React.ReactNode }> = {
+  Student: {
+    color: "bg-green-50 text-green-700 border-green-200",
+    icon: <User className="w-4 h-4 text-green-600" />
+  },
+  Teacher: {
+    color: "bg-blue-50 text-blue-700 border-blue-200",
+    icon: <GraduationCap className="w-4 h-4 text-blue-600" />
+  },
+  Admin: {
+    color: "bg-red-50 text-red-700 border-red-200",
+    icon: <Shield className="w-4 h-4 text-red-600" />
+  },
 };
 
 const UserCard: React.FC<{ user: User }> = ({ user }) => {
+  const { color, icon } = roleConfig[user.role];
+
   return (
-    <div className="flex items-center justify-between border rounded-lg p-3 hover:bg-gray-50 transition">
-      {/* Left side */}
+    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-3 sm:p-4 border border-gray-100 rounded-lg hover:bg-gray-50 transition-colors gap-3 sm:gap-0">
+      {/* User Info */}
       <div className="flex items-center gap-3">
-        {roleIcons[user.role]}
-        <div>
-          <p className="text-sm font-medium text-gray-900">{user.name}</p>
-          <p className="text-xs text-gray-500">{user.email}</p>
+        <div className="p-2 bg-gray-100 rounded-md">
+          {icon}
+        </div>
+        <div className="min-w-0 flex-1">
+          <p className="text-sm font-medium text-gray-900 truncate">{user.name}</p>
+          <p className="text-sm text-gray-500 truncate">{user.email}</p>
         </div>
       </div>
 
-      {/* Right side */}
-      <div className="flex items-center gap-3">
-        <span
-          className={`px-2 py-0.5 text-xs font-medium rounded-full ${roleColors[user.role]}`}
-        >
+      {/* Role & Date */}
+      <div className="flex items-center justify-between sm:justify-end gap-2 sm:gap-3">
+        <span className={`px-2.5 py-1 text-xs font-medium rounded-full border ${color} whitespace-nowrap`}>
           {user.role}
         </span>
-        <p className="text-xs text-gray-400">
+        <span className="text-xs sm:text-sm text-gray-400 whitespace-nowrap">
           {new Date(user.createdAt).toLocaleDateString()}
-        </p>
+        </span>
       </div>
     </div>
   );

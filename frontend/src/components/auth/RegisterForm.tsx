@@ -12,7 +12,6 @@ const RegisterForm = ({
   isLoading?: boolean,
   error?: string
 }) => {
-  // State for form data
   const [formData, setFormData] = useState<IRegisterRequest>({
     userId: '',
     firstName: '',
@@ -25,15 +24,13 @@ const RegisterForm = ({
 
   const [formErrors, setFormErrors] = useState<Partial<IRegisterRequest>>({})
 
-  // Handle input change
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { id, value } = e.target;
-    setFormData(prevState => ({
-      ...prevState,
+    setFormData(prev => ({
+      ...prev,
       [id]: value
     }));
     
-    // Clear error when user starts typing
     if (formErrors[id as keyof IRegisterRequest]) {
       setFormErrors(prev => ({
         ...prev,
@@ -45,30 +42,19 @@ const RegisterForm = ({
   const validateForm = (): boolean => {
     const errors: Partial<IRegisterRequest> = {};
     
-    if (!formData.userId.trim()) {
-      errors.userId = 'User ID is required';
-    }
-    
-    if (!formData.firstName.trim()) {
-      errors.firstName = 'First name is required';
-    }
-    
-    if (!formData.lastName.trim()) {
-      errors.lastName = 'Last name is required';
-    }
+    if (!formData.userId.trim()) errors.userId = 'Required';
+    if (!formData.firstName.trim()) errors.firstName = 'Required';
+    if (!formData.lastName.trim()) errors.lastName = 'Required';
+    if (!formData.program.trim()) errors.program = 'Required';
     
     if (!formData.password) {
-      errors.password = 'Password is required';
+      errors.password = 'Required';
     } else if (formData.password.length < 6) {
-      errors.password = 'Password must be at least 6 characters';
+      errors.password = 'Min 6 characters';
     }
     
     if (formData.password !== formData.confirmPassword) {
-      errors.confirmPassword = 'Passwords do not match';
-    }
-    
-    if (!formData.program.trim()) {
-      errors.program = 'Program is required';
+      errors.confirmPassword = 'Passwords must match';
     }
     
     setFormErrors(errors);
@@ -77,101 +63,94 @@ const RegisterForm = ({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!validateForm()) {
-      return;
+    if (validateForm()) {
+      await onRegister(formData);
     }
-
-    await onRegister(formData);
   };
 
-
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 w-full">
-      {/* User ID Field */}
+    <form onSubmit={handleSubmit} className="">
       <TextInputField
         id="userId"
         label="User ID"
         value={formData.userId}
         onChange={handleInputChange}
-        placeholder="Enter your user ID"
+        placeholder="Choose a user ID"
         error={formErrors.userId}
+        required
       />
 
-      {/* Name Fields */}
-      <div className='flex gap-4'>
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <TextInputField
           id="firstName"
           label="First Name"
           value={formData.firstName}
           onChange={handleInputChange}
-          placeholder="Juan"
+          placeholder="First name"
           error={formErrors.firstName}
+          required
         />
         <TextInputField
           id="middleName"
           label="Middle Name"
           value={formData.middleName}
           onChange={handleInputChange}
-          placeholder="Dela"
+          placeholder="Middle name"
         />
         <TextInputField
           id="lastName"
           label="Last Name"
           value={formData.lastName}
           onChange={handleInputChange}
-          placeholder="Cruz"
+          placeholder="Last name"
           error={formErrors.lastName}
+          required
         />
       </div>
 
-      {/* Program Field */}
       <TextInputField
         id="program"
         label="Program"
         value={formData.program}
         onChange={handleInputChange}
-        placeholder="Computer Science"
+        placeholder="Your program"
         error={formErrors.program}
+        required
       />
 
-      {/* Password Fields */}
-      <div className='flex gap-4'>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <TextInputField
           id="password"
           label="Password"
+          type="password"
           value={formData.password}
           onChange={handleInputChange}
-          placeholder="••••••••"
-          type="password"
+          placeholder="Create password"
           error={formErrors.password}
+          required
         />
         <TextInputField
           id="confirmPassword"
           label="Confirm Password"
+          type="password"
           value={formData.confirmPassword}
           onChange={handleInputChange}
-          placeholder="••••••••"
-          type="password"
+          placeholder="Confirm password"
           error={formErrors.confirmPassword}
+          required
         />
       </div>
 
-      {/* Error Message */}
       {error && (
-        <div className="text-red-500 text-sm p-2 bg-red-50 rounded">
-          {error}
-        </div>
+        <p className="text-red-600 text-sm">{error}</p>
       )}
 
-      {/* Submit Button */}
       <Button 
-        className='text-lg bg-black text-white p-2 rounded-sm w-full'
-        label={isLoading ? 'Creating Account...' : 'Sign Up'}
-        type='submit'
+        className="w-full bg-gray-900 text-white py-3 rounded hover:bg-gray-800 disabled:opacity-50"
+        label={isLoading ? 'Creating account...' : 'Create account'}
+        type="submit"
         disabled={isLoading}
       />
-
     </form>
   );
 };
