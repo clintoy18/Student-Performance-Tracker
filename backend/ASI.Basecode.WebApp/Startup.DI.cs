@@ -35,16 +35,19 @@ namespace ASI.Basecode.WebApp
 
             // Services
             this._services.AddScoped<IUserService, UserService>();
+            this._services.AddScoped<ICourseService, CourseService>();
+            this._services.AddScoped<IRbacService, RbacService>();
 
 
             // Repositories
             this._services.AddScoped<IUserRepository, UserRepository>();
-
+            this._services.AddScoped<ICourseRepository, CourseRepository>();
 
             // Manager Class
             this._services.AddHttpClient();
 
             
+
             // Add CORS services
             this._services.AddCors(options =>
             {

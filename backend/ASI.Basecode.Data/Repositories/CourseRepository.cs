@@ -8,7 +8,7 @@ using System.Linq;
 
 namespace ASI.Basecode.Data.Repositories
 {
-    public class CourseRepository : BaseRepository<User>, ICourseRepository
+    public class CourseRepository : BaseRepository<Course>, ICourseRepository
     {
         public CourseRepository(IUnitOfWork unitOfWork) : base(unitOfWork)
         {

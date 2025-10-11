@@ -9,6 +9,8 @@
         {
             public const string Menu = "api/menu";
             public const string Account = "api/account";
+            public const string StudentCourse = "api/course";
+
         }
 
         public static class LogTypes
