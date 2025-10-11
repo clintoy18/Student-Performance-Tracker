@@ -2,14 +2,17 @@ import React, { useState } from "react";
 import TextInputField from "../common/TextInputField";
 import Button from "../common/Button";
 import { User, Mail, Phone, MapPin, FileText } from "lucide-react";
+import { useAuth } from "../../context/AuthContext";
 
 const ProfileForm = () => {
+  const { user } = useAuth()
+
   const [formData, setFormData] = useState({
-    fullname: "Vince Clave",
-    email: "vince@gmail.com",
-    phone_num: "",
-    role: "Student",
-    address: "",
+    fullname: `${user.FirstName} ${user.MiddleName} ${user.LastName}`,
+    // email: "vince@gmail.com",
+    // phone_num: "",
+    role: user.Role,
+    // address: "",
     bio: "",
     password: "",
   });

@@ -13,7 +13,7 @@ export default function GuestRoute() {
 
   // If user is authenticated, redirect to home
   if (user) {
-    return <Navigate to="/home" replace />;
+    return <Navigate to="/dashboard" replace />;
   }
 
   // If not authenticated, allow access to guest routes

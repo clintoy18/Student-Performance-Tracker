@@ -1,9 +1,13 @@
 import Tabs from '../navigation/Tabs';
 import type { Role } from '../../utils/roleUtils';
 import { getRoleConfig } from '../../utils/roleUtils';
+import { useAuth } from '../../context/AuthContext';
 
 const MainContent = () => {
-  const role: Role = "Admin";
+  const { user } = useAuth()
+
+  // const role: Role = getRoleFromUserAuth(user.Role);
+  const role: Role = user.Role
   const { tabs, description } = getRoleConfig(role);
 
   return (

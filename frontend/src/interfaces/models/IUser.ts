@@ -1,3 +1,5 @@
+import type { Role } from "utils/roleUtils";
+
 export interface IUser {
     UserId: string;
     FirstName: string
@@ -5,5 +7,5 @@ export interface IUser {
     LastName: string 
     Program: string
     CreatedTime: string
-    Role: string
+    Role: Role
 }

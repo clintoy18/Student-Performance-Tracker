@@ -21,9 +21,9 @@ export default function App() {
           </Route>
 
           {/* Protected Routes */}
-          {/* <Route element={<ProtectedRoute />}> */}
+          <Route element={<ProtectedRoute />}>
             <Route path="/dashboard" element={<DashboardLayout />} />
-          {/* </Route> */}
+          </Route>
 
         </Routes>
       </Router>
