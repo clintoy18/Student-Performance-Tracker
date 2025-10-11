@@ -8,7 +8,10 @@ namespace ASI.Basecode.Data.Interfaces
         public IQueryable<GradeFeedback> GetGradeFeedbacks();
 
         public GradeFeedback GetGradeFeedback(int id);
+        public GradeFeedback GetGradeFeedback(string teacherId, string courseCode);
+        public GradeFeedback GetGradeFeedbackByStudentId(string studentId, string courseCode);
         public bool GradeFeedbackExists(int id);
+        public bool GradeFeedbackExists(string teacherUserId, string courseCode);
 
         public void AddGradeFeedback(GradeFeedback gradeFeedback);
 

@@ -128,9 +128,18 @@ namespace ASI.Basecode.Services.Services
         }
 
         // Add this method to your UserService class
-        public List<User> GetAllUsers()
+        public List<UserViewAdminModel> GetAllUsers()
         {
-            return _repository.GetUsers().ToList();
+            var users = _repository.GetUsers();
+            return users.Select(u => new UserViewAdminModel
+            {
+                UserId = u.UserId,
+                FirstName = u.FirstName,
+                MiddleName = u.MiddleName,
+                LastName = u.LastName,
+                Program = u.Program,
+                Role = u.Role
+            }).ToList();
         }
     }
 }

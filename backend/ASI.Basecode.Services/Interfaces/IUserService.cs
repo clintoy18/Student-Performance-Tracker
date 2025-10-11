@@ -15,6 +15,6 @@ namespace ASI.Basecode.Services.Interfaces
         void DeleteUser(string userId);
         void RegisterUserAdmin(RegisterUserAdminModel model);
         void UpdateUserAdmin(RegisterUserAdminModel model);
-        public List<User> GetAllUsers();
+        public List<UserViewAdminModel> GetAllUsers();
     }
 }
