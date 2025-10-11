@@ -14,7 +14,7 @@ namespace ASI.Basecode.Data.Models
         public required string StudentCourseId { get; set; }
         public string? UserId { get; set; }
         public DateTime CreatedTime { get; set; } = DateTime.UtcNow;
-        public required User User { get; set; }  // Teachers only can feedback
+        public User? User { get; set; }  // Teachers only can feedback
         public required StudentCourse StudentCourse { get; set; }
     }
 }

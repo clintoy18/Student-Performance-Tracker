@@ -23,12 +23,15 @@ namespace ASI.Basecode.WebApp.Controllers
     public class AdminController : ControllerBase
     {
         private readonly IUserService _userService;
+        private readonly IJwtService _jwtService;
         private readonly ILogger<AdminController> _logger;
 
         public AdminController(
+            IJwtService jwtService,
             IUserService userService,
             ILogger<AdminController> logger)
-        {;
+        {
+            _jwtService = jwtService;
             _userService = userService;
             _logger = logger;
         }
@@ -208,6 +211,29 @@ namespace ASI.Basecode.WebApp.Controllers
             catch (InvalidDataException ex)
             {
                 return NotFound(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "An internal server error has occurred: ");
+                return StatusCode(500, new { message = "An internal server error has occurred.", error = ex.Message });
+            }
+        }
+
+
+        /// <summary>
+        /// Retrieves all users
+        /// </summary>
+        /// <returns>All user data</returns>
+        /// <response code="200">Users retrieved successfully</response>
+        /// <response code="500">Internal server error</response>
+        [HttpGet("user")]
+        [Authorize(Roles = "Admin")]
+        public IActionResult GetAllUsers()
+        {
+            try
+            {
+                var users = _userService.GetAllUsers();
+                return Ok(users);
             }
             catch (Exception ex)
             {
