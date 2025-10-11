@@ -14,6 +14,7 @@ using System.Linq;
 using System;
 using static ASI.Basecode.Resources.Constants.Enums;
 using Microsoft.Extensions.Logging;
+using Microsoft.AspNetCore.Authorization;
 
 namespace ASI.Basecode.WebApp.Controllers
 {
@@ -22,15 +23,12 @@ namespace ASI.Basecode.WebApp.Controllers
     public class AdminController : ControllerBase
     {
         private readonly IUserService _userService;
-        private readonly IJwtService _jwtService;
         private readonly ILogger<AdminController> _logger;
 
         public AdminController(
-            IJwtService jwtService,
             IUserService userService,
             ILogger<AdminController> logger)
-        {
-            _jwtService = jwtService;
+        {;
             _userService = userService;
             _logger = logger;
         }
@@ -44,6 +42,7 @@ namespace ASI.Basecode.WebApp.Controllers
         /// <response code="400">Invalid request data or user already exists</response>
         /// <response code="500">Internal server error</response>
         [HttpPost("user/create/")]
+        [Authorize(Roles = "Admin")]
         public IActionResult CreateUser([FromBody] RegisterUserAdminModel request)
         {
             if (!ModelState.IsValid)
@@ -52,7 +51,7 @@ namespace ASI.Basecode.WebApp.Controllers
             }
 
             try
-            {               
+            {
                 var userViewModel = new RegisterUserAdminModel
                 {
                     UserId = request.UserId,
@@ -90,6 +89,7 @@ namespace ASI.Basecode.WebApp.Controllers
         /// <response code="404">User not found</response>
         /// <response code="500">Internal server error</response>
         [HttpPut("user/update/{userId}")]
+        [Authorize(Roles = "Admin")]
         public IActionResult UpdateUser(string userId, [FromBody] RegisterUserAdminModel request)
         {
             if (!ModelState.IsValid)
@@ -125,7 +125,7 @@ namespace ASI.Basecode.WebApp.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "An internal server error has occurred.");
+                _logger.LogError(ex, "An internal server error has occurred: ");
                 return StatusCode(500, new { message = "An internal server error has occurred.", error = ex.Message });
             }
         }
@@ -140,6 +140,7 @@ namespace ASI.Basecode.WebApp.Controllers
         /// <response code="404">User not found</response>
         /// <response code="500">Internal server error</response>
         [HttpDelete("user/delete/{userId}")]
+        [Authorize(Roles = "Admin")]
         public IActionResult DeleteUser(string userId)
         {
             if (string.IsNullOrWhiteSpace(userId))
@@ -159,6 +160,7 @@ namespace ASI.Basecode.WebApp.Controllers
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "An internal server error has occurred: ");
                 return StatusCode(500, new { message = "An internal server error has occurred.", error = ex.Message });
             }
         }
@@ -173,6 +175,7 @@ namespace ASI.Basecode.WebApp.Controllers
         /// <response code="404">User not found</response>
         /// <response code="500">Internal server error</response>
         [HttpGet("user/{userId}")]
+        [Authorize(Roles = "Admin")]
         public IActionResult GetUser(string userId)
         {
             if (string.IsNullOrWhiteSpace(userId))
@@ -189,7 +192,7 @@ namespace ASI.Basecode.WebApp.Controllers
                     return NotFound(new { message = "User not found." });
                 }
 
-                var userModel = new RegisterUserAdminModel
+                var userModel = new UserViewAdminModel
                 {
                     UserId = user.UserId,
                     FirstName = user.FirstName,
@@ -208,6 +211,7 @@ namespace ASI.Basecode.WebApp.Controllers
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "An internal server error has occurred: ");
                 return StatusCode(500, new { message = "An internal server error has occurred.", error = ex.Message });
             }
         }
