@@ -3,6 +3,8 @@ import { useState } from "react";
 import LoginForm from "../components/auth/LoginForm";
 import RegisterForm from "../components/auth/RegisterForm";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
+import type { ILoginRequest, IRegisterRequest } from "@interfaces";
 
 type AuthAction = "signIn" | "signUp";
 
@@ -13,15 +15,13 @@ const AuthPage: React.FC = () => {
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const [isRegistering, setIsRegistering] = useState(false);
   const navigate = useNavigate();
+  const { handleLogin, handleRegister } = useAuth()
 
-  const handleLoginSubmit = async (credentials: {
-    userId: string;
-    password: string;
-  }) => {
+  const handleLoginSubmit = async (credentials: ILoginRequest) => {
     setIsLoggingIn(true);
     setLoginError(null);
     try {
-      await new Promise(resolve => setTimeout(resolve, 300));
+      await handleLogin(credentials);
       navigate("/dashboard");
     } catch (err) {
       setLoginError("Login failed");
@@ -30,11 +30,11 @@ const AuthPage: React.FC = () => {
     }
   };
 
-  const handleRegisterSubmit = async (credentials: any) => {
+  const handleRegisterSubmit = async (credentials: IRegisterRequest) => {
     setIsRegistering(true);
     setRegisterError(null);
     try {
-      await new Promise(resolve => setTimeout(resolve, 300));
+      await handleRegister(credentials);
       navigate("/login");
     } catch (err) {
       setRegisterError("Registration failed");

@@ -15,6 +15,10 @@ export const AuthContext = createContext<IAuthContext | undefined>(undefined);
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState<TNullableUser>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  
+  useEffect(() => {
+    console.log(user)
+  }, [user])
 
   const handleFetchUser = async () => {
     try {
@@ -24,9 +28,9 @@ export const AuthProvider = ({ children }) => {
         FirstName: data.firstName,
         LastName: data.lastName,
         Role: data.role,
-        MiddleName: "",
-        Program: "",
-        CreatedTime: "",
+        MiddleName: data.middleName,
+        Program: data.program,
+        CreatedTime: data.createdTime,
       };
       setUser(transformedUser);
       return transformedUser;
@@ -43,6 +47,7 @@ export const AuthProvider = ({ children }) => {
       await handleFetchUser();
     } catch (error) {
       console.error("Failed to login user: ", error);
+      throw error;
     }
   };
 
@@ -56,6 +61,7 @@ export const AuthProvider = ({ children }) => {
       await handleLogin(loginCredentials)
     } catch (error) {
       console.error("Failed to register user: ", error)
+      throw error;
     }
   }
 

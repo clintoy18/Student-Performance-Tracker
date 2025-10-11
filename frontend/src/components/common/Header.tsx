@@ -2,15 +2,19 @@ import { GraduationCap, User, LogOut, Menu } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import Button from "./Button";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 const Header = () => {
-  const name = "James Walker";
-  const role = "Teacher";
-  const { handleLogout } = useAuth();
+  const { handleLogout, user } = useAuth();
+  
+  const name = `${user.FirstName} ${user.MiddleName} ${user.LastName}`;
+  const role = user.Role;
   const [showMobileMenu, setShowMobileMenu] = useState(false);
+  const navigate = useNavigate()
 
   const handleLogoutHandler = () => {
     handleLogout();
+    navigate('/')
   };
 
   return (
