@@ -25,7 +25,7 @@ namespace ASI.Basecode.Services.Interfaces
         /// <summary>
         /// Update an existing course.
         /// </summary>
-        void UpdateCourse(CourseViewModel model);
+        void UpdateCourse(CourseUpdateViewModel model);
 
         /// <summary>
         /// Delete a course by its ID.

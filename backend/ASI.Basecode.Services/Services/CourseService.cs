@@ -46,7 +46,7 @@ namespace ASI.Basecode.Services.Services
             _repository.AddCourse(course);
         }
 
-      public void UpdateCourse(CourseViewModel model)
+      public void UpdateCourse(CourseUpdateViewModel model)
         {
             ArgumentNullException.ThrowIfNull(model);
 
