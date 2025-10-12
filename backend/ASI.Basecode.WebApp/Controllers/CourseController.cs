@@ -15,10 +15,15 @@ namespace ASI.Basecode.WebApp.Controllers
     {
         private readonly ICourseService _courseService;
         private readonly ILogger<CourseController> _logger;
+        private readonly IRbacService _rbacService;
 
-        public CourseController(ICourseService courseService, ILogger<CourseController> logger)
+        public CourseController(
+            ICourseService courseService,
+            IRbacService rbacService,
+            ILogger<CourseController> logger)
         {
             _courseService = courseService;
+            _rbacService = rbacService;
             _logger = logger;
         }
 
@@ -95,6 +100,12 @@ namespace ASI.Basecode.WebApp.Controllers
 
             try
             {
+                var IsTeacher = _rbacService.IsTeacher(model.UserId);
+                if (!IsTeacher)
+                {
+                    return BadRequest(new { message = "UserId supplied must be that of a teacher." });
+                }
+
                 _courseService.RegisterCourse(model);
                 return Ok(new { message = "Course added successfully." });
             }
@@ -123,6 +134,12 @@ namespace ASI.Basecode.WebApp.Controllers
 
             try
             {
+                var IsTeacher = _rbacService.IsTeacher(model.UserId);
+                if (!IsTeacher)
+                {
+                    return BadRequest(new { message = "UserId supplied must be that of a teacher." });
+                }
+                
                 _courseService.UpdateCourse(model);
                 return Ok(new { message = "Course updated successfully." });
             }
