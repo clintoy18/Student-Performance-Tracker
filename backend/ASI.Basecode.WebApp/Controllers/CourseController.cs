@@ -112,14 +112,14 @@ namespace ASI.Basecode.WebApp.Controllers
         /// <summary>
         /// Updates a course
         /// </summary>
-        [HttpPut("update/{courseId:int}")]
-        public IActionResult UpdateCourse(int courseId, [FromBody] CourseViewModel model)
+        [HttpPut("update")]
+        public IActionResult UpdateCourse([FromBody] CourseUpdateViewModel model)
         {
             if (!ModelState.IsValid)
                 return BadRequest(new { message = "Invalid request format.", errors = ModelState.Values.SelectMany(v => v.Errors) });
 
-            if (courseId != model.Id)
-                return BadRequest(new { message = "Course ID in route does not match request body." });
+            // if (courseId != model.Id)
+            //     return BadRequest(new { message = "Course ID in route does not match request body." });
 
             try
             {
