@@ -11,10 +11,10 @@ namespace ASI.Basecode.Data.Models
     {
         public int Id { get; set; }
         public required string Feedback { get; set; }
-        public required string StudentCourseId { get; set; }
+        public string? StudentCourseId { get; set; }
         public string? UserId { get; set; }
         public DateTime CreatedTime { get; set; } = DateTime.UtcNow;
         public User? User { get; set; }  // Teachers only can feedback
-        public required StudentCourse StudentCourse { get; set; }
+        public StudentCourse? StudentCourse { get; set; }
     }
 }

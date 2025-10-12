@@ -191,12 +191,14 @@ namespace ASI.Basecode.Data.Migrations
                     b.HasOne("ASI.Basecode.Data.Models.StudentCourse", "StudentCourse")
                         .WithMany()
                         .HasForeignKey("StudentCourseId")
-                        .HasPrincipalKey("StudentCourseId");
+                        .HasPrincipalKey("StudentCourseId")
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.HasOne("ASI.Basecode.Data.Models.User", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
-                        .HasPrincipalKey("UserId");
+                        .HasPrincipalKey("UserId")
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.Navigation("StudentCourse");
 

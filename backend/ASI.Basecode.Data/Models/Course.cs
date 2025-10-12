@@ -10,6 +10,7 @@ namespace ASI.Basecode.Data.Models
         public int Id { get; set; }
         public string CourseCode { get; set; }
         public string CourseName { get; set; }
+        // public int Year { get; set; }
         public string CourseDescription { get; set; }
 
         public string UserId { get; set; }

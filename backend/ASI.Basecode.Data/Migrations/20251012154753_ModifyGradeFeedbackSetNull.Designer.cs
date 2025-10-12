@@ -11,8 +11,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ASI.Basecode.Data.Migrations
 {
     [DbContext(typeof(AsiBasecodeDBContext))]
-    [Migration("20251011040214_Init")]
-    partial class Init
+    [Migration("20251012154753_ModifyGradeFeedbackSetNull")]
+    partial class ModifyGradeFeedbackSetNull
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -100,6 +100,9 @@ namespace ASI.Basecode.Data.Migrations
                         .HasColumnType("TEXT");
 
                     b.Property<DateTime>("CreatedTime")
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal?>("Grade")
                         .HasColumnType("TEXT");
 
                     b.Property<string>("StudentCourseId")
@@ -191,12 +194,14 @@ namespace ASI.Basecode.Data.Migrations
                     b.HasOne("ASI.Basecode.Data.Models.StudentCourse", "StudentCourse")
                         .WithMany()
                         .HasForeignKey("StudentCourseId")
-                        .HasPrincipalKey("StudentCourseId");
+                        .HasPrincipalKey("StudentCourseId")
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.HasOne("ASI.Basecode.Data.Models.User", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
-                        .HasPrincipalKey("UserId");
+                        .HasPrincipalKey("UserId")
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.Navigation("StudentCourse");
 
