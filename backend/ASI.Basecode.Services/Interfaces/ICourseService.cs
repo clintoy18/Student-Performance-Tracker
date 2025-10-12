@@ -36,5 +36,7 @@ namespace ASI.Basecode.Services.Interfaces
         /// Get all courses.
         /// </summary>
         List<Course> GetAllCourses();
+
+        public bool CourseExists(string courseCode);
     }
 }

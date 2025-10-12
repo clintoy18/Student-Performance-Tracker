@@ -19,17 +19,20 @@ namespace ASI.Basecode.WebApp.Controllers
         private readonly IGradeFeedbackService _gradeFeedbackService;
         private readonly IUserService _userService;
         private readonly IRbacService _rbacService;
+        private readonly ICourseService _courseService;
         private readonly ILogger<GradeFeedbackController> _logger;
 
         public GradeFeedbackController(
             IGradeFeedbackService gradeFeedbackService,
             IUserService userService,
             IRbacService rbacService,
+            ICourseService courseService,
             ILogger<GradeFeedbackController> logger)
         {
             _gradeFeedbackService = gradeFeedbackService;
             _userService = userService;
             _rbacService = rbacService;
+            _courseService = courseService;
             _logger = logger;
         }
 
@@ -44,7 +47,8 @@ namespace ASI.Basecode.WebApp.Controllers
         /// <response code="403">Forbidden - insufficient permissions</response>
         /// <response code="500">Internal server error</response>
         [HttpPost("create")]
-        public IActionResult CreateFeedback([FromBody] GradeFeedbackCreateModel request)
+        [Authorize(Roles = "Teacher")]
+        public IActionResult CreateFeedback([FromBody] GradeFeedbackCreateRequestModel request)
         {
             if (!ModelState.IsValid)
             {
@@ -67,13 +71,29 @@ namespace ASI.Basecode.WebApp.Controllers
                     return Unauthorized(new { message = "Only teachers can create grade feedback." });
                 }
 
-                // Validate the teacher is trying to create feedback for themselves
-                if (request.TeacherUserId != currentUserId)
+                // Validate if StudentCourseId really is a student
+                var studentRole = _rbacService.GetUserRole(request.CourseStudentUserId);
+                if (studentRole != UserRoles.Student)
                 {
-                    return Unauthorized(new { message = "You can only create feedback as yourself." });
+                    return BadRequest(new { message = "Course student userId must be a userId of a student." });
                 }
 
-                _gradeFeedbackService.CreateGradeFeedback(request);
+                // Validate if Course exists by courseCode
+                var courseExists = _courseService.CourseExists(request.CourseCode);
+                if (!courseExists)
+                {
+                    return BadRequest(new { message = "Coursecode does not link to any existing courses." });
+                }
+
+                var newFeedback = new GradeFeedbackCreateModel
+                {
+                    Feedback = request.Feedback,
+                    TeacherUserId = currentUserId,
+                    CourseStudentUserId = request.CourseStudentUserId,
+                    CourseCode = request.CourseCode
+                };
+
+                _gradeFeedbackService.CreateGradeFeedback(newFeedback);
 
                 return Ok(new { message = "Grade feedback created successfully." });
             }
@@ -101,7 +121,8 @@ namespace ASI.Basecode.WebApp.Controllers
         /// <response code="404">Feedback not found</response>
         /// <response code="500">Internal server error</response>
         [HttpPut("update/{feedbackId}")]
-        public IActionResult UpdateFeedback(int feedbackId, [FromBody] GradeFeedbackCreateModel request)
+        [Authorize(Roles = "Admin,Teacher")]
+        public IActionResult UpdateFeedback(int feedbackId, [FromBody] GradeFeedbackUpdateRequestModel request)
         {
             if (!ModelState.IsValid)
             {
@@ -115,24 +136,7 @@ namespace ASI.Basecode.WebApp.Controllers
                 {
                     return Unauthorized(new { message = "Authentication required." });
                 }
-
-                var currentUserRole = _rbacService.GetUserRole(currentUserId);
-                var allowedRoles = new[] { UserRoles.Teacher, UserRoles.Admin };
-                if (!allowedRoles.Contains(currentUserRole))
-                {
-                    return Unauthorized(new { message = "Only teachers and admins can update grade feedback." });
-                }
-
-                // If user is Teacher (not Admin), verify they own the feedback
-                if (currentUserRole == UserRoles.Teacher)
-                {
-                    var existingFeedback = _gradeFeedbackService.GetGradeFeedbackById(feedbackId);
-                    if (existingFeedback.TeacherUserId != currentUserId)
-                    {
-                        return Unauthorized(new { message = "You can only update your own feedback." });
-                    }
-                }
-
+                
                 _gradeFeedbackService.UpdateGradeFeedback(feedbackId, request.Feedback);
 
                 return Ok(new { message = "Grade feedback updated successfully." });
@@ -159,6 +163,7 @@ namespace ASI.Basecode.WebApp.Controllers
         /// <response code="404">Feedback not found</response>
         /// <response code="500">Internal server error</response>
         [HttpDelete("delete/{feedbackId}")]
+        [Authorize(Roles = "Admin,Teacher")]
         public IActionResult DeleteFeedback(int feedbackId)
         {
             try
@@ -212,6 +217,7 @@ namespace ASI.Basecode.WebApp.Controllers
         /// <response code="404">Feedback not found</response>
         /// <response code="500">Internal server error</response>
         [HttpGet("student/{studentUserId}/course/{courseCode}")]
+        [Authorize]
         public IActionResult GetFeedbackForStudent(string studentUserId, string courseCode)
         {
             try
@@ -250,6 +256,7 @@ namespace ASI.Basecode.WebApp.Controllers
         /// <response code="401">Unauthorized - only teachers and admins can view all feedback</response>
         /// <response code="500">Internal server error</response>
         [HttpGet("all")]
+        [Authorize(Roles = "Admin")]
         public IActionResult GetAllFeedback()
         {
             try
@@ -287,6 +294,7 @@ namespace ASI.Basecode.WebApp.Controllers
         /// <response code="404">Feedback not found</response>
         /// <response code="500">Internal server error</response>
         [HttpGet("{feedbackId}")]
+        [Authorize(Roles = "Teacher,Admin")]
         public IActionResult GetFeedbackById(int feedbackId)
         {
             try
@@ -298,18 +306,6 @@ namespace ASI.Basecode.WebApp.Controllers
                 }
 
                 var feedback = _gradeFeedbackService.GetGradeFeedbackById(feedbackId);
-                
-                // Check permissions: Admin, Teacher (owner), or Student (recipient)
-                var currentUserRole = _rbacService.GetUserRole(currentUserId);
-                bool isAdmin = currentUserRole == UserRoles.Admin;
-                bool isTeacherOwner = currentUserRole == UserRoles.Teacher && feedback.TeacherUserId == currentUserId;
-                bool isStudentRecipient = currentUserRole == UserRoles.Student && 
-                    _gradeFeedbackService.GetGradeFeedbackForStudent(currentUserId, feedback.CourseCode) != null;
-
-                if (!isAdmin && !isTeacherOwner && !isStudentRecipient)
-                {
-                    return Unauthorized(new { message = "You don't have permission to view this feedback." });
-                }
 
                 return Ok(feedback);
             }
