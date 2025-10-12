@@ -121,6 +121,9 @@ namespace ASI.Basecode.Data
                     .IsRequired()
                     .HasMaxLength(50);
 
+                entity.Property(e => e.Grade)
+                    .IsRequired(false);
+
                 // Relationships
                 entity.HasOne(sc => sc.User)
                     .WithMany()
