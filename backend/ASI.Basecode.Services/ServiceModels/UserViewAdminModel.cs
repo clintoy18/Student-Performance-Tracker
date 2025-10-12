@@ -8,7 +8,7 @@ using static ASI.Basecode.Resources.Constants.Enums;
 
 namespace ASI.Basecode.Services.ServiceModels
 {
-    public class RegisterUserAdminModel
+    public class UserViewAdminModel
     {
         [Required(ErrorMessage = "Username is required.")]
         [StringLength(20, ErrorMessage = "User ID must be 20 characters at most.")]
@@ -25,13 +25,6 @@ namespace ASI.Basecode.Services.ServiceModels
         [Required(ErrorMessage = "Last name is required.")]
         [StringLength(100, ErrorMessage = "This field cannot exceed 100 characters.")]
         public string LastName { get; set; }
-
-        [StringLength(50, ErrorMessage = "Your password must not exceed 50 characters.")]
-        public string Password { get; set; }
-
-        [StringLength(50, ErrorMessage = "Confirm password must not exceed 50 characters.")]
-        [Compare("Password", ErrorMessage = "Password and Confirmation Password must match.")]
-        public string ConfirmPassword { get; set; }
 
         [Required(ErrorMessage = "Program is required.")]
         [StringLength(100, ErrorMessage = "This field must not exceed 50 characters.")]

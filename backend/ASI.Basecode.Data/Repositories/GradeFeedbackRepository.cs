@@ -24,9 +24,37 @@ namespace ASI.Basecode.Data.Repositories
             return GetDbSet<GradeFeedback>().FirstOrDefault(gf => gf.Id == id);
         }
 
+        public GradeFeedback GetGradeFeedback(string teacherId, string courseCode)
+        {
+            return GetDbSet<GradeFeedback>()
+                .Include(gf => gf.StudentCourse)
+                .FirstOrDefault(gf => gf.UserId == teacherId &&
+                                    gf.StudentCourse != null &&
+                                    gf.StudentCourse.CourseCode == courseCode);
+        }
+
+        public GradeFeedback GetGradeFeedbackByStudentId(string studentId, string courseCode)
+        {
+            return GetDbSet<GradeFeedback>()
+                .Include(gf => gf.StudentCourse)
+                .FirstOrDefault(gf => gf.StudentCourse != null &&
+                                    gf.StudentCourse.UserId == studentId &&
+                                    gf.StudentCourse.CourseCode == courseCode);   
+        }
+
         public bool GradeFeedbackExists(int id)
         {
             return GetDbSet<GradeFeedback>().Any(x => x.Id == id);
+        }
+
+        // Check if grade feedback of a student exists 
+        public bool GradeFeedbackExists(string teacherUserID, string courseCode)
+        {
+            return GetDbSet<GradeFeedback>()
+                .Include(gf => gf.StudentCourse) // Explicitly include to ensure navigation works
+                .Any(x => x.UserId == teacherUserID &&
+                        x.StudentCourse != null &&
+                        x.StudentCourse.CourseCode == courseCode);
         }
 
         public void AddGradeFeedback(GradeFeedback gradeFeedback)

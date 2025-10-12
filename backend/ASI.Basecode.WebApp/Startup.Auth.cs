@@ -9,6 +9,7 @@ using System;
 using System.Text;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
 
 namespace ASI.Basecode.WebApp
 {
@@ -28,7 +29,7 @@ namespace ASI.Basecode.WebApp
             var signingKey = new SymmetricSecurityKey(
                 Encoding.ASCII.GetBytes(token.SecretKey)
             );
-            
+
             var tokenValidationParameters = new TokenValidationParameters
             {
                 ValidateIssuerSigningKey = true,
@@ -60,19 +61,43 @@ namespace ASI.Basecode.WebApp
                             {
                                 context.Token = authHeader.Substring("Bearer ".Length).Trim();
                             }
-                            
+
                             // Fallback to cookie if needed
                             if (string.IsNullOrEmpty(context.Token))
                             {
                                 context.Token = context.Request.Cookies["accessToken"];
                             }
-                            
+
                             return Task.CompletedTask;
                         },
                         OnAuthenticationFailed = context =>
                         {
                             Console.WriteLine($"Authentication failed: {context.Exception.Message}");
                             return Task.CompletedTask;
+                        },
+                        OnChallenge = async context =>
+                        {
+                            context.HandleResponse(); // Prevent default behavior
+
+                            context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                            context.Response.ContentType = "application/json";
+
+                            await context.Response.WriteAsJsonAsync(new
+                            {
+                                error = "Unauthorized",
+                                message = "Authentication failed. Please provide a valid token."
+                            });
+                        },
+                        OnForbidden = async context =>
+                        {
+                            context.Response.StatusCode = StatusCodes.Status403Forbidden;
+                            context.Response.ContentType = "application/json";
+
+                            await context.Response.WriteAsJsonAsync(new
+                            {
+                                error = "Forbidden",
+                                message = "You do not have permission to access this resource."
+                            });
                         }
                     };
                 });
@@ -83,11 +108,11 @@ namespace ASI.Basecode.WebApp
                 {
                     policy.RequireAuthenticatedUser();
                 });
-                
+
                 // Optional: Add role-based policies
-                options.AddPolicy("Admin", policy => 
+                options.AddPolicy("Admin", policy =>
                     policy.RequireRole("Admin"));
-                options.AddPolicy("User", policy => 
+                options.AddPolicy("User", policy =>
                     policy.RequireRole("User", "Admin"));
             });
 
