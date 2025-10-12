@@ -52,7 +52,7 @@ namespace ASI.Basecode.WebApp.Controllers
         /// <response code="404">Student does not exist.</response>
         /// <response code="404">Course code does not relate to any courses.</response>
         /// <response code="500">Internal server error</response>
-        [HttpPost("create")]
+        [HttpPost("enroll")]
         [Authorize(Roles = "Admin")]
         public IActionResult EnrollStudentAdmin([FromBody] StudentCourseCreateAdminRequest request)
         {

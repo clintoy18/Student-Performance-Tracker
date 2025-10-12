@@ -38,6 +38,7 @@ namespace ASI.Basecode.WebApp
             this._services.AddScoped<ICourseService, CourseService>();
             this._services.AddScoped<IRbacService, RbacService>();
             this._services.AddScoped<IGradeFeedbackService, GradeFeedbackService>();
+            this._services.AddScoped<IStudentCourseService, StudentCourseService>();
 
             // Repositories
             this._services.AddScoped<IUserRepository, UserRepository>();

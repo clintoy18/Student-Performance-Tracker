@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
 using ASI.Basecode.Data.Models;
 using static ASI.Basecode.Resources.Constants.Enums;
+using System.Linq;
 
 namespace ASI.Basecode.Data
 {
@@ -80,6 +81,9 @@ namespace ASI.Basecode.Data
                 entity.Property(e => e.CourseName)
                     .IsRequired()
                     .HasMaxLength(255);
+
+                // entity.Property(e => e.Year)
+                //         .IsRequired();
 
                 entity.Property(e => e.CourseDescription)
                     .HasMaxLength(1000);
@@ -161,13 +165,13 @@ namespace ASI.Basecode.Data
                     .WithMany()
                     .HasForeignKey(gf => gf.UserId)
                     .HasPrincipalKey(u => u.UserId)
-                    .OnDelete(DeleteBehavior.ClientSetNull);
+                    .OnDelete(DeleteBehavior.SetNull);
 
                 entity.HasOne(gf => gf.StudentCourse)
                     .WithMany()
                     .HasForeignKey(gf => gf.StudentCourseId)
                     .HasPrincipalKey(u => u.StudentCourseId)
-                    .OnDelete(DeleteBehavior.ClientSetNull);
+                    .OnDelete(DeleteBehavior.SetNull);
             });
 
             OnModelCreatingPartial(modelBuilder);
