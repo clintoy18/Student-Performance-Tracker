@@ -33,6 +33,11 @@ namespace ASI.Basecode.Services.Services
             return _repository.GetCourses().FirstOrDefault(c => c.Id == courseId);
         }
 
+        public Course FetchCourseByCourseCode(string courseCode)
+        {
+            return _repository.GetCourses().FirstOrDefault(c => c.CourseCode == courseCode);
+        }
+
         public List<Course> FetchCoursesByUser(string userId)
         {
             return _repository.GetCourses().Where(c => c.UserId == userId).ToList();

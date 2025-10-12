@@ -16,5 +16,6 @@ namespace ASI.Basecode.Services.Interfaces
         void RegisterUserAdmin(RegisterUserAdminModel model);
         void UpdateUserAdmin(RegisterUserAdminModel model);
         public List<UserViewAdminModel> GetAllUsers();
+        public bool UserExists(string userId);
     }
 }

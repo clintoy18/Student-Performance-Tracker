@@ -13,6 +13,11 @@ namespace ASI.Basecode.Services.Interfaces
         Course FetchCourse(int courseId);
 
         /// <summary>
+        /// Fetch a course by its Course Code.
+        /// </summary>
+        public Course FetchCourseByCourseCode(string courseCode);
+
+        /// <summary>
         /// Fetch all courses assigned to a specific user (e.g., teacher).
         /// </summary>
         List<Course> FetchCoursesByUser(string userId);

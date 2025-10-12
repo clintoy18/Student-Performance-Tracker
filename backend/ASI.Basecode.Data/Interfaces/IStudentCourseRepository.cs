@@ -8,6 +8,8 @@ namespace ASI.Basecode.Data.Interfaces
         public IQueryable<StudentCourse> GetStudentCourses();
 
         public StudentCourse GetStudentCourse(string userId, string courseCode);
+        public IQueryable<StudentCourse> GetStudentCoursesByStudent(string userId);
+        public IQueryable<StudentCourse> GetStudentCoursesByCourse(string courseCode);
 
         public bool StudentCourseExists(string studentCourseId);
         public bool StudentCourseExists(string studentUserId, string courseCode);

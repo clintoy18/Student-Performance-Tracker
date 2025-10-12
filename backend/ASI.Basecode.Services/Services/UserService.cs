@@ -141,5 +141,10 @@ namespace ASI.Basecode.Services.Services
                 Role = u.Role
             }).ToList();
         }
+
+        public bool UserExists(string userId)
+        {
+            return _repository.UserExists(userId);
+        }
     }
 }

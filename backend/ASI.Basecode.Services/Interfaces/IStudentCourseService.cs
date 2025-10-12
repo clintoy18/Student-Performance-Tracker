@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using ASI.Basecode.Data.Models;
 using ASI.Basecode.Services.ServiceModels;
@@ -7,5 +8,13 @@ namespace ASI.Basecode.Services.Interfaces
 {
     public interface IStudentCourseService
     {
+        public void CreateStudentCourse(StudentCourseCreateModel model);
+
+        public void UpdateStudentGrade(StudentCourseUpdateModel model);
+        public void DeleteStudentCourse(string studentUserId, string courseCode);
+
+        public List<StudentCourse> GetStudentCoursesOfStudent(string userId);
+
+        public List<StudentCourse> GetStudentCoursesOfCourse(string courseCode);
     }
 }
