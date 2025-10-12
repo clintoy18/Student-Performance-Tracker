@@ -8,7 +8,7 @@ namespace ASI.Basecode.Data.Models
     public class StudentCourse  // Many-to-many between Student and Course
     {
         public int Id { get; set; }
-        public string StudentCourseId { get; set; }
+        public string StudentCourseId { get; set; } = Guid.NewGuid().ToString();
         public string UserId { get; set; }
         public string CourseCode { get; set; }
         public DateTime CreatedTime { get; set; } = DateTime.UtcNow;

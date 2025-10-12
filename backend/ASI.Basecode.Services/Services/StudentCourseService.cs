@@ -17,11 +17,24 @@ namespace ASI.Basecode.Services.Services
     {
         private readonly IStudentCourseRepository _repository;
         private readonly IMapper _mapper;
+        private readonly IUserRepository _userRepository;
 
-        public StudentCourseService(IStudentCourseRepository repository, IMapper mapper)
+        public StudentCourseService(
+            IStudentCourseRepository repository,
+            IUserRepository userRepository,
+            IMapper mapper)
         {
             _mapper = mapper;
+            _userRepository = userRepository;
             _repository = repository;
+        }
+
+        public void CreateStudentCourse(StudentCourseCreateModel model)
+        {
+            // var newStudentCourse = new StudentCourse
+            // {
+                
+            // }
         }
     }
 }
