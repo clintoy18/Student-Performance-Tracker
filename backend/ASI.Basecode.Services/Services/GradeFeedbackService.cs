@@ -32,7 +32,7 @@ namespace ASI.Basecode.Services.Services
 
         public void CreateGradeFeedback(GradeFeedbackCreateModel model)
         {
-            var studentCourse = _studentCourseRepository.GetStudentCourse(model.Course.UserId, model.Course.CourseCode);
+            var studentCourse = _studentCourseRepository.GetStudentCourse(model.CourseStudentUserId, model.CourseCode);
             if (studentCourse == null)
             {
                 throw new ArgumentNullException("Student does not have a related course to be feedbacked on.");
