@@ -19,7 +19,7 @@ using Microsoft.AspNetCore.Authorization;
 namespace ASI.Basecode.WebApp.Controllers
 {
     [ApiController]
-    [Route("api/admin/")]
+    [Route(AppConstants.Controllers.Admin)]
     public class AdminController : ControllerBase
     {
         private readonly IUserService _userService;

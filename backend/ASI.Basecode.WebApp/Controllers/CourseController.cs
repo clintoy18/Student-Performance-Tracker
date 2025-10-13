@@ -6,11 +6,14 @@ using Microsoft.Extensions.Logging;
 using System;
 using System.IO;
 using System.Linq;
+using ASI.Basecode.Resources.Constants;
+using ASI.Basecode.Resources.Constants;
+
 
 namespace ASI.Basecode.WebApp.Controllers
 {
     [ApiController]
-    [Route("api/course/")]
+    [Route(AppConstants.Controllers.Course)]
     public class CourseController : ControllerBase
     {
         private readonly ICourseService _courseService;

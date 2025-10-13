@@ -17,7 +17,7 @@ using static ASI.Basecode.Resources.Constants.Enums;
 namespace ASI.Basecode.WebApp.Controllers
 {
     [ApiController]
-    [Route("api/auth/")]
+    [Route(AppConstants.Controllers.Authentication)]
     public class AuthController : ControllerBase
     {
         private readonly IUserService _userService;

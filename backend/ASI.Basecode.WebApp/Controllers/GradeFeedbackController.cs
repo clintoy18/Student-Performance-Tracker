@@ -8,12 +8,15 @@ using Microsoft.Extensions.Logging;
 using Microsoft.AspNetCore.Authorization;
 using System;
 using static ASI.Basecode.Resources.Constants.Enums;
+using ASI.Basecode.Resources.Constants;
+
+
 using System.Linq;
 
 namespace ASI.Basecode.WebApp.Controllers
 {
     [ApiController]
-    [Route("api/feedback/")]
+    [Route(AppConstants.Controllers.GradeFeedback)]
     public class GradeFeedbackController : ControllerBase
     {
         private readonly IGradeFeedbackService _gradeFeedbackService;
