@@ -7,10 +7,13 @@
     {
         public static class Controllers
         {
-            public const string Menu = "api/menu";
+            public const string Admin = "api/admin";
+            public const string Authentication = "api/auth";
             public const string Account = "api/account";
-            public const string StudentCourse = "api/course";
-
+            public const string Course = "api/course";
+            public const string StudentCourse = "api/student-course";
+            public const string User = "api/student";
+            public const string GradeFeedback = "api/feedback";
         }
 
         public static class LogTypes
