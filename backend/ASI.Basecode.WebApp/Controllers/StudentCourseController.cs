@@ -9,12 +9,12 @@ using Microsoft.AspNetCore.Authorization;
 using System;
 using static ASI.Basecode.Resources.Constants.Enums;
 using System.Linq;
+using ASI.Basecode.Resources.Constants;
 using ASI.Basecode.Data.Interfaces;
-
 namespace ASI.Basecode.WebApp.Controllers
 {
     [ApiController]
-    [Route("api/student-course/")]
+    [Route(AppConstants.Controllers.StudentCourse)]
     public class StudentCourseController : ControllerBase
     {
         private readonly IStudentCourseService _studentCourseService;
