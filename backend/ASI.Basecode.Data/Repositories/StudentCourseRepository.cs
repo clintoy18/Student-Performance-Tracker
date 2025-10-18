@@ -19,9 +19,10 @@ namespace ASI.Basecode.Data.Repositories
             return GetDbSet<StudentCourse>();
         }
 
-        public IQueryable<StudentCourse> GetStudentCoursesByStudent(string userId)
+       public IQueryable<StudentCourse> GetStudentCoursesByStudent(string userId)
         {
             return GetDbSet<StudentCourse>()
+                .Include(sc => sc.Course)
                 .Where(sc => sc.UserId == userId);
         }
 

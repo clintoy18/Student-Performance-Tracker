@@ -3,7 +3,7 @@ import Button from "../../common/Button";
 import { PlusCircle, BookOpen, Edit, Trash2 } from "lucide-react";
 import Modal from "../../common/modal/Modal";
 import SubjectForm from "./subjects/SubjectForm";
-import { getAllCourses, addCourse, updateCourse, deleteCourse } from "@services/CourseService";
+import { getAllCourses, addCourse, updateCourse, deleteCourseByCourseCode } from "@services/CourseService";
 import type { ICourse } from "@interfaces/models/ICourse";
 import { useAuth } from "../../../context/AuthContext";
 import { InlineSpinner } from "../../../components/common/LoadingSpinnerPage";
@@ -75,7 +75,7 @@ const Subjects: React.FC = () => {
 
     setDeleteLoading(true);
     try {
-      await deleteCourse(selectedCourse.CourseCode);
+      await deleteCourseByCourseCode(selectedCourse.CourseCode);
       await fetchCourses();
       setIsDeleteModalOpen(false);
       setSelectedCourse(null);
