@@ -73,7 +73,7 @@ namespace ASI.Basecode.Services.Services
             _repository.DeleteStudentCourseByStudentCourseId(studentCourse.StudentCourseId);
         }
 
-        public List<StudentCourse> GetStudentCoursesOfStudent(string userId)
+       public List<StudentCourse> GetStudentCoursesOfStudent(string userId)
         {
             return _repository.GetStudentCoursesByStudent(userId).ToList();
         }
