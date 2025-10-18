@@ -8,9 +8,10 @@ interface InputFieldProps {
   value: string;
   placeholder?: string;
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  disabled?: boolean; // ✅ renamed to match input attribute
-  required?: boolean
-  error?: string // For form errors
+  disabled?: boolean;
+  required?: boolean;
+  error?: string;
+  icon?: React.ReactNode; // ✅ Accept icon component
 }
 
 const TextInputField: React.FC<InputFieldProps> = ({
@@ -20,20 +21,15 @@ const TextInputField: React.FC<InputFieldProps> = ({
   value,
   placeholder,
   onChange,
-  disabled = false, // ✅ default false
+  disabled = false,
   required = false,
-  error
+  error,
+  icon: IconComponent,
 }) => {
   const [isVisible, setIsVisible] = useState(false);
 
-  // Determine border color based on error state
-  const borderColor = error 
-    ? "border-red-500" 
-    : "border-gray-300";
-
-  const focusRingColor = error 
-    ? "focus:ring-red-500" 
-    : "focus:ring-blue-500";
+  const borderColor = error ? "border-red-500" : "border-gray-300";
+  const focusRingColor = error ? "focus:ring-red-500" : "focus:ring-blue-500";
 
   const handleToggle = () => {
     setIsVisible((prevState) => !prevState);
@@ -49,6 +45,29 @@ const TextInputField: React.FC<InputFieldProps> = ({
       </label>
 
       <div className="relative mt-2">
+        {/* Left Icon (if provided) */}
+        {IconComponent && (
+          <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 pointer-events-none">
+            {IconComponent}
+          </div>
+        )}
+        {/* Input field */}
+        <input
+          className={`w-full text-sm py-2 px-4 bg-transparent border rounded-md 
+            focus:outline-none focus:ring-2 ${focusRingColor} font-sans 
+            disabled:bg-gray-100 disabled:cursor-not-allowed ${borderColor}
+            ${IconComponent ? "pl-10" : ""} ${type === "password" ? "pr-10" : ""}`}
+          id={id}
+          type={isVisible && type === "password" ? "text" : type}
+          name={id}
+          value={value}
+          placeholder={placeholder}
+          onChange={onChange}
+          disabled={disabled}
+          required={required}
+        />
+
+        {/* Password visibility toggle (right side) */}
         {type === "password" && (
           <button
             onClick={handleToggle}
@@ -60,31 +79,12 @@ const TextInputField: React.FC<InputFieldProps> = ({
           </button>
         )}
 
-        {/* Input field */}
-        <input
-          className={`w-full text-sm py-2 px-4 bg-transparent border rounded-md 
-            focus:outline-none focus:ring-2 ${focusRingColor} font-sans 
-            disabled:bg-gray-100 disabled:cursor-not-allowed ${borderColor}`}
-          id={id}
-          type={isVisible && type === "password" ? "text" : type}
-          name={id}
-          value={value}
-          placeholder={placeholder}
-          onChange={onChange}
-          disabled={disabled}
-          required={required}
-        />
-
         {/* Error message */}
         {error && (
-          <p 
-            id={`${id}-error`}
-            className="mt-1 text-xs text-red-600 font-sans"
-          >
+          <p id={`${id}-error`} className="mt-1 text-xs text-red-600 font-sans">
             {error}
           </p>
         )}
-
       </div>
     </div>
   );

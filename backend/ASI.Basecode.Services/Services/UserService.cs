@@ -102,19 +102,26 @@ namespace ASI.Basecode.Services.Services
         {
             ArgumentNullException.ThrowIfNull(model);
 
-            var existingUser = _repository.GetUser(model.UserId);    // Fetch the existing user to preserve current password if not updating
-            var userToUpdate = _mapper.Map<User>(model);    // Map the view model to a new user entity
+            var user = _repository.GetUser(model.UserId); // ✅ This is tracked by EF
+            if (user == null)
+                throw new InvalidDataException("User not found.");
 
-            // Password update logic
+            // ✅ Update properties on the SAME tracked instance
+            user.FirstName = model.FirstName;
+            user.MiddleName = model.MiddleName;
+            user.LastName = model.LastName;
+            user.Program = model.Program;
+
+            // Handle password
             if (!string.IsNullOrWhiteSpace(model.Password))
             {
-                userToUpdate.HashedPassword = PasswordManager.EncryptPassword(model.Password);
+                user.HashedPassword = PasswordManager.EncryptPassword(model.Password);
             }
-            else
-            {
-                userToUpdate.HashedPassword = existingUser.HashedPassword;
-            }
-            _repository.UpdateUser(userToUpdate);
+            // else: keep existing HashedPassword (no change)
+
+            // No need to call _repository.UpdateUser() if using change tracking!
+            // But if your repo has an Update method, you can still call it — just pass `user`, not a new instance
+            _repository.UpdateUser(user); // ✅ Same instance EF is already tracking
         }
 
         public void DeleteUser(string userId)
