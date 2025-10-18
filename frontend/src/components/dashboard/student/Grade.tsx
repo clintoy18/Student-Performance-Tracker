@@ -17,6 +17,8 @@ export const Grade = ({ studentUserId }: { studentUserId?: string }) => {
       }
     };
 
+    console.log(studentUserId);
+
     fetchGrades();
   }, [studentUserId]);
 
