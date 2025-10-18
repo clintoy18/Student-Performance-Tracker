@@ -47,3 +47,8 @@ export const getUserAdmin = async (userId: string) => {
 
   return response.data;
 };
+
+export const getRecentUsers = async (userCount: number) => {
+  const response = await admin.get(`/user/recent?count=${userCount}`)
+  return response.data
+}

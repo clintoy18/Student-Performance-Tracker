@@ -1,15 +1,8 @@
 import React from "react";
 import { User, Shield, GraduationCap } from "lucide-react";
+import type { IUser } from "@interfaces";
 
-interface User {
-  id: string;
-  name: string;
-  email: string;
-  role: "Student" | "Teacher" | "Admin";
-  createdAt: string;
-}
-
-const roleConfig: Record<User["role"], { color: string; icon: React.ReactNode }> = {
+const roleConfig: Record<IUser["Role"], { color: string; icon: React.ReactNode }> = {
   Student: {
     color: "bg-green-50 text-green-700 border-green-200",
     icon: <User className="w-4 h-4 text-green-600" />
@@ -24,8 +17,13 @@ const roleConfig: Record<User["role"], { color: string; icon: React.ReactNode }>
   },
 };
 
-const UserCard: React.FC<{ user: User }> = ({ user }) => {
-  const { color, icon } = roleConfig[user.role];
+const UserCard: React.FC<{ user: IUser }> = ({ user }) => {
+  const { color, icon } = roleConfig[user.Role];
+
+  // Construct full name (handle missing middle name gracefully)
+  const fullName = [user.FirstName, user.MiddleName, user.LastName]
+    .filter(Boolean)
+    .join(" ");
 
   return (
     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-3 sm:p-4 border border-gray-100 rounded-lg hover:bg-gray-50 transition-colors gap-3 sm:gap-0">
@@ -35,18 +33,17 @@ const UserCard: React.FC<{ user: User }> = ({ user }) => {
           {icon}
         </div>
         <div className="min-w-0 flex-1">
-          <p className="text-sm font-medium text-gray-900 truncate">{user.name}</p>
-          <p className="text-sm text-gray-500 truncate">{user.email}</p>
+          <p className="text-sm font-medium text-gray-900 truncate">{fullName}</p>
         </div>
       </div>
 
       {/* Role & Date */}
       <div className="flex items-center justify-between sm:justify-end gap-2 sm:gap-3">
         <span className={`px-2.5 py-1 text-xs font-medium rounded-full border ${color} whitespace-nowrap`}>
-          {user.role}
+          {user.Role}
         </span>
         <span className="text-xs sm:text-sm text-gray-400 whitespace-nowrap">
-          {new Date(user.createdAt).toLocaleDateString()}
+          {new Date(user.CreatedTime).toLocaleDateString()}
         </span>
       </div>
     </div>

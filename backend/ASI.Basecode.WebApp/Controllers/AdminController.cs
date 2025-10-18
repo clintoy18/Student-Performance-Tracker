@@ -241,6 +241,29 @@ namespace ASI.Basecode.WebApp.Controllers
                 return StatusCode(500, new { message = "An internal server error has occurred.", error = ex.Message });
             }
         }
+
+        /// <summary>
+        /// Retrieves the most recently registered users
+        /// </summary>
+        /// <param name="count">Number of recent users to retrieve (default: 5)</param>
+        /// <returns>List of recently registered users without password information</returns>
+        /// <response code="200">Recent users retrieved successfully</response>
+        /// <response code="500">Internal server error</response>
+        [HttpGet("user/recent")]
+        [Authorize(Roles = "Admin")]
+        public IActionResult GetRecentUsers([FromQuery] int count = 5)
+        {
+            try
+            {
+                var users = _userService.GetRecentUsers(count);
+                return Ok(users);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "An internal server error has occurred: ");
+                return StatusCode(500, new { message = "An internal server error has occurred.", error = ex.Message });
+            }
+        }
     }
 
 }

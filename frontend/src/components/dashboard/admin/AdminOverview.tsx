@@ -1,9 +1,16 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Users, BookOpen, LineChart, Server } from "lucide-react";
 import Card from "../../common/Card";
 import RecentUsers from "./overview/RecentUsers";
+import { getRecentUsers } from "@services";
+import type { IUser } from "@interfaces";
+import FullPageSpinner from "../../common/LoadingSpinnerPage";
+import { parseNumericRole } from "../../../utils/roleUtils";
 
 const AdminOverview = () => {
+  const [users, setUsers] = useState<IUser[]>([])
+  const [loading, setLoading] = useState(false)
+
   const statsData = [
     {
       title: "Total Users",
@@ -31,30 +38,66 @@ const AdminOverview = () => {
     },
   ];
 
-  const dummyUsers = [
-    { id: "1", name: "James Walker", email: "jwalker@uc.edu.ph", role: "Teacher", createdAt: "2025-09-07" },
-    { id: "2", name: "Vince Bryant N. Cabunilas", email: "vincebryantcabunilas@gmail.com", role: "Student", createdAt: "2025-09-07" },
-    { id: "3", name: "Sean Joseph C. Arcana", email: "seanjosepharcana@gmail.com", role: "Admin", createdAt: "2025-09-07" },
-  ];
+  useEffect(() => {
+    const fetchRecentUsers = async (count: number) => {
+      setLoading(true)
+      try {
+        const rawData = await getRecentUsers(count)
+        const parsedUsers: IUser[] = rawData
+          .map((user) => {
+            const role = parseNumericRole(user.role)
+            if (role === null) {
+              console.warn("Unknown role value:", user.Role, "for user", user.UserId);
+              return null; // or fallback to "Student"
+            }
+
+            return {
+              FirstName: user.firstName,
+              LastName: user.lastName,
+              MiddleName: user.middleName,
+              Program: user.program,
+              UserId: user.userId,
+              CreatedTime: user.createdTime,
+              Role: role
+            }
+          })
+          .filter((user): user is IUser => user !== null)
+        setUsers(parsedUsers)
+      } catch (error) {
+        console.error('Error fetching recent users: ', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchRecentUsers(5)
+  }, [])
 
   return (
     <div className="space-y-4 sm:space-y-6 p-4 sm:p-0">
-      {/* Stats Grid */}
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4 sm:gap-4">
-        {statsData.map((stat, index) => (
-          <Card
-            key={index}
-            title={stat.title}
-            icon={stat.icon}
-            value={stat.value}
-            description={stat.description}
-          />
-        ))}
-      </div>
+      {loading ? (
+        <FullPageSpinner />
+      ) : (
+        <>
+          {/* Stats Grid */}
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4 sm:gap-4">
+            {statsData.map((stat, index) => (
+              <Card
+                key={index}
+                title={stat.title}
+                icon={stat.icon}
+                percentage={stat.value}
+                description={stat.description}
+              />
+            ))}
+          </div>
 
-      {/* Recent Users */}
-      <RecentUsers users={dummyUsers}/>
-    </div>
+          {/* Recent Users */}
+          <RecentUsers users={users} />
+        </>
+      )
+      }
+    </div >
   );
 };
 
