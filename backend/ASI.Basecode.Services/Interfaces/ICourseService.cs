@@ -38,6 +38,11 @@ namespace ASI.Basecode.Services.Interfaces
         void DeleteCourse(int courseId);
 
         /// <summary>
+        /// Delete a course by its course code.
+        /// </summary>
+        void DeleteCourseByCourseCode(string courseCode);
+
+        /// <summary>
         /// Get all courses.
         /// </summary>
         List<Course> GetAllCourses();

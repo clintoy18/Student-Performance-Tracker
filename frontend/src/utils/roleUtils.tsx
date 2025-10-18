@@ -38,7 +38,7 @@ export const teacherTabs = [
 export const adminTabs = [
     { label: "Overview", content: <AdminOverView /> },
     { label: "Users", content: <UserTable /> },
-    { label: "Subjects", content: <Subjects /> },
+    { label: "Courses", content: <Subjects /> },
     { label: "Profile", content: <Profile /> },
 ];
 

@@ -58,7 +58,7 @@ export default function CreateTeacherModal({
     setLoading(true);
 
     try {
-      const newUser: IUser & { password: string } = {
+      const newUser: IUser & { Password: string, ConfirmPassword: string } = {
         UserId: formData.userId,
         FirstName: formData.firstName,
         MiddleName: formData.middleName,
@@ -66,7 +66,8 @@ export default function CreateTeacherModal({
         Program: formData.program,
         Role: "Teacher",
         CreatedTime: new Date().toISOString(),
-        password: formData.password,
+        Password: formData.password,
+        ConfirmPassword: formData.confirmPassword
       };
 
       await createNewUserAdmin(newUser);

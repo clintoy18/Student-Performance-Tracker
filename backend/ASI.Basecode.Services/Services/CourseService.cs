@@ -78,6 +78,17 @@ namespace ASI.Basecode.Services.Services
             _repository.DeleteCourseByCourseCode(course.CourseCode);
         }
 
+        public void DeleteCourseByCourseCode(string courseCode)
+        {
+            if (string.IsNullOrWhiteSpace(courseCode))
+                throw new ArgumentException("Course code cannot be null or empty.", nameof(courseCode));
+
+            if (!_repository.CourseExists(courseCode))
+                throw new Exception("Course not found.");
+
+            _repository.DeleteCourseByCourseCode(courseCode);
+        }
+
         public List<Course> GetAllCourses()
         {
             return _repository.GetCourses().ToList();

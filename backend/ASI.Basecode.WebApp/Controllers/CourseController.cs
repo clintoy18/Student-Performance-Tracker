@@ -7,7 +7,7 @@ using System;
 using System.IO;
 using System.Linq;
 using ASI.Basecode.Resources.Constants;
-using ASI.Basecode.Resources.Constants;
+using Microsoft.AspNetCore.Authorization;
 
 
 namespace ASI.Basecode.WebApp.Controllers
@@ -45,7 +45,9 @@ namespace ASI.Basecode.WebApp.Controllers
                         c.Id,
                         c.CourseCode,
                         c.CourseName,
-                        c.CourseDescription
+                        c.CourseDescription,
+                        c.UserId,
+                        c.CreatedAt
                     })
                     .ToList();
 
@@ -62,6 +64,7 @@ namespace ASI.Basecode.WebApp.Controllers
         /// Retrieves a specific course by ID
         /// </summary>
         [HttpGet("{courseId:int}")]
+        [Authorize]
         public IActionResult GetCourse(int courseId)
         {
             if (courseId <= 0)
@@ -93,9 +96,44 @@ namespace ASI.Basecode.WebApp.Controllers
         }
 
         /// <summary>
+        /// Retrieves a specific course by course code
+        /// </summary>
+        [HttpGet("code/{courseCode}")]
+        [Authorize]
+        public IActionResult GetCourseByCourseCode(string courseCode)
+        {
+            if (string.IsNullOrWhiteSpace(courseCode))
+                return BadRequest(new { message = "Course code is required." });
+
+            try
+            {
+                var course = _courseService.FetchCourseByCourseCode(courseCode);
+
+                if (course == null)
+                    return NotFound(new { message = "Course not found." });
+
+                return Ok(new
+                {
+                    course.Id,
+                    course.CourseCode,
+                    course.CourseName,
+                    course.CourseDescription,
+                    course.UserId,
+                    course.CreatedAt
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error while retrieving course by course code.");
+                return StatusCode(500, new { message = "An internal server error occurred." });
+            }
+        }
+
+        /// <summary>
         /// Adds a new course
         /// </summary>
         [HttpPost("add")]
+        [Authorize]
         public IActionResult AddCourse([FromBody] CourseViewModel model)
         {
             if (!ModelState.IsValid)
@@ -103,11 +141,6 @@ namespace ASI.Basecode.WebApp.Controllers
 
             try
             {
-                var IsTeacher = _rbacService.IsTeacher(model.UserId);
-                if (!IsTeacher)
-                {
-                    return BadRequest(new { message = "UserId supplied must be that of a teacher." });
-                }
 
                 _courseService.RegisterCourse(model);
                 return Ok(new { message = "Course added successfully." });
@@ -127,6 +160,7 @@ namespace ASI.Basecode.WebApp.Controllers
         /// Updates a course
         /// </summary>
         [HttpPut("update")]
+        [Authorize]
         public IActionResult UpdateCourse([FromBody] CourseUpdateViewModel model)
         {
             if (!ModelState.IsValid)
@@ -136,13 +170,7 @@ namespace ASI.Basecode.WebApp.Controllers
             //     return BadRequest(new { message = "Course ID in route does not match request body." });
 
             try
-            {
-                var IsTeacher = _rbacService.IsTeacher(model.UserId);
-                if (!IsTeacher)
-                {
-                    return BadRequest(new { message = "UserId supplied must be that of a teacher." });
-                }
-                
+            {                
                 _courseService.UpdateCourse(model);
                 return Ok(new { message = "Course updated successfully." });
             }
@@ -159,7 +187,7 @@ namespace ASI.Basecode.WebApp.Controllers
         }
 
         /// <summary>
-        /// Deletes a course
+        /// Deletes a course by ID
         /// </summary>
         [HttpDelete("delete/{courseId:int}")]
         public IActionResult DeleteCourse(int courseId)
@@ -179,6 +207,31 @@ namespace ASI.Basecode.WebApp.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error while deleting course.");
+                return StatusCode(500, new { message = "An internal server error occurred." });
+            }
+        }
+
+        /// <summary>
+        /// Deletes a course by course code
+        /// </summary>
+        [HttpDelete("delete/code/{courseCode}")]
+        public IActionResult DeleteCourseByCourseCode(string courseCode)
+        {
+            if (string.IsNullOrWhiteSpace(courseCode))
+                return BadRequest(new { message = "Course code is required." });
+
+            try
+            {
+                _courseService.DeleteCourseByCourseCode(courseCode);
+                return Ok(new { message = "Course deleted successfully." });
+            }
+            catch (InvalidDataException ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error while deleting course by course code.");
                 return StatusCode(500, new { message = "An internal server error occurred." });
             }
         }
