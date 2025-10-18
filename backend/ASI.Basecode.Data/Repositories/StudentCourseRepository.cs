@@ -30,6 +30,7 @@ namespace ASI.Basecode.Data.Repositories
         {
             return GetDbSet<StudentCourse>()
                 .Include(sc => sc.Course)
+                .Include(sc => sc.User)
                 .Where(sc => sc.Course.CourseCode == courseCode);
         }
 

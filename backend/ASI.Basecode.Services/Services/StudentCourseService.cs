@@ -84,9 +84,22 @@ namespace ASI.Basecode.Services.Services
             return _repository.GetStudentCoursesByStudent(userId).ToList();
         }
 
-        public List<StudentCourse> GetStudentCoursesOfCourse(string courseCode)
+        public List<StudentCourseViewModel> GetStudentCoursesOfCourse(string courseCode)
         {
-            return _repository.GetStudentCoursesByCourse(courseCode).ToList();
+            var enrollments = _repository.GetStudentCoursesByCourse(courseCode).ToList();
+
+            return enrollments.Select(sc => new StudentCourseViewModel
+            {
+                StudentCourseId = sc.StudentCourseId,
+                StudentUserId = sc.UserId,
+                CourseCode = sc.CourseCode,
+                Grade = sc.Grade,
+                FirstName = sc.User.FirstName,
+                MiddleName = sc.User.MiddleName,
+                LastName = sc.User.LastName,
+                Program = sc.User.Program,
+                Course = sc.Course
+            }).ToList();
         }
     }
 }

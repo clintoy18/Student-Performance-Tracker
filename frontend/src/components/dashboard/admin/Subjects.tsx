@@ -1,18 +1,21 @@
 import React, { useState, useEffect } from "react";
 import Button from "../../common/Button";
-import { PlusCircle, BookOpen, Edit, Trash2 } from "lucide-react";
+import { PlusCircle, BookOpen, Edit, Trash2, UserPlus, Users } from "lucide-react";
 import Modal from "../../common/modal/Modal";
 import SubjectForm from "./subjects/SubjectForm";
-import { getAllCourses, addCourse, updateCourse, deleteCourseByCourseCode } from "@services/CourseService";
+import EnrollStudentModal from "./subjects/EnrollStudentModal";
+import ViewEnrolledStudentsModal from "./subjects/ViewEnrolledStudentsModal";
+import { getAllCourses, addCourse, updateCourse, deleteCourse, deleteCourseByCourseCode } from "@services/CourseService";
 import type { ICourse } from "@interfaces/models/ICourse";
 import { useAuth } from "../../../context/AuthContext";
-import { InlineSpinner } from "../../../components/common/LoadingSpinnerPage";
 
 const Subjects: React.FC = () => {
   const { user } = useAuth();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isEnrollModalOpen, setIsEnrollModalOpen] = useState(false);
+  const [isViewStudentsModalOpen, setIsViewStudentsModalOpen] = useState(false);
   const [courses, setCourses] = useState<ICourse[]>([]);
   const [selectedCourse, setSelectedCourse] = useState<ICourse | null>(null);
   const [loading, setLoading] = useState(true);
@@ -37,7 +40,6 @@ const Subjects: React.FC = () => {
           CreatedAt: course.createdAt,
           TeacherUserId: course.userId
         }))
-      console.log(parsedData)
       setCourses(parsedData);
     } catch (err: any) {
       setError("Failed to load courses");
@@ -97,10 +99,26 @@ const Subjects: React.FC = () => {
     setIsDeleteModalOpen(true);
   };
 
+  const openEnrollModal = (course: ICourse) => {
+    setSelectedCourse(course);
+    setIsEnrollModalOpen(true);
+  };
+
+  const openViewStudentsModal = (course: ICourse) => {
+    setSelectedCourse(course);
+    setIsViewStudentsModalOpen(true);
+  };
+
+  const handleEnrollSuccess = () => {
+    // Optionally refresh data or show a success message
+    setIsEnrollModalOpen(false);
+    setSelectedCourse(null);
+  };
+
   if (loading) {
     return (
       <div className="flex flex-col py-32 items-center">
-        <InlineSpinner />
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
         <span className="text-sm py-4 text-gray-800">Loading courses...</span>
       </div>
     );
@@ -146,7 +164,23 @@ const Subjects: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="flex gap-2">
+                <div className="flex gap-2 flex-wrap">
+                  <button
+                    onClick={() => openViewStudentsModal(course)}
+                    className="flex items-center gap-1 text-purple-600 border border-purple-300 px-3 py-1.5 rounded text-sm hover:bg-purple-50 transition-colors"
+                    title="View Enrolled Students"
+                  >
+                    <Users size={14} />
+                    <span className="hidden sm:inline">Students</span>
+                  </button>
+                  <button
+                    onClick={() => openEnrollModal(course)}
+                    className="flex items-center gap-1 text-green-600 border border-green-300 px-3 py-1.5 rounded text-sm hover:bg-green-50 transition-colors"
+                    title="Enroll Student"
+                  >
+                    <UserPlus size={14} />
+                    <span className="hidden sm:inline">Enroll</span>
+                  </button>
                   <button
                     onClick={() => openEditModal(course)}
                     className="flex items-center gap-1 text-blue-600 border border-blue-300 px-3 py-1.5 rounded text-sm hover:bg-blue-50 transition-colors"
@@ -233,6 +267,21 @@ const Subjects: React.FC = () => {
           </div>
         </div>
       </Modal>
+
+      {/* Enroll Student Modal */}
+      <EnrollStudentModal
+        isOpen={isEnrollModalOpen}
+        onClose={() => setIsEnrollModalOpen(false)}
+        onSuccess={handleEnrollSuccess}
+        course={selectedCourse}
+      />
+
+      {/* View Enrolled Students Modal */}
+      <ViewEnrolledStudentsModal
+        isOpen={isViewStudentsModalOpen}
+        onClose={() => setIsViewStudentsModalOpen(false)}
+        course={selectedCourse}
+      />
     </div>
   );
 };
