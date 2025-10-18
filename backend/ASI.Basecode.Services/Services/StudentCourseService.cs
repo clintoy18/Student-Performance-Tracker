@@ -48,20 +48,26 @@ namespace ASI.Basecode.Services.Services
             _repository.AddStudentCourse(newStudentCourse);
         }
 
-        public void UpdateStudentGrade(StudentCourseUpdateModel model)
+         public void UpdateStudentGrade(StudentGradeUpdateViewModel model)
         {
-            var user = _userRepository.GetUser(model.StudentUserId);
-            var course = _courseRepository.GetCourse(model.CourseCode);
-            var updatedStudentCourse = new StudentCourse
+            // Fetch existing enrollment
+            var existingEnrollment = _repository.GetStudentCourse(model.StudentUserId, model.CourseCode);
+            if (existingEnrollment == null)
             {
-                UserId = model.StudentUserId,
-                CourseCode = model.CourseCode,
-                Grade = model.Grade,
-                User = user,
-                Course = course
-            };
-            _repository.UpdateStudentCourse(updatedStudentCourse);
+                throw new ArgumentException("Student is not enrolled in this course.");
+            }
+
+            // Update grade
+            existingEnrollment.Grade = model.Grade;
+
+            // Optionally update navigation properties
+            existingEnrollment.User = _userRepository.GetUser(model.StudentUserId);
+            existingEnrollment.Course = _courseRepository.GetCourse(model.CourseCode);
+
+            // Save changes
+            _repository.UpdateStudentCourse(existingEnrollment);
         }
+
 
         public void DeleteStudentCourse(string studentUserId, string courseCode)
         {
