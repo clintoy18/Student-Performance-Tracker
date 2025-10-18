@@ -1,23 +1,27 @@
 import React, { useState } from "react";
 import TextInputField from "../common/TextInputField";
 import Button from "../common/Button";
-import { User, Mail, Phone, MapPin, FileText } from "lucide-react";
+import { User, FileText, Lock } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
+import { updateSelf } from "@services";
+import { type IUser } from "@interfaces";
 
 const ProfileForm = () => {
-  const { user } = useAuth()
+  const { user } = useAuth();
 
+  // Initialize form with individual name parts
   const [formData, setFormData] = useState({
-    fullname: `${user.FirstName} ${user.MiddleName} ${user.LastName}`,
-    // email: "vince@gmail.com",
-    // phone_num: "",
-    role: user.Role,
-    // address: "",
-    bio: "",
+    firstName: user.FirstName || "",
+    middleName: user.MiddleName || "",
+    lastName: user.LastName || "",
+    role: user.Role || "",
     password: "",
+    confirmPassword: "",
   });
 
-  const [isEditing, setIsEditing] = useState<boolean>(false); 
+  const [isEditing, setIsEditing] = useState<boolean>(false);
+  const [loading, setLoading] = useState(false)
+  const [passwordError, setPasswordError] = useState<string | null>(null)
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { id, value } = e.target;
@@ -30,15 +34,54 @@ const ProfileForm = () => {
   const handleEdit = () => setIsEditing(true);
 
   const handleCancel = () => {
+    // Reset to original user data
+    setFormData({
+      firstName: user.FirstName || "",
+      middleName: user.MiddleName || "",
+      lastName: user.LastName || "",
+      role: user.Role || "",
+      password: "",
+      confirmPassword: ""
+    });
     setIsEditing(false);
-    // Reset form data to original values here if needed
   };
 
-  const handleUpdate = (e: React.FormEvent) => {
+  const handleUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Updated profile:", formData);
-    setIsEditing(false);
+    if (formData.password && formData.password !== formData.confirmPassword) {
+      setPasswordError("Passwords do not match.");
+      return;
+    }
+    setPasswordError(null); // Clear error if valid
+    setLoading(true)
+    try {
+      const userData: IUser = {
+        UserId: user.UserId,
+        FirstName: formData.firstName,
+        MiddleName: formData.middleName,
+        LastName: formData.lastName,
+        Role: user.Role,
+        Program: user.Program,
+        CreatedTime: user.CreatedTime
+      };
+      await updateSelf(
+        userData,
+        formData.password || undefined,
+        formData.confirmPassword || undefined)
+
+      console.log("Updated profile:", formData);
+      setIsEditing(false);
+    } catch (error) {
+      console.error('User update error:', error)
+    } finally {
+      setLoading(false)
+    }
   };
+
+  // Compose full name for display
+  const fullName = [formData.firstName, formData.middleName, formData.lastName]
+    .filter(Boolean) // removes empty/falsy parts
+    .join(" ");
 
   return (
     <form onSubmit={handleUpdate} className="space-y-4">
@@ -48,76 +91,87 @@ const ProfileForm = () => {
           <User className="w-8 h-8 text-blue-600" />
         </div>
         <div>
-          <h4 className="font-semibold text-gray-900">{formData.fullname}</h4>
+          <h4 className="font-semibold text-gray-900">{fullName}</h4>
           <p className="text-sm text-gray-500">{formData.role}</p>
         </div>
       </div>
 
-      {/* Full Name */}
-      <TextInputField
-        id="fullname"
-        label="Full Name"
-        value={formData.fullname}
-        onChange={handleInputChange}
-        placeholder="Enter your full name"
-        disabled={!isEditing}
-        icon={<User size={16} />}
-      />
-
-      {/* Email & Phone - Stack on mobile */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      {/* First, Middle, Last Name */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <TextInputField
-          id="email"
-          type="email"
-          label="Email"
-          value={formData.email}
+          id="firstName"
+          label="First Name"
+          value={formData.firstName}
           onChange={handleInputChange}
-          placeholder="your-email@example.com"
+          placeholder="First name"
           disabled={!isEditing}
-          icon={<Mail size={16} />}
+          icon={<User size={16} />}
         />
         <TextInputField
-          id="phone_num"
-          type="tel"
-          label="Phone Number"
-          value={formData.phone_num}
+          id="middleName"
+          label="Middle Name"
+          value={formData.middleName}
           onChange={handleInputChange}
-          placeholder="+63 912 345 6789"
+          placeholder="Middle name (optional)"
           disabled={!isEditing}
-          icon={<Phone size={16} />}
+          icon={<User size={16} />}
+        />
+        <TextInputField
+          id="lastName"
+          label="Last Name"
+          value={formData.lastName}
+          onChange={handleInputChange}
+          placeholder="Last name"
+          disabled={!isEditing}
+          icon={<User size={16} />}
         />
       </div>
 
-      {/* Role & Address - Stack on mobile */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <TextInputField
-          id="role"
-          label="Role"
-          value={formData.role}
-          onChange={handleInputChange}
-          placeholder="Student, Teacher, Admin"
-          disabled={true} // Role typically shouldn't be editable
-          icon={<FileText size={16} />}
-        />
-        <TextInputField
-          id="address"
-          label="Address"
-          value={formData.address}
-          onChange={handleInputChange}
-          placeholder="Your home address"
-          disabled={!isEditing}
-          icon={<MapPin size={16} />}
-        />
-      </div>
+      {/* Password Fields (only in edit mode) */}
+      {isEditing && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <TextInputField
+            id="password"
+            label="New Password"
+            type="password"
+            value={formData.password}
+            onChange={(e) => {
+              handleInputChange(e);
+              // Clear error when user types
+              if (passwordError) setPasswordError(null);
+            }}
+            placeholder="Leave blank to keep current password"
+            icon={<Lock size={16} />}
+          />
+          <TextInputField
+            id="confirmPassword"
+            label="Confirm Password"
+            type="password"
+            value={formData.confirmPassword}
+            onChange={(e) => {
+              handleInputChange(e);
+              if (passwordError) setPasswordError(null);
+            }}
+            placeholder="Confirm new password"
+            icon={<Lock size={16} />}
+          />
+          {/* ✅ Show error below confirm field */}
+          {passwordError && (
+            <p className="sm:col-start-2 mt-1 text-sm text-red-600 font-sans">
+              {passwordError}
+            </p>
+          )}
+        </div>
+      )}
 
-      {/* Bio - Full width */}
+      {/* Role */}
       <TextInputField
-        id="bio"
-        label="Bio"
-        value={formData.bio}
+        id="role"
+        label="Role"
+        value={formData.role}
         onChange={handleInputChange}
-        placeholder="Short introduction about yourself..."
-        disabled={!isEditing}
+        placeholder="Student, Teacher, Admin"
+        disabled={true} // Not editable
         icon={<FileText size={16} />}
       />
 
@@ -135,7 +189,8 @@ const ProfileForm = () => {
             <Button
               type="submit"
               label="Save Changes"
-              className="w-full sm:w-auto sm:flex-1 py-2.5 bg-gray-900 text-white hover:bg-gray-800"
+              className={`w-full sm:w-auto sm:flex-1 py-2.5 bg-gray-900 text-white hover:bg-gray-800 ${loading && 'disabled'} `}
+              disabled={loading}
             />
           </>
         ) : (
@@ -143,7 +198,7 @@ const ProfileForm = () => {
             onClick={handleEdit}
             type="button"
             label="Edit Profile"
-            className="w-full py-2.5 bg-gray-900 text-white hover:bg-gray-800"
+            className={`w-full py-2.5 bg-gray-900 text-white hover:bg-gray-800`}
           />
         )}
       </div>

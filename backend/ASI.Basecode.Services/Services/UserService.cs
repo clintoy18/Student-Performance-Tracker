@@ -97,26 +97,6 @@ namespace ASI.Basecode.Services.Services
             _repository.UpdateUser(existingUser);
         }
 
-        // Not an admin method
-        public void UpdateUser(RegisterUserViewModel model)
-        {
-            ArgumentNullException.ThrowIfNull(model);
-
-            var existingUser = _repository.GetUser(model.UserId);    // Fetch the existing user to preserve current password if not updating
-            var userToUpdate = _mapper.Map<User>(model);    // Map the view model to a new user entity
-
-            // Password update logic
-            if (!string.IsNullOrWhiteSpace(model.Password))
-            {
-                userToUpdate.HashedPassword = PasswordManager.EncryptPassword(model.Password);
-            }
-            else
-            {
-                userToUpdate.HashedPassword = existingUser.HashedPassword;
-            }
-            _repository.UpdateUser(userToUpdate);
-        }
-
         public void DeleteUser(string userId)
         {
             if (!_repository.UserExists(userId))

@@ -13,6 +13,7 @@ using System.IO;
 using System.Linq;
 using System;
 using static ASI.Basecode.Resources.Constants.Enums;
+using Microsoft.Extensions.Logging;
 
 namespace ASI.Basecode.WebApp.Controllers
 {
@@ -22,11 +23,19 @@ namespace ASI.Basecode.WebApp.Controllers
     {
         private readonly IUserService _userService;
         private readonly IJwtService _jwtService;
-
-        public AuthController(IJwtService jwtService, IUserService userService)
+        private readonly ILogger<AuthController> _logger;
+        private readonly IRbacService _rbacService;
+        public AuthController(
+            IJwtService jwtService,
+            IUserService userService,
+            ILogger<AuthController> logger,
+            IRbacService rbacService
+        )
         {
             _jwtService = jwtService;
             _userService = userService;
+            _logger = logger;
+            _rbacService = rbacService;
         }
 
         /// <summary>
@@ -71,7 +80,8 @@ namespace ASI.Basecode.WebApp.Controllers
                 {
                     Message = "Login successful",
                     Token = token,
-                    User = new UserDto {
+                    User = new UserDto
+                    {
                         UserId = user.UserId,
                         LastName = user.LastName,
                         Role = user.Role.ToString()
@@ -83,7 +93,7 @@ namespace ASI.Basecode.WebApp.Controllers
                 return Unauthorized(new { message = "Invalid user ID or password." });
             }
         }
-        
+
         /// <summary>
         /// Registers a new user in the system.
         /// </summary>
@@ -145,7 +155,7 @@ namespace ASI.Basecode.WebApp.Controllers
         {
             // Get token from Authorization header: "Bearer <token>"
             var authHeader = Request.Headers["Authorization"].FirstOrDefault();
-            
+
             if (string.IsNullOrEmpty(authHeader) || !authHeader.StartsWith("Bearer "))
             {
                 return Unauthorized(new { message = "Missing or invalid authorization header." });
@@ -183,6 +193,70 @@ namespace ASI.Basecode.WebApp.Controllers
                 user.Program,
                 Role = user.Role.ToString()
             });
+        }
+
+        /// <summary>
+        /// Updates the current authenticated user's profile.
+        /// Frontend must NOT send UserId — it's inferred from the token.
+        /// </summary>
+        [HttpPut("me/update")]
+        public IActionResult UpdateCurrentUser([FromBody] UpdateMyProfileModel request)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(new { message = "Invalid input data.", errors = ModelState });
+            }
+
+            // === Extract current user ID from JWT token ===
+            var authHeader = Request.Headers["Authorization"].FirstOrDefault();
+            if (string.IsNullOrEmpty(authHeader) || !authHeader.StartsWith("Bearer "))
+            {
+                return Unauthorized(new { message = "Missing or invalid authorization header." });
+            }
+
+            var token = authHeader["Bearer ".Length..].Trim();
+            var claimsPrincipal = _jwtService.ValidateToken(token);
+            if (claimsPrincipal == null)
+            {
+                return Unauthorized(new { message = "Invalid or expired token." });
+            }
+
+            var userId = claimsPrincipal.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Unauthorized(new { message = "User ID not found in token." });
+            }
+
+            var role = _rbacService.GetUserRole(userId);
+            // ==============================================
+
+            // === Build RegisterUserViewModel with authenticated UserId ===
+            var updateModel = new RegisterUserAdminModel
+            {
+                UserId = userId, // 🔒 Enforced from token — frontend cannot override
+                FirstName = request.FirstName,
+                MiddleName = request.MiddleName,
+                LastName = request.LastName,
+                Program = request.Program,
+                Password = request.Password, // optional; if null/empty, existing password is preserved
+                Role = role
+            };
+            // ===========================================================
+
+            try
+            {
+                _userService.UpdateUserAdmin(updateModel); // ✅ Reuses existing service method
+                return Ok(new { message = "Profile updated successfully." });
+            }
+            catch (InvalidDataException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error updating user: ");
+                return StatusCode(500, new { message = "An error occurred while updating your profile." });
+            }
         }
     }
 }

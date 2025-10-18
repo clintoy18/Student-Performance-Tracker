@@ -20,7 +20,7 @@ export const studentTabs = [
 
 export const teacherTabs = [
     { label: "My Subjects", content: <p>Manage the subjects you handle.</p> },
-    { label: "Manage Students", content: <ManageStudents />},
+    { label: "Manage Students", content: <ManageStudents /> },
     { label: "Profile", content: <Profile /> },
 ];
 
@@ -33,13 +33,13 @@ export const adminTabs = [
 
 
 export function getRoleConfig(role: Role) {
-    switch(role) {
+    switch (role) {
         case "Admin":
             return {
                 tabs: adminTabs,
                 description: "Manage users, oversee reports, and configure settings.",
             };
-        case "Teacher": 
+        case "Teacher":
             return {
                 tabs: teacherTabs,
                 description: "Manage your subjects, grade students, and track their progress.",
@@ -51,3 +51,14 @@ export function getRoleConfig(role: Role) {
             };
     };
 };
+
+export const isValidRole = (role: string): role is Role => {
+    return ['Student', 'Teacher', 'Admin'].includes(role as Role);
+};
+
+export function parseRole(maybeRole: string): Role | null {
+    if (isValidRole(maybeRole)) {
+        return maybeRole; // TypeScript now knows this is a valid Role
+    }
+    return null; // or throw an error, depending on your needs
+}
