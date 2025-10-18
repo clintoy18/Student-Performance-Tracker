@@ -21,6 +21,7 @@ const ProfileForm = () => {
 
   const [isEditing, setIsEditing] = useState<boolean>(false);
   const [loading, setLoading] = useState(false)
+  const [passwordError, setPasswordError] = useState<string | null>(null)
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { id, value } = e.target;
@@ -47,6 +48,11 @@ const ProfileForm = () => {
 
   const handleUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (formData.password && formData.password !== formData.confirmPassword) {
+      setPasswordError("Passwords do not match.");
+      return;
+    }
+    setPasswordError(null); // Clear error if valid
     setLoading(true)
     try {
       const userData: IUser = {
@@ -129,7 +135,11 @@ const ProfileForm = () => {
             label="New Password"
             type="password"
             value={formData.password}
-            onChange={handleInputChange}
+            onChange={(e) => {
+              handleInputChange(e);
+              // Clear error when user types
+              if (passwordError) setPasswordError(null);
+            }}
             placeholder="Leave blank to keep current password"
             icon={<Lock size={16} />}
           />
@@ -138,10 +148,19 @@ const ProfileForm = () => {
             label="Confirm Password"
             type="password"
             value={formData.confirmPassword}
-            onChange={handleInputChange}
+            onChange={(e) => {
+              handleInputChange(e);
+              if (passwordError) setPasswordError(null);
+            }}
             placeholder="Confirm new password"
             icon={<Lock size={16} />}
           />
+          {/* ✅ Show error below confirm field */}
+          {passwordError && (
+            <p className="sm:col-start-2 mt-1 text-sm text-red-600 font-sans">
+              {passwordError}
+            </p>
+          )}
         </div>
       )}
 

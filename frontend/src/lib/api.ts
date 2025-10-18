@@ -46,3 +46,9 @@ export const admin = addAuthInterceptor(
     baseURL: `${apiUrl}/admin`,
   })
 );
+
+export const studentCourse = addAuthInterceptor(
+  axios.create({
+    baseURL: `${apiUrl}/student-course`,
+  })
+)

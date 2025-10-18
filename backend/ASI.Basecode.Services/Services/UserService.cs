@@ -97,33 +97,6 @@ namespace ASI.Basecode.Services.Services
             _repository.UpdateUser(existingUser);
         }
 
-        // Not an admin method
-        public void UpdateUser(RegisterUserViewModel model)
-        {
-            ArgumentNullException.ThrowIfNull(model);
-
-            var user = _repository.GetUser(model.UserId); // ✅ This is tracked by EF
-            if (user == null)
-                throw new InvalidDataException("User not found.");
-
-            // ✅ Update properties on the SAME tracked instance
-            user.FirstName = model.FirstName;
-            user.MiddleName = model.MiddleName;
-            user.LastName = model.LastName;
-            user.Program = model.Program;
-
-            // Handle password
-            if (!string.IsNullOrWhiteSpace(model.Password))
-            {
-                user.HashedPassword = PasswordManager.EncryptPassword(model.Password);
-            }
-            // else: keep existing HashedPassword (no change)
-
-            // No need to call _repository.UpdateUser() if using change tracking!
-            // But if your repo has an Update method, you can still call it — just pass `user`, not a new instance
-            _repository.UpdateUser(user); // ✅ Same instance EF is already tracking
-        }
-
         public void DeleteUser(string userId)
         {
             if (!_repository.UserExists(userId))

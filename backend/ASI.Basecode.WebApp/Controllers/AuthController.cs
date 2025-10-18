@@ -24,15 +24,18 @@ namespace ASI.Basecode.WebApp.Controllers
         private readonly IUserService _userService;
         private readonly IJwtService _jwtService;
         private readonly ILogger<AuthController> _logger;
+        private readonly IRbacService _rbacService;
         public AuthController(
-            IJwtService jwtService, 
+            IJwtService jwtService,
             IUserService userService,
-            ILogger<AuthController> logger
+            ILogger<AuthController> logger,
+            IRbacService rbacService
         )
         {
             _jwtService = jwtService;
             _userService = userService;
             _logger = logger;
+            _rbacService = rbacService;
         }
 
         /// <summary>
@@ -223,23 +226,26 @@ namespace ASI.Basecode.WebApp.Controllers
             {
                 return Unauthorized(new { message = "User ID not found in token." });
             }
+
+            var role = _rbacService.GetUserRole(userId);
             // ==============================================
 
             // === Build RegisterUserViewModel with authenticated UserId ===
-            var updateModel = new RegisterUserViewModel
+            var updateModel = new RegisterUserAdminModel
             {
                 UserId = userId, // 🔒 Enforced from token — frontend cannot override
                 FirstName = request.FirstName,
                 MiddleName = request.MiddleName,
                 LastName = request.LastName,
                 Program = request.Program,
-                Password = request.Password // optional; if null/empty, existing password is preserved
+                Password = request.Password, // optional; if null/empty, existing password is preserved
+                Role = role
             };
             // ===========================================================
 
             try
             {
-                _userService.UpdateUser(updateModel); // ✅ Reuses existing service method
+                _userService.UpdateUserAdmin(updateModel); // ✅ Reuses existing service method
                 return Ok(new { message = "Profile updated successfully." });
             }
             catch (InvalidDataException ex)
