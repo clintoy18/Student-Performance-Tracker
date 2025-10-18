@@ -23,16 +23,19 @@ namespace ASI.Basecode.WebApp.Controllers
     public class AdminController : ControllerBase
     {
         private readonly IUserService _userService;
+        private readonly ICourseService _courseService;
         private readonly IJwtService _jwtService;
         private readonly ILogger<AdminController> _logger;
 
         public AdminController(
             IJwtService jwtService,
             IUserService userService,
+            ICourseService courseService,
             ILogger<AdminController> logger)
         {
             _jwtService = jwtService;
             _userService = userService;
+            _courseService = courseService;
             _logger = logger;
         }
 
@@ -234,6 +237,59 @@ namespace ASI.Basecode.WebApp.Controllers
             {
                 var users = _userService.GetAllUsers();
                 return Ok(users);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "An internal server error has occurred: ");
+                return StatusCode(500, new { message = "An internal server error has occurred.", error = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Retrieves the most recently registered users
+        /// </summary>
+        /// <param name="count">Number of recent users to retrieve (default: 5)</param>
+        /// <returns>List of recently registered users without password information</returns>
+        /// <response code="200">Recent users retrieved successfully</response>
+        /// <response code="500">Internal server error</response>
+        [HttpGet("user/recent")]
+        [Authorize(Roles = "Admin")]
+        public IActionResult GetRecentUsers([FromQuery] int count = 5)
+        {
+            try
+            {
+                var users = _userService.GetRecentUsers(count);
+                return Ok(users);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "An internal server error has occurred: ");
+                return StatusCode(500, new { message = "An internal server error has occurred.", error = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Retrieves dashboard statistics including user counts by role and total courses
+        /// </summary>
+        /// <returns>Dashboard statistics including user and course counts</returns>
+        /// <response code="200">Dashboard statistics retrieved successfully</response>
+        /// <response code="500">Internal server error</response>
+        [HttpGet("dashboard-stats")]
+        [Authorize(Roles = "Admin")]
+        public IActionResult GetDashboardStats()
+        {
+            try
+            {
+                var userStats = _userService.GetUserStatistics();
+                var courseCount = _courseService.GetCourseCount();
+
+                var dashboardStats = new DashboardStatsViewModel
+                {
+                    UserStats = userStats,
+                    TotalCourses = courseCount
+                };
+
+                return Ok(dashboardStats);
             }
             catch (Exception ex)
             {

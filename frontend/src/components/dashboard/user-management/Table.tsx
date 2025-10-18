@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import {
   useReactTable,
   getCoreRowModel,
@@ -10,62 +10,126 @@ import {
 import {
   Search,
   Trash2,
-  FileDown,
   Plus,
   ChevronLeft,
   ChevronRight,
   ChevronsLeft,
   ChevronsRight,
+  Edit,
 } from "lucide-react";
+import { fetchAllUsersAdmin } from "@services";
+import { parseNumericRole } from "../../../utils/roleUtils";
+import type { IUser } from "@interfaces";
+import CreateTeacherModal from "./CreateTeacherModal";
+import UpdateUserModal from "./UpdateUserModal";
+import DeleteUserModal from "./DeleteUserModal";
+import { InlineSpinner } from "../../../components/common/LoadingSpinnerPage";
 
-type User = {
-  name: string;
-  email: string;
-  role: "Admin" | "Teacher" | "Student";
-  joined: string;
-};
-
-const data: User[] = [
-  { name: "James Walker", email: "jwalker@uc.edu.ph", role: "Teacher", joined: "9/7/2025" },
-  { name: "Vince Bryant N. Cabunilas", email: "vincebryantcabunilas@gmail.com", role: "Student", joined: "9/7/2025" },
-  { name: "Sean Joseph C. Arcana", email: "seanjosepharcana@gmail.com", role: "Admin", joined: "9/7/2025" },
-  { name: "John Doe", email: "john.doe@example.com", role: "Student", joined: "9/8/2025" },
-  { name: "Jane Smith", email: "jane.smith@example.com", role: "Teacher", joined: "9/8/2025" },
-  { name: "Mike Johnson", email: "mike.johnson@example.com", role: "Student", joined: "9/9/2025" },
-  { name: "Sarah Wilson", email: "sarah.wilson@example.com", role: "Admin", joined: "9/9/2025" },
-  { name: "David Brown", email: "david.brown@example.com", role: "Student", joined: "9/10/2025" },
-];
-
-const columnHelper = createColumnHelper<User>();
+const columnHelper = createColumnHelper<IUser>();
 
 export default function UserTable() {
+  const [users, setUsers] = useState<IUser[]>([]);
+  const [loading, setLoading] = useState(true);
   const [globalFilter, setGlobalFilter] = useState("");
   const [roleFilter, setRoleFilter] = useState("All");
 
+  // Modal states
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<IUser | null>(null);
+
+  const fetchUsers = async () => {
+    setLoading(true);
+    try {
+      const rawData = await fetchAllUsersAdmin();
+      const parsedUsers: IUser[] = rawData
+        .map((user: any) => {
+          const role = parseNumericRole(user.role);
+          if (role === null) {
+            console.warn("Unknown role value:", user.role, "for user", user.userId);
+            return null;
+          }
+
+          return {
+            UserId: user.userId,
+            FirstName: user.firstName,
+            MiddleName: user.middleName,
+            LastName: user.lastName,
+            Program: user.program,
+            Role: role,
+            CreatedTime: user.createdTime
+          };
+        })
+        .filter((user): user is IUser => user !== null);
+
+      setUsers(parsedUsers);
+    } catch (error) {
+      console.error('Error fetching users:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchUsers();
+  }, []);
+
+  // Modal handlers
+  const handleOpenUpdate = (user: IUser) => {
+    setSelectedUser(user);
+    setIsUpdateModalOpen(true);
+  };
+
+  const handleOpenDelete = (user: IUser) => {
+    setSelectedUser(user);
+    setIsDeleteModalOpen(true);
+  };
+
+  const handleModalSuccess = () => {
+    fetchUsers(); // Refresh the user list
+  };
+
   const filteredData = useMemo(() => {
-    return data.filter((user) => {
+    return users.filter((user) => {
+      const fullName = [user.FirstName, user.MiddleName, user.LastName]
+        .filter(Boolean)
+        .join(" ");
+
       const matchesSearch =
-        user.name.toLowerCase().includes(globalFilter.toLowerCase()) ||
-        user.email.toLowerCase().includes(globalFilter.toLowerCase());
-      const matchesRole = roleFilter === "All" || user.role === roleFilter;
+        fullName.toLowerCase().includes(globalFilter.toLowerCase()) ||
+        user.UserId.toLowerCase().includes(globalFilter.toLowerCase()) ||
+        user.Program.toLowerCase().includes(globalFilter.toLowerCase());
+      const matchesRole = roleFilter === "All" || user.Role === roleFilter;
       return matchesSearch && matchesRole;
     });
-  }, [globalFilter, roleFilter]);
+  }, [users, globalFilter, roleFilter]);
 
   const columns = [
-    columnHelper.accessor("name", {
+    columnHelper.display({
+      id: "name",
       header: "Name",
-      cell: (info) => (
-        <div className="font-medium text-gray-900">{info.getValue()}</div>
-      ),
+      cell: (info) => {
+        const user = info.row.original;
+        const fullName = [user.FirstName, user.MiddleName, user.LastName]
+          .filter(Boolean)
+          .join(" ");
+        return <div className="font-medium text-gray-900">{fullName}</div>;
+      },
     }),
-    columnHelper.accessor("email", {
-      header: "Email",
+    columnHelper.accessor("UserId", {
+      header: "User ID",
       cell: (info) => (
         <div className="text-gray-600 text-sm">{info.getValue()}</div>
       ),
     }),
-    columnHelper.accessor("role", {
+    columnHelper.accessor("Program", {
+      header: "Program",
+      cell: (info) => (
+        <div className="text-gray-600 text-sm">{info.getValue()}</div>
+      ),
+    }),
+    columnHelper.accessor("Role", {
       header: "Role",
       cell: (info) => {
         const role = info.getValue();
@@ -73,8 +137,8 @@ export default function UserTable() {
           role === "Admin"
             ? "bg-red-100 text-red-700 border-red-200"
             : role === "Teacher"
-            ? "bg-blue-100 text-blue-700 border-blue-200"
-            : "bg-green-100 text-green-700 border-green-200";
+              ? "bg-blue-100 text-blue-700 border-blue-200"
+              : "bg-green-100 text-green-700 border-green-200";
         return (
           <span
             className={`px-2 py-1 rounded-full text-xs font-medium border ${roleStyle}`}
@@ -84,33 +148,40 @@ export default function UserTable() {
         );
       },
     }),
-    columnHelper.accessor("joined", {
+    columnHelper.accessor("CreatedTime", {
       header: "Joined",
       cell: (info) => (
-        <div className="text-gray-500 text-sm">{info.getValue()}</div>
+        <div className="text-gray-500 text-sm">
+          {new Date(info.getValue()).toLocaleDateString()}
+        </div>
       ),
     }),
     {
       id: "actions",
       header: "Actions",
-      cell: () => (
-        <div className="flex gap-1 sm:gap-2">
-          <button
-            className="flex items-center gap-1 text-gray-600 border border-gray-300 px-2 py-1 rounded text-xs hover:bg-gray-50 transition-colors"
-            title="Generate Report"
-          >
-            <FileDown size={12} />
-            <span className="hidden sm:inline">Report</span>
-          </button>
-          <button
-            className="flex items-center gap-1 text-red-600 border border-red-300 px-2 py-1 rounded text-xs hover:bg-red-50 transition-colors"
-            title="Delete User"
-          >
-            <Trash2 size={12} />
-            <span className="hidden sm:inline">Delete</span>
-          </button>
-        </div>
-      ),
+      cell: (info) => {
+        const user = info.row.original;
+        return (
+          <div className="flex gap-1 sm:gap-2">
+            <button
+              onClick={() => handleOpenUpdate(user)}
+              className="flex items-center gap-1 text-blue-600 border border-blue-300 px-2 py-1 rounded text-xs hover:bg-blue-50 transition-colors"
+              title="Edit User"
+            >
+              <Edit size={12} />
+              <span className="hidden sm:inline">Edit</span>
+            </button>
+            <button
+              onClick={() => handleOpenDelete(user)}
+              className="flex items-center gap-1 text-red-600 border border-red-300 px-2 py-1 rounded text-xs hover:bg-red-50 transition-colors"
+              title="Delete User"
+            >
+              <Trash2 size={12} />
+              <span className="hidden sm:inline">Delete</span>
+            </button>
+          </div>
+        );
+      },
     },
   ];
 
@@ -141,7 +212,10 @@ export default function UserTable() {
           </h2>
           <p className="text-gray-500 text-sm mt-1">View and manage all users</p>
         </div>
-        <button className="flex items-center justify-center gap-2 bg-gray-900 text-white px-4 py-2 rounded-lg hover:bg-gray-800 transition-colors w-full sm:w-auto">
+        <button
+          onClick={() => setIsCreateModalOpen(true)}
+          className="flex items-center justify-center gap-2 bg-gray-900 text-white px-4 py-2 rounded-lg hover:bg-gray-800 transition-colors w-full sm:w-auto"
+        >
           <Plus size={16} />
           <span>Create Teacher</span>
         </button>
@@ -196,7 +270,16 @@ export default function UserTable() {
             ))}
           </thead>
           <tbody>
-            {table.getRowModel().rows.length ? (
+            {loading ? (
+              <tr>
+                <td colSpan={6}>
+                  <div className="flex flex-col py-32 items-center">
+                    <InlineSpinner />
+                    <span className="text-sm py-4 text-gray-800">Loading users...</span>
+                  </div>
+                </td>
+              </tr>
+            ) : table.getRowModel().rows.length ? (
               table.getRowModel().rows.map((row) => (
                 <tr key={row.id} className="hover:bg-gray-50 transition-colors">
                   {row.getVisibleCells().map((cell) => (
@@ -211,7 +294,7 @@ export default function UserTable() {
               ))
             ) : (
               <tr>
-                <td colSpan={5} className="text-center py-8 text-gray-500">
+                <td colSpan={6} className="text-center py-8 text-gray-500">
                   No users found.
                 </td>
               </tr>
@@ -296,6 +379,27 @@ export default function UserTable() {
           </select>
         </div>
       </div>
+
+      {/* Modals */}
+      <CreateTeacherModal
+        isOpen={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
+        onSuccess={handleModalSuccess}
+      />
+
+      <UpdateUserModal
+        isOpen={isUpdateModalOpen}
+        onClose={() => setIsUpdateModalOpen(false)}
+        onSuccess={handleModalSuccess}
+        user={selectedUser}
+      />
+
+      <DeleteUserModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        onSuccess={handleModalSuccess}
+        user={selectedUser}
+      />
     </div>
   );
 }

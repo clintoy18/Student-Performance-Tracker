@@ -52,5 +52,12 @@ namespace ASI.Basecode.Data.Repositories
             GetDbSet<User>().Remove(user);
             UnitOfWork.SaveChanges();
         }
+
+        public IQueryable<User> GetRecentUsers(int count)
+        {
+            return GetDbSet<User>()
+                .OrderByDescending(u => u.CreatedTime)
+                .Take(count);
+        }
     }
 }

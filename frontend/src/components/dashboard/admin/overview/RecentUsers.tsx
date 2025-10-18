@@ -1,15 +1,9 @@
 import React from "react";
 import UserCard from "./UserCard";
+import type { IUser } from "@interfaces";
 
-interface User {
-  id: string;
-  name: string;
-  email: string;
-  role: "Student" | "Teacher" | "Admin";
-  createdAt: string;
-}
+const RecentUsers: React.FC<{ users: IUser[] }> = ({ users }) => {
 
-const RecentUsers: React.FC<{ users: User[] }> = ({ users }) => {
   return (
     <div className="bg-white rounded-lg border border-gray-200 p-4 sm:p-6">
       <div className="mb-4">
@@ -19,7 +13,7 @@ const RecentUsers: React.FC<{ users: User[] }> = ({ users }) => {
 
       <div className="space-y-3">
         {users.map((user) => (
-          <UserCard key={user.id} user={user} />
+          <UserCard key={user.UserId} user={user} />
         ))}
       </div>
     </div>

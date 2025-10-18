@@ -118,13 +118,42 @@ namespace ASI.Basecode.Services.Services
                 MiddleName = u.MiddleName,
                 LastName = u.LastName,
                 Program = u.Program,
-                Role = u.Role
+                Role = u.Role,
+                CreatedTime = u.CreatedTime
             }).ToList();
         }
 
         public bool UserExists(string userId)
         {
             return _repository.UserExists(userId);
+        }
+
+        public List<UserViewAdminModel> GetRecentUsers(int count)
+        {
+            var users = _repository.GetRecentUsers(count);
+            return users.Select(u => new UserViewAdminModel
+            {
+                UserId = u.UserId,
+                FirstName = u.FirstName,
+                MiddleName = u.MiddleName,
+                LastName = u.LastName,
+                Program = u.Program,
+                Role = u.Role,
+                CreatedTime = u.CreatedTime
+            }).ToList();
+        }
+
+        public UserStatisticsViewModel GetUserStatistics()
+        {
+            var users = _repository.GetUsers().ToList();
+
+            return new UserStatisticsViewModel
+            {
+                TotalUsers = users.Count,
+                TotalStudents = users.Count(u => u.Role == UserRoles.Student),
+                TotalTeachers = users.Count(u => u.Role == UserRoles.Teacher),
+                TotalAdmins = users.Count(u => u.Role == UserRoles.Admin)
+            };
         }
     }
 }

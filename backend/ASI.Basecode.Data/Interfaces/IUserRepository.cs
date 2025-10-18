@@ -11,5 +11,6 @@ namespace ASI.Basecode.Data.Interfaces
         void AddUser(User user);
         void UpdateUser(User user);
         void DeleteUserById(string userId);
+        IQueryable<User> GetRecentUsers(int count);
     }
 }

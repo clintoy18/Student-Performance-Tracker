@@ -9,6 +9,18 @@ import { StudentSubjects } from '../components/dashboard/student/StudentSubjects
 
 export type Role = 'Student' | 'Teacher' | 'Admin';
 
+// Map backend numeric roles to Role strings
+const NUMERIC_ROLE_MAP: Record<number, Role | undefined> = {
+    0: 'Student',
+    1: 'Teacher',
+    2: 'Admin',
+};
+
+export const ROLE_TO_NUMBER: Record<Role, number> = {
+    Student: 0,
+    Teacher: 1,
+    Admin: 2,
+};
 
 export const studentTabs = [
     { label: "Overview", content: <Overview /> },
@@ -26,7 +38,7 @@ export const teacherTabs = [
 export const adminTabs = [
     { label: "Overview", content: <AdminOverView /> },
     { label: "Users", content: <UserTable /> },
-    { label: "Subjects", content: <Subjects /> },
+    { label: "Courses", content: <Subjects /> },
     { label: "Profile", content: <Profile /> },
 ];
 
@@ -60,4 +72,15 @@ export function parseRole(maybeRole: string): Role | null {
         return maybeRole; // TypeScript now knows this is a valid Role
     }
     return null; // or throw an error, depending on your needs
+}
+
+// Convert a numeric role (from API) to Role type
+export function parseNumericRole(roleNum: unknown): Role | null {
+    // Ensure it's a number
+    if (typeof roleNum !== 'number' || !Number.isInteger(roleNum)) {
+        return null;
+    }
+
+    const role = NUMERIC_ROLE_MAP[roleNum];
+    return role ?? null;
 }
