@@ -18,5 +18,6 @@ namespace ASI.Basecode.Services.Interfaces
         public List<UserViewAdminModel> GetAllUsers();
         public bool UserExists(string userId);
         public List<UserViewAdminModel> GetRecentUsers(int count);
+        public UserStatisticsViewModel GetUserStatistics();
     }
 }

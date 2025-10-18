@@ -43,5 +43,10 @@ namespace ASI.Basecode.Services.Interfaces
         List<Course> GetAllCourses();
 
         public bool CourseExists(string courseCode);
+
+        /// <summary>
+        /// Get the total count of courses.
+        /// </summary>
+        int GetCourseCount();
     }
 }

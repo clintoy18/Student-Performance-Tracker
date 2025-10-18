@@ -118,7 +118,8 @@ namespace ASI.Basecode.Services.Services
                 MiddleName = u.MiddleName,
                 LastName = u.LastName,
                 Program = u.Program,
-                Role = u.Role
+                Role = u.Role,
+                CreatedTime = u.CreatedTime
             }).ToList();
         }
 
@@ -140,6 +141,19 @@ namespace ASI.Basecode.Services.Services
                 Role = u.Role,
                 CreatedTime = u.CreatedTime
             }).ToList();
+        }
+
+        public UserStatisticsViewModel GetUserStatistics()
+        {
+            var users = _repository.GetUsers().ToList();
+
+            return new UserStatisticsViewModel
+            {
+                TotalUsers = users.Count,
+                TotalStudents = users.Count(u => u.Role == UserRoles.Student),
+                TotalTeachers = users.Count(u => u.Role == UserRoles.Teacher),
+                TotalAdmins = users.Count(u => u.Role == UserRoles.Admin)
+            };
         }
     }
 }

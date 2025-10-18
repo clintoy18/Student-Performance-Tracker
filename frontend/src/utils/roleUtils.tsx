@@ -11,15 +11,15 @@ export type Role = 'Student' | 'Teacher' | 'Admin';
 
 // Map backend numeric roles to Role strings
 const NUMERIC_ROLE_MAP: Record<number, Role | undefined> = {
-    0: 'Admin',
-    1: 'Student',
-    2: 'Teacher',
+    0: 'Student',
+    1: 'Teacher',
+    2: 'Admin',
 };
 
 export const ROLE_TO_NUMBER: Record<Role, number> = {
-    Admin: 0,
-    Student: 1,
-    Teacher: 2,
+    Student: 0,
+    Teacher: 1,
+    Admin: 2,
 };
 
 export const studentTabs = [

@@ -87,5 +87,10 @@ namespace ASI.Basecode.Services.Services
         {
             return _repository.CourseExists(courseCode);
         }
+
+        public int GetCourseCount()
+        {
+            return _repository.GetCourses().Count();
+        }
     }
 }

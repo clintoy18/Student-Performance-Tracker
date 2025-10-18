@@ -1,54 +1,91 @@
 import React, { useEffect, useState } from "react";
-import { Users, BookOpen, LineChart, Server } from "lucide-react";
+import { Users, BookOpen, GraduationCap, UserCog, BriefcaseBusiness } from "lucide-react";
 import Card from "../../common/Card";
 import RecentUsers from "./overview/RecentUsers";
-import { getRecentUsers } from "@services";
-import type { IUser } from "@interfaces";
-import FullPageSpinner from "../../common/LoadingSpinnerPage";
+import { getRecentUsers, fetchStats } from "@services";
+import type { IUser, IDashboardStats } from "@interfaces";
+import FullPageSpinner, { InlineSpinner } from "../../common/LoadingSpinnerPage";
 import { parseNumericRole } from "../../../utils/roleUtils";
 
 const AdminOverview = () => {
   const [users, setUsers] = useState<IUser[]>([])
+  const [dashboardStats, setDashboardStats] = useState<IDashboardStats | null>(null)
   const [loading, setLoading] = useState(false)
 
-  const statsData = [
-    {
-      title: "Total Users",
-      icon: Users,
-      value: "3",
-      description: "1 student, 1 teacher"
-    },
-    {
-      title: "Total Subjects",
-      icon: BookOpen,
-      value: "1",
-      description: "Available for assignment"
-    },
-    {
-      title: "Assignments",
-      icon: LineChart,
-      value: "0",
-      description: "Teacher assignments"
-    },
-    {
-      title: "System Status",
-      icon: Server,
-      value: "Active",
-      description: "All systems operational"
-    },
-  ];
+  const getStatsData = () => {
+    if (!dashboardStats) {
+      return [
+        {
+          title: "Total Users",
+          icon: Users,
+          value: "0",
+          description: "Loading..."
+        },
+        {
+          title: "Total Students",
+          icon: GraduationCap,
+          value: "0",
+          description: "Loading..."
+        },
+        {
+          title: "Total Teachers",
+          icon: BriefcaseBusiness,
+          value: "0",
+          description: "Loading..."
+        },
+        {
+          title: "Total Courses",
+          icon: BookOpen,
+          value: "0",
+          description: "Loading..."
+        },
+      ];
+    }
+
+    return [
+      {
+        title: "Total Users",
+        icon: Users,
+        value: dashboardStats.userStats.totalUsers.toString(),
+        description: `${dashboardStats.userStats.totalAdmins} admin(s)`
+      },
+      {
+        title: "Total Students",
+        icon: GraduationCap,
+        value: dashboardStats.userStats.totalStudents.toString(),
+        description: "Enrolled students"
+      },
+      {
+        title: "Total Teachers",
+        icon: BriefcaseBusiness,
+        value: dashboardStats.userStats.totalTeachers.toString(),
+        description: "Active teachers"
+      },
+      {
+        title: "Total Courses",
+        icon: BookOpen,
+        value: dashboardStats.totalCourses.toString(),
+        description: "Available courses"
+      },
+    ];
+  };
 
   useEffect(() => {
-    const fetchRecentUsers = async (count: number) => {
+    const fetchDashboardData = async () => {
       setLoading(true)
       try {
-        const rawData = await getRecentUsers(count)
+        // Fetch dashboard stats
+        const stats = await fetchStats()
+        setDashboardStats(stats)
+
+        // Fetch recent users
+        const rawData = await getRecentUsers(5)
         const parsedUsers: IUser[] = rawData
           .map((user) => {
             const role = parseNumericRole(user.role)
             if (role === null) {
               console.warn("Unknown role value:", user.Role, "for user", user.UserId);
-              return null; // or fallback to "Student"
+              return null;
             }
 
             return {
@@ -64,24 +101,27 @@ const AdminOverview = () => {
           .filter((user): user is IUser => user !== null)
         setUsers(parsedUsers)
       } catch (error) {
-        console.error('Error fetching recent users: ', error)
+        console.error('Error fetching dashboard data: ', error)
       } finally {
         setLoading(false)
       }
     }
 
-    fetchRecentUsers(5)
+    fetchDashboardData()
   }, [])
 
   return (
     <div className="space-y-4 sm:space-y-6 p-4 sm:p-0">
       {loading ? (
-        <FullPageSpinner />
+        <div className="flex flex-col py-32 items-center">
+          <InlineSpinner />
+          <span className="text-sm py-4 text-gray-800">Loading awesome dashboard stats!</span>
+        </div>
       ) : (
         <>
           {/* Stats Grid */}
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4 sm:gap-4">
-            {statsData.map((stat, index) => (
+            {getStatsData().map((stat, index) => (
               <Card
                 key={index}
                 title={stat.title}

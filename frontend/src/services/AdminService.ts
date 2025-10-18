@@ -32,7 +32,7 @@ export const updateUserAdmin = async (user: TUserWithOptionalPassword) => {
 
   const response = await admin.put(`/user/update/${user.UserId}`, {
     ...user,
-    roleNumber,
+    Role: roleNumber,
   });
   return response.data;
 };
@@ -50,5 +50,10 @@ export const getUserAdmin = async (userId: string) => {
 
 export const getRecentUsers = async (userCount: number) => {
   const response = await admin.get(`/user/recent?count=${userCount}`)
+  return response.data
+}
+
+export const fetchStats = async() => {
+  const response = await admin.get('/dashboard-stats')
   return response.data
 }
