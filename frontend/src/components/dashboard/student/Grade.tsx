@@ -17,7 +17,6 @@ export const Grade = ({ studentUserId }: { studentUserId?: string }) => {
       }
     };
 
-    console.log(studentUserId);
 
     fetchGrades();
   }, [studentUserId]);
@@ -36,9 +35,6 @@ export const Grade = ({ studentUserId }: { studentUserId?: string }) => {
           >
             <div>
               <h3 className="font-semibold">{grade.course.courseName}</h3>
-              <p className="text-sm text-gray-600">
-                {grade.course.courseDescription}
-              </p>
             </div>
             <span
               className={`font-medium px-2 py-1 rounded-full border ${
