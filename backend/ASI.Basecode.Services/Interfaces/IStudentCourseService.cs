@@ -10,7 +10,7 @@ namespace ASI.Basecode.Services.Interfaces
     {
         public void CreateStudentCourse(StudentCourseCreateModel model);
 
-        public void UpdateStudentGrade(StudentCourseUpdateModel model);
+        public void UpdateStudentGrade(StudentGradeUpdateViewModel model);
         public void DeleteStudentCourse(string studentUserId, string courseCode);
 
         public List<StudentCourse> GetStudentCoursesOfStudent(string userId);

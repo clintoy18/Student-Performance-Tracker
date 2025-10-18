@@ -104,54 +104,43 @@ namespace ASI.Basecode.WebApp.Controllers
         }
 
         /// <summary>
-        /// Updates student grade for that course/subject
+        /// Updates the grade of a student for a specific course.
         /// </summary>
-        /// <param name="studentUserId">Student's UserId</param>
-        /// <param name="grade">Grade</param>
-        /// <param name="courseCode">Course code</param>
-        /// <response code="200">Student's grade has been successfully updated</response>
-        /// <response code="400">Student's userId must be related to a student.</response>
-        /// <response code="404">Course code not found</response>
-        /// <response code="500">Internal server error</response>
-        [HttpPut("grades/update")]
-        [Authorize(Roles = "Admin,Teacher")]
-        public IActionResult UpdateStudentGrade(string studentUserId, [FromBody] decimal grade, string courseCode)
+        /// <param name="model">The student grade update model containing StudentUserId, CourseCode, and Grade.</param>
+        /// <returns>Returns 200 if successful, 400/404 on errors.</returns>
+        [HttpPut("update")]
+        [AllowAnonymous]
+        public IActionResult UpdateStudentGrade([FromBody] StudentGradeUpdateViewModel model)
         {
             if (!ModelState.IsValid)
             {
-                return BadRequest(new { message = "Invalid request format.", errors = ModelState.Values.SelectMany(v => v.Errors) });
+                return BadRequest(new
+                {
+                    message = "Invalid request format.",
+                    errors = ModelState.Values.SelectMany(v => v.Errors)
+                });
             }
 
             try
             {
-                var studentRole = _rbacService.GetUserRole(studentUserId);
+                // Validate student role
+                var studentRole = _rbacService.GetUserRole(model.StudentUserId);
                 if (studentRole != UserRoles.Student)
                 {
                     return BadRequest(new { message = "Student's userId must be related to a student." });
                 }
 
-                var student = _userService.UserExists(studentUserId);
-                if (!student)
+                // Check if student exists
+                var studentExists = _userService.UserExists(model.StudentUserId);
+                if (!studentExists)
                 {
                     return NotFound(new { message = "Student does not exist." });
                 }
 
-                var course = _courseService.FetchCourseByCourseCode(courseCode);
-                if (course.UserId != studentUserId)
-                {
-                    return NotFound(new { message = "Student's related course by course code does not exist." });
-                }
+                // Update the grade
+                _studentCourseService.UpdateStudentGrade(model);
 
-                var updatedStudentCourse = new StudentCourseUpdateModel
-                {
-                    StudentUserId = studentUserId,
-                    Grade = grade,
-                    CourseCode = courseCode
-                };
-
-                _studentCourseService.UpdateStudentGrade(updatedStudentCourse);
-
-                return StatusCode(200, new { message = "Student's grade has been succesfully updated." });
+                return Ok(new { message = "Student's grade has been successfully updated." });
             }
             catch (ArgumentException ex)
             {
@@ -159,7 +148,7 @@ namespace ASI.Basecode.WebApp.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Internal server error occurred while creating grade feedback.");
+                _logger.LogError(ex, "Internal server error occurred while updating student grade.");
                 return StatusCode(500, new { message = "An internal server error has occurred." });
             }
         }
