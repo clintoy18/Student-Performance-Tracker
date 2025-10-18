@@ -32,7 +32,7 @@ export const updateCourse = async (courseData: Partial<ICourse>) => {
     return response.data;
 };
 
-export const deleteCourse = async (courseCode: string) => {
+export const deleteCourseByCourseCode = async (courseCode: string) => {
     const response = await course.delete(`/delete/code/${courseCode}`);
     return response.data;
 };
@@ -47,4 +47,16 @@ export const checkCourseCodeExists = async (courseCode: string): Promise<boolean
         }
         throw error; // Other errors
     }
+};
+
+// Get single course by ID
+export const getCourseById = async (id: number) => {
+  const response = await course.get(`/${id}`);
+  return response.data;
+};
+
+// Delete a course
+export const deleteCourse = async (id: number) => {
+  const response = await course.delete(`/${id}`);
+  return response.data;
 };

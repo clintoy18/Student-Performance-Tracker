@@ -5,7 +5,7 @@ import Subjects from '../components/dashboard/admin/Subjects';
 import UserTable from '../components/dashboard/user-management/Table';
 import { Grade } from '../components/dashboard/student/Grade';
 import { ManageStudents } from '../components/dashboard/teacher/ManageStudents';
-import { StudentSubjects } from '../components/dashboard/student/StudentSubjects';
+import { StudentCourse } from "../components/dashboard/student/StudentCourse";
 
 export type Role = 'Student' | 'Teacher' | 'Admin';
 
@@ -21,12 +21,13 @@ export const ROLE_TO_NUMBER: Record<Role, number> = {
     Teacher: 1,
     Admin: 2,
 };
+export type UserId = string;
 
-export const studentTabs = [
-    { label: "Overview", content: <Overview /> },
-    { label: "Subjects", content: <StudentSubjects /> },
-    { label: "My Grades", content: <Grade /> },
-    { label: "Profile", content: <Profile /> },
+export const studentTabs = (studentUserId?: string) => [
+  { label: "Overview", content: <Overview /> },
+  { label: "Subjects", content: <StudentCourse studentUserId={studentUserId} /> },
+  { label: "My Grades", content: <Grade studentUserId={studentUserId} /> },
+  { label: "Profile", content: <Profile /> },
 ];
 
 export const teacherTabs = [
@@ -43,25 +44,25 @@ export const adminTabs = [
 ];
 
 
-export function getRoleConfig(role: Role) {
-    switch (role) {
-        case "Admin":
-            return {
-                tabs: adminTabs,
-                description: "Manage users, oversee reports, and configure settings.",
-            };
-        case "Teacher":
-            return {
-                tabs: teacherTabs,
-                description: "Manage your subjects, grade students, and track their progress.",
-            };
-        case "Student":
-            return {
-                tabs: studentTabs,
-                description: "View your subjects, grades, and progress tracking.",
-            };
-    };
-};
+export function getRoleConfig(role: Role, studentUserId?: string) {
+  switch (role) {
+    case "Admin":
+      return {
+        tabs: adminTabs,
+        description: "Manage users, oversee reports, and configure settings.",
+      };
+    case "Teacher":
+      return {
+        tabs: teacherTabs,
+        description: "Manage your subjects, grade students, and track their progress.",
+      };
+    case "Student":
+      return {
+        tabs: studentTabs(studentUserId), // pass studentUserId here
+        description: "View your subjects, grades, and progress tracking.",
+      };
+  }
+}
 
 export const isValidRole = (role: string): role is Role => {
     return ['Student', 'Teacher', 'Admin'].includes(role as Role);
