@@ -9,11 +9,12 @@ import { StudentCourse } from "../components/dashboard/student/StudentCourse";
 
 export type Role = 'Student' | 'Teacher' | 'Admin';
 
+export type UserId = string;
 
 export const studentTabs = [
     { label: "Overview", content: <Overview /> },
     { label: "Subjects", content: <StudentCourse /> },
-    { label: "My Grades", content: <Grade /> },
+    { label: "My Grades", content: <Grade studentUserId={undefined} /> },
     { label: "Profile", content: <Profile /> },
 ];
 
