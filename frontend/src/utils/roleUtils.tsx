@@ -5,14 +5,14 @@ import Subjects from '../components/dashboard/admin/Subjects';
 import UserTable from '../components/dashboard/user-management/Table';
 import { Grade } from '../components/dashboard/student/Grade';
 import { ManageStudents } from '../components/dashboard/teacher/ManageStudents';
-import { StudentSubjects } from '../components/dashboard/student/StudentSubjects';
+import { StudentCourse } from "../components/dashboard/student/StudentCourse";
 
 export type Role = 'Student' | 'Teacher' | 'Admin';
 
 
 export const studentTabs = [
     { label: "Overview", content: <Overview /> },
-    { label: "Subjects", content: <StudentSubjects /> },
+    { label: "Subjects", content: <StudentCourse /> },
     { label: "My Grades", content: <Grade /> },
     { label: "Profile", content: <Profile /> },
 ];
