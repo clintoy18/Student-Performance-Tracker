@@ -38,9 +38,6 @@ export const StudentCourse = ({ studentUserId }: { studentUserId?: any }) => {
                 {enroll.course.courseDescription}
               </p>
             </div>
-            <span className="font-medium text-blue-600">
-              Grade: {enroll.grade ?? "N/A"}
-            </span>
           </div>
         ))
       )}
