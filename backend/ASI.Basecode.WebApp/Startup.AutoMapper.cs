@@ -28,7 +28,10 @@ namespace ASI.Basecode.WebApp
                 CreateMap<RegisterUserViewModel, User>();
                 CreateMap<RegisterUserAdminModel, User>();
                 CreateMap<CourseViewModel, Course>();
-                CreateMap<CourseUpdateViewModel, Course>();
+                CreateMap<CourseUpdateViewModel, Course>()
+                    .ForMember(dest => dest.Id, opt => opt.Ignore())           // Don't overwrite primary key
+                    .ForMember(dest => dest.CreatedAt, opt => opt.Ignore())    // Keep original creation time
+                    .ForMember(dest => dest.UserId, opt => opt.MapFrom(src => src.UserId)); // Map assigned teacher
                 CreateMap<GradeFeedback, GradeFeedbackViewModel>();
             }
         }

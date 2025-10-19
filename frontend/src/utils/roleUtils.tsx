@@ -6,6 +6,7 @@ import UserTable from '../components/dashboard/user-management/Table';
 import { Grade } from '../components/dashboard/student/Grade';
 import { ManageStudents } from '../components/dashboard/teacher/ManageStudents';
 import { StudentCourse } from "../components/dashboard/student/StudentCourse";
+import TeacherOverview from '../components/dashboard/teacher/TeacherOverview';
 
 export type Role = 'Student' | 'Teacher' | 'Admin';
 
@@ -31,7 +32,7 @@ export const studentTabs = (studentUserId?: string) => [
 ];
 
 export const teacherTabs = [
-    { label: "My Subjects", content: <p>Manage the subjects you handle.</p> },
+    { label: "My Subjects", content: <TeacherOverview /> },
     { label: "Manage Students", content: <ManageStudents /> },
     { label: "Profile", content: <Profile /> },
 ];

@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import TextInputField from "../common/TextInputField";
 import Button from "../common/Button";
-import { User, FileText, Lock } from "lucide-react";
+import { User, FileText, Lock, Edit3, Save, X, Shield } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { updateSelf } from "@services";
 import { type IUser } from "@interfaces";
@@ -20,8 +20,8 @@ const ProfileForm = () => {
   });
 
   const [isEditing, setIsEditing] = useState<boolean>(false);
-  const [loading, setLoading] = useState(false)
-  const [passwordError, setPasswordError] = useState<string | null>(null)
+  const [loading, setLoading] = useState(false);
+  const [passwordError, setPasswordError] = useState<string | null>(null);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { id, value } = e.target;
@@ -34,7 +34,6 @@ const ProfileForm = () => {
   const handleEdit = () => setIsEditing(true);
 
   const handleCancel = () => {
-    // Reset to original user data
     setFormData({
       firstName: user.FirstName || "",
       middleName: user.MiddleName || "",
@@ -44,6 +43,7 @@ const ProfileForm = () => {
       confirmPassword: ""
     });
     setIsEditing(false);
+    setPasswordError(null);
   };
 
   const handleUpdate = async (e: React.FormEvent) => {
@@ -52,8 +52,8 @@ const ProfileForm = () => {
       setPasswordError("Passwords do not match.");
       return;
     }
-    setPasswordError(null); // Clear error if valid
-    setLoading(true)
+    setPasswordError(null);
+    setLoading(true);
     try {
       const userData: IUser = {
         UserId: user.UserId,
@@ -67,142 +67,196 @@ const ProfileForm = () => {
       await updateSelf(
         userData,
         formData.password || undefined,
-        formData.confirmPassword || undefined)
-
-      console.log("Updated profile:", formData);
+        formData.confirmPassword || undefined
+      );
       setIsEditing(false);
     } catch (error) {
-      console.error('User update error:', error)
+      console.error('User update error:', error);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
   };
 
-  // Compose full name for display
   const fullName = [formData.firstName, formData.middleName, formData.lastName]
-    .filter(Boolean) // removes empty/falsy parts
+    .filter(Boolean)
     .join(" ");
 
   return (
-    <form onSubmit={handleUpdate} className="space-y-4">
-      {/* Profile Header with Avatar */}
-      <div className="flex items-center gap-4 mb-6">
-        <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center">
-          <User className="w-8 h-8 text-blue-600" />
+    <div className="max-w-4xl mx-auto">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* Left Sidebar - Profile Overview */}
+        <div className="lg:col-span-1">
+          <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm sticky top-6">
+            <div className="text-center">
+              <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
+                <User className="w-8 h-8 text-white" />
+              </div>
+              <h3 className="text-lg font-heading font-semibold text-slate-800 mb-1">{fullName}</h3>
+              <div className="inline-flex items-center gap-1.5 bg-slate-100 px-3 py-1 rounded-full">
+                <Shield className="w-3 h-3 text-slate-600" />
+                <span className="text-xs font-medium text-slate-700">{formData.role}</span>
+              </div>
+              
+              <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                <div className="flex items-center gap-2 text-sm text-blue-700">
+                  <Lock className="w-4 h-4" />
+                  <span>Your information is secure and encrypted</span>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
-        <div>
-          <h4 className="font-semibold text-gray-900">{fullName}</h4>
-          <p className="text-sm text-gray-500">{formData.role}</p>
+
+        {/* Right Content - Form */}
+        <div className="lg:col-span-2">
+          <form onSubmit={handleUpdate} className="space-y-6">
+            <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
+              {/* Form Header */}
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <h3 className="text-lg font-heading font-semibold text-slate-800">Personal Information</h3>
+                  <p className="text-sm text-slate-600 mt-1">Update your name and contact details</p>
+                </div>
+                {!isEditing && (
+                  <Button
+                    onClick={handleEdit}
+                    type="button"
+                    label="Edit Profile"
+                    icon={<Edit3 className="w-4 h-4" />}
+                    className="bg-slate-800 text-white hover:bg-slate-700 px-4 py-2.5"
+                  />
+                )}
+              </div>
+
+              {/* Name Fields */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                <TextInputField
+                  id="firstName"
+                  label="First Name"
+                  value={formData.firstName}
+                  onChange={handleInputChange}
+                  placeholder="First name"
+                  disabled={!isEditing}
+                  icon={<User className="w-4 h-4" />}
+                  className="bg-white/50"
+                />
+                <TextInputField
+                  id="middleName"
+                  label="Middle Name"
+                  value={formData.middleName}
+                  onChange={handleInputChange}
+                  placeholder="Middle name (optional)"
+                  disabled={!isEditing}
+                  icon={<User className="w-4 h-4" />}
+                  className="bg-white/50"
+                />
+                <TextInputField
+                  id="lastName"
+                  label="Last Name"
+                  value={formData.lastName}
+                  onChange={handleInputChange}
+                  placeholder="Last name"
+                  disabled={!isEditing}
+                  icon={<User className="w-4 h-4" />}
+                  className="bg-white/50"
+                />
+              </div>
+
+              {/* Role Field */}
+              <TextInputField
+                id="role"
+                label="Role"
+                value={formData.role}
+                onChange={handleInputChange}
+                placeholder="Student, Teacher, Admin"
+                disabled={true}
+                icon={<FileText className="w-4 h-4" />}
+                className="bg-slate-50/80"
+              />
+            </div>
+
+            {/* Password Section */}
+            {isEditing && (
+              <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-2 h-6 bg-amber-500 rounded-full"></div>
+                  <div>
+                    <h3 className="text-lg font-heading font-semibold text-slate-800">Security Settings</h3>
+                    <p className="text-sm text-slate-600 mt-1">Update your password for account security</p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <TextInputField
+                    id="password"
+                    label="New Password"
+                    type="password"
+                    value={formData.password}
+                    onChange={(e) => {
+                      handleInputChange(e);
+                      if (passwordError) setPasswordError(null);
+                    }}
+                    placeholder="Leave blank to keep current"
+                    icon={<Lock className="w-4 h-4" />}
+                    className="bg-white/50"
+                  />
+                  <TextInputField
+                    id="confirmPassword"
+                    label="Confirm Password"
+                    type="password"
+                    value={formData.confirmPassword}
+                    onChange={(e) => {
+                      handleInputChange(e);
+                      if (passwordError) setPasswordError(null);
+                    }}
+                    placeholder="Confirm new password"
+                    icon={<Lock className="w-4 h-4" />}
+                    className="bg-white/50"
+                  />
+                </div>
+                
+                {passwordError && (
+                  <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded-lg">
+                    <p className="text-sm text-red-700 font-medium">{passwordError}</p>
+                  </div>
+                )}
+
+                {!passwordError && formData.password && (
+                  <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded-lg">
+                    <p className="text-sm text-green-700">
+                      Password meets security requirements
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Action Buttons */}
+            {isEditing && (
+              <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t border-slate-200">
+                <Button
+                  onClick={handleCancel}
+                  type="button"
+                  label="Cancel"
+                  variant="outline"
+                  icon={<X className="w-4 h-4" />}
+                  className="flex-1 py-3 border-slate-300 text-slate-700 hover:bg-slate-50"
+                />
+                <Button
+                  type="submit"
+                  label={loading ? "Saving..." : "Save Changes"}
+                  icon={loading ? null : <Save className="w-4 h-4" />}
+                  className={`flex-1 py-3 bg-blue-600 text-white hover:bg-blue-700 transition-all ${
+                    loading ? 'disabled:bg-blue-400' : ''
+                  }`}
+                  disabled={loading}
+                />
+              </div>
+            )}
+          </form>
         </div>
       </div>
-
-      {/* First, Middle, Last Name */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <TextInputField
-          id="firstName"
-          label="First Name"
-          value={formData.firstName}
-          onChange={handleInputChange}
-          placeholder="First name"
-          disabled={!isEditing}
-          icon={<User size={16} />}
-        />
-        <TextInputField
-          id="middleName"
-          label="Middle Name"
-          value={formData.middleName}
-          onChange={handleInputChange}
-          placeholder="Middle name (optional)"
-          disabled={!isEditing}
-          icon={<User size={16} />}
-        />
-        <TextInputField
-          id="lastName"
-          label="Last Name"
-          value={formData.lastName}
-          onChange={handleInputChange}
-          placeholder="Last name"
-          disabled={!isEditing}
-          icon={<User size={16} />}
-        />
-      </div>
-
-      {/* Password Fields (only in edit mode) */}
-      {isEditing && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <TextInputField
-            id="password"
-            label="New Password"
-            type="password"
-            value={formData.password}
-            onChange={(e) => {
-              handleInputChange(e);
-              // Clear error when user types
-              if (passwordError) setPasswordError(null);
-            }}
-            placeholder="Leave blank to keep current password"
-            icon={<Lock size={16} />}
-          />
-          <TextInputField
-            id="confirmPassword"
-            label="Confirm Password"
-            type="password"
-            value={formData.confirmPassword}
-            onChange={(e) => {
-              handleInputChange(e);
-              if (passwordError) setPasswordError(null);
-            }}
-            placeholder="Confirm new password"
-            icon={<Lock size={16} />}
-          />
-          {/* ✅ Show error below confirm field */}
-          {passwordError && (
-            <p className="sm:col-start-2 mt-1 text-sm text-red-600 font-sans">
-              {passwordError}
-            </p>
-          )}
-        </div>
-      )}
-
-      {/* Role */}
-      <TextInputField
-        id="role"
-        label="Role"
-        value={formData.role}
-        onChange={handleInputChange}
-        placeholder="Student, Teacher, Admin"
-        disabled={true} // Not editable
-        icon={<FileText size={16} />}
-      />
-
-      {/* Action Buttons */}
-      <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t border-gray-200">
-        {isEditing ? (
-          <>
-            <Button
-              onClick={handleCancel}
-              type="button"
-              label="Cancel"
-              variant="outline"
-              className="w-full sm:w-auto sm:flex-1 py-2.5"
-            />
-            <Button
-              type="submit"
-              label="Save Changes"
-              className={`w-full sm:w-auto sm:flex-1 py-2.5 bg-gray-900 text-white hover:bg-gray-800 ${loading && 'disabled'} `}
-              disabled={loading}
-            />
-          </>
-        ) : (
-          <Button
-            onClick={handleEdit}
-            type="button"
-            label="Edit Profile"
-            className={`w-full py-2.5 bg-gray-900 text-white hover:bg-gray-800`}
-          />
-        )}
-      </div>
-    </form>
+    </div>
   );
 };
 

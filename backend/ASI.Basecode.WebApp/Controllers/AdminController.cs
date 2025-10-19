@@ -297,6 +297,40 @@ namespace ASI.Basecode.WebApp.Controllers
                 return StatusCode(500, new { message = "An internal server error has occurred.", error = ex.Message });
             }
         }
+
+        /// <summary>
+        /// Assigns a teacher to a course
+        /// </summary>
+        /// <param name="courseId">The ID of the course</param>
+        /// <param name="teacherId">The user ID of the teacher</param>
+        /// <returns>Success or error</returns>
+        [HttpPut("course/assign-teacher/{courseId}")]
+        [Authorize(Roles = "Admin")]
+        public IActionResult AssignTeacherToCourse(int courseId, [FromQuery] string teacherId)
+        {
+            if (string.IsNullOrWhiteSpace(teacherId))
+                return BadRequest(new { message = "Teacher ID is required." });
+
+            try
+            {
+                // Fetch teacher and validate role
+                var teacher = _userService.FetchUser(teacherId);
+                if (teacher == null || teacher.Role != Enums.UserRoles.Teacher)
+                {
+                    return BadRequest(new { message = "Invalid teacher ID or user is not a teacher." });
+                }
+
+                // Assign teacher
+                _courseService.AssignTeacher(courseId, teacherId);
+
+                return Ok(new { message = "Teacher assigned successfully." });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error assigning teacher to course.");
+                return StatusCode(500, new { message = "An internal server error occurred.", error = ex.Message });
+            }
+        }
     }
 
 }

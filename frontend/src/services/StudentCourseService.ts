@@ -5,10 +5,10 @@ import type { IStudentCourse, IStudentCourseListRequest } from "@interfaces";
 
 // Get all students enrolled in a specific course
 export const getStudentsByCourse = async (courseCode: string): Promise<IStudentCourseListRequest[]> => {
+  // This will call: http://localhost:54927/api/student-course/course/elasi1000
   const response = await studentCourse.get(`/course/${courseCode}`);
   return response.data;
 };
-
 // Get course details
 export const getCourseDetails = async (courseCode: string): Promise<ICourse> => {
   const response = await course.get(`/code/${courseCode}`);
@@ -34,7 +34,12 @@ export const removeStudentFromCourse = async (studentUserId: string, courseCode:
 };
 
 // Update a student's grade
-export const updateStudentGrade = async (data: { StudentUserId: string; CourseCode: string; Grade: number }) => {
+export const updateStudentGrade = async (data: { 
+  StudentUserId: string; 
+  CourseCode: string; 
+  Grade: number 
+}) => {
+  // This will call: PUT http://localhost:54927/api/student-course/update
   const response = await studentCourse.put("/update", data);
   return response.data;
 };

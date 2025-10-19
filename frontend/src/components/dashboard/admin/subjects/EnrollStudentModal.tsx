@@ -61,7 +61,9 @@ export default function EnrollStudentModal({
             CreatedTime: user.createdTime
           };
         })
-        .filter((user): user is IUser => user !== null && user.Role === "Student");
+        .filter((user): user is IUser => user !== null && user.Role === "Student")
+        // FILTER OUT ALREADY ENROLLED STUDENTS
+        // .filter(user => !course?.EnrolledStudents?.includes(user.UserId));
 
       setStudents(parsedStudents);
     } catch (err: any) {
@@ -71,6 +73,7 @@ export default function EnrollStudentModal({
       setFetchingStudents(false);
     }
   };
+
 
   const filteredStudents = useMemo(() => {
     if (!searchTerm) return students;
