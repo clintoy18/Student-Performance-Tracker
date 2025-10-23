@@ -35,6 +35,12 @@ namespace ASI.Basecode.Services.Services
 
         public void CreateStudentCourse(StudentCourseCreateModel model)
         {
+            //check if student is already enrolled in the course
+            var existingEnrollment = _repository.GetStudentCourse(model.StudentUserId, model.CourseCode);
+            if (existingEnrollment != null)
+            {
+                throw new ArgumentException("Student is already enrolled in this course.");
+            }
             var user = _userRepository.GetUser(model.StudentUserId);
             var course = _courseRepository.GetCourse(model.CourseCode);
             var newStudentCourse = new StudentCourse
