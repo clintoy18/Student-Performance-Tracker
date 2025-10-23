@@ -51,10 +51,23 @@ export const studentCourse = addAuthInterceptor(
   axios.create({
     baseURL: `${apiUrl}/student-course`,
   })
-)
+);
 
 export const course = addAuthInterceptor(
   axios.create({
     baseURL: `${apiUrl}/course`,
   })
-)
+);
+
+// ✅ ADD THESE
+export const teacher = addAuthInterceptor(
+  axios.create({
+    baseURL: `${apiUrl}/teacher`,
+  })
+);
+
+export const feedback = addAuthInterceptor(
+  axios.create({
+    baseURL: `${apiUrl}/feedback`,
+  })
+);

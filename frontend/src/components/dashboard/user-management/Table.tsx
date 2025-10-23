@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo, useEffect, useRef } from "react";
 import {
   useReactTable,
   getCoreRowModel,
@@ -16,7 +16,9 @@ import {
   ChevronsLeft,
   ChevronsRight,
   Edit,
+  MoreVertical,
 } from "lucide-react";
+import { createPortal } from "react-dom";
 import { fetchAllUsersAdmin } from "@services";
 import { parseNumericRole } from "../../../utils/roleUtils";
 import type { IUser } from "@interfaces";
@@ -26,6 +28,93 @@ import DeleteUserModal from "./DeleteUserModal";
 import { InlineSpinner } from "../../../components/common/LoadingSpinnerPage";
 
 const columnHelper = createColumnHelper<IUser>();
+
+// Dropdown Menu Component with Positioning
+const ActionDropdown = ({ 
+  user, 
+  onEdit, 
+  onDelete 
+}: { 
+  user: IUser; 
+  onEdit: () => void; 
+  onDelete: () => void;
+}) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [position, setPosition] = useState({ top: 0, left: 0 });
+  const buttonRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (buttonRef.current && !buttonRef.current.contains(event.target as Node)) {
+        const dropdown = document.getElementById(`dropdown-${user.UserId}`);
+        if (dropdown && !dropdown.contains(event.target as Node)) {
+          setIsOpen(false);
+        }
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [user.UserId]);
+
+  const handleToggle = () => {
+    if (!isOpen && buttonRef.current) {
+      const rect = buttonRef.current.getBoundingClientRect();
+      setPosition({
+        top: rect.bottom + window.scrollY,
+        left: rect.right + window.scrollX - 144, // 144px = w-36 (9rem = 144px)
+      });
+    }
+    setIsOpen(!isOpen);
+  };
+
+  const handleAction = (action: () => void) => {
+    action();
+    setIsOpen(false);
+  };
+
+  return (
+    <>
+      <button
+        ref={buttonRef}
+        onClick={handleToggle}
+        className="p-1 rounded hover:bg-gray-100 transition-colors"
+        title="More actions"
+      >
+        <MoreVertical size={16} className="text-gray-600" />
+      </button>
+
+      {isOpen &&
+        createPortal(
+          <div
+            id={`dropdown-${user.UserId}`}
+            style={{
+              position: 'absolute',
+              top: `${position.top}px`,
+              left: `${position.left}px`,
+            }}
+            className="w-36 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50"
+          >
+            <button
+              onClick={() => handleAction(onEdit)}
+              className="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+            >
+              <Edit size={14} />
+              <span>Edit</span>
+            </button>
+            <button
+              onClick={() => handleAction(onDelete)}
+              className="w-full flex items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
+            >
+              <Trash2 size={14} />
+              <span>Delete</span>
+            </button>
+          </div>,
+          document.body
+        )}
+    </>
+  );
+};
 
 export default function UserTable() {
   const [users, setUsers] = useState<IUser[]>([]);
@@ -162,24 +251,11 @@ export default function UserTable() {
       cell: (info) => {
         const user = info.row.original;
         return (
-          <div className="flex gap-1 sm:gap-2">
-            <button
-              onClick={() => handleOpenUpdate(user)}
-              className="flex items-center gap-1 text-blue-600 border border-blue-300 px-2 py-1 rounded text-xs hover:bg-blue-50 transition-colors"
-              title="Edit User"
-            >
-              <Edit size={12} />
-              <span className="hidden sm:inline">Edit</span>
-            </button>
-            <button
-              onClick={() => handleOpenDelete(user)}
-              className="flex items-center gap-1 text-red-600 border border-red-300 px-2 py-1 rounded text-xs hover:bg-red-50 transition-colors"
-              title="Delete User"
-            >
-              <Trash2 size={12} />
-              <span className="hidden sm:inline">Delete</span>
-            </button>
-          </div>
+          <ActionDropdown
+            user={user}
+            onEdit={() => handleOpenUpdate(user)}
+            onDelete={() => handleOpenDelete(user)}
+          />
         );
       },
     },

@@ -103,5 +103,17 @@ namespace ASI.Basecode.Services.Services
         {
             return _repository.GetCourses().Count();
         }
+
+        public void AssignTeacher(int courseId, string teacherId)
+        {
+            var course = _repository.GetCourses().FirstOrDefault(c => c.Id == courseId);
+            if (course == null)
+                throw new Exception("Course not found.");
+
+            course.UserId = teacherId;
+
+            _repository.UpdateCourse(course);
+        }
+
     }
 }

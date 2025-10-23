@@ -53,5 +53,9 @@ namespace ASI.Basecode.Services.Interfaces
         /// Get the total count of courses.
         /// </summary>
         int GetCourseCount();
+
+        
+        void AssignTeacher(int courseId, string teacherId);
+
     }
 }
