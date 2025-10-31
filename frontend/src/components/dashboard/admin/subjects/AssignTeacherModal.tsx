@@ -10,7 +10,7 @@ import { parseNumericRole } from "../../../../utils/roleUtils";
 interface AssignTeacherModalProps {
   isOpen: boolean;
   onClose: () => void;
-  course: { Id: string; CourseName: string } | null;
+  course: { Id: number; CourseName: string } | null;
   onSuccess: () => void;
 }
 

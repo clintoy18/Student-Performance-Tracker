@@ -46,6 +46,11 @@ namespace ASI.Basecode.Services.Services
             }
         }
 
+        public User FetchUserNoNullException(string userId)
+        {
+            return _repository.GetUserNoNullException(userId);
+        }
+
         public void RegisterUser(RegisterUserViewModel model)
         {
             ArgumentNullException.ThrowIfNull(model);

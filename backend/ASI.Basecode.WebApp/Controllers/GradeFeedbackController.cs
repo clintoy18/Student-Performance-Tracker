@@ -42,6 +42,9 @@ namespace ASI.Basecode.WebApp.Controllers
         /// <summary>
         /// Creates grade feedback for a student course
         /// </summary>
+        /// <remarks>
+        /// **Authorization:** Teacher
+        /// </remarks>
         /// <param name="request">Feedback creation data</param>
         /// <returns>Success message or error details</returns>
         /// <response code="200">Feedback created successfully</response>
@@ -114,6 +117,9 @@ namespace ASI.Basecode.WebApp.Controllers
         /// <summary>
         /// Updates existing grade feedback
         /// </summary>
+        /// <remarks>
+        /// **Authorization:** Teacher
+        /// </remarks>
         /// <param name="feedbackId">ID of the feedback to update</param>
         /// <param name="request">Updated feedback data</param>
         /// <returns>Success message or error details</returns>
@@ -124,7 +130,7 @@ namespace ASI.Basecode.WebApp.Controllers
         /// <response code="404">Feedback not found</response>
         /// <response code="500">Internal server error</response>
         [HttpPut("update/{feedbackId}")]
-        [Authorize(Roles = "Admin,Teacher")]
+        [Authorize(Roles = "Teacher")]
         public IActionResult UpdateFeedback(int feedbackId, [FromBody] GradeFeedbackUpdateRequestModel request)
         {
             if (!ModelState.IsValid)
@@ -139,7 +145,7 @@ namespace ASI.Basecode.WebApp.Controllers
                 {
                     return Unauthorized(new { message = "Authentication required." });
                 }
-                
+
                 _gradeFeedbackService.UpdateGradeFeedback(feedbackId, request.Feedback);
 
                 return Ok(new { message = "Grade feedback updated successfully." });
@@ -158,6 +164,9 @@ namespace ASI.Basecode.WebApp.Controllers
         /// <summary>
         /// Deletes grade feedback
         /// </summary>
+        /// <remarks>
+        /// **Authorization:** Teacher
+        /// </remarks>
         /// <param name="feedbackId">ID of the feedback to delete</param>
         /// <returns>Success message or error details</returns>
         /// <response code="200">Feedback deleted successfully</response>
@@ -166,7 +175,7 @@ namespace ASI.Basecode.WebApp.Controllers
         /// <response code="404">Feedback not found</response>
         /// <response code="500">Internal server error</response>
         [HttpDelete("delete/{feedbackId}")]
-        [Authorize(Roles = "Admin,Teacher")]
+        [Authorize(Roles = "Teacher")]
         public IActionResult DeleteFeedback(int feedbackId)
         {
             try
@@ -212,6 +221,9 @@ namespace ASI.Basecode.WebApp.Controllers
         /// <summary>
         /// Gets grade feedback for a specific student
         /// </summary>
+        /// <remarks>
+        /// **Authorization:** Student, Teacher
+        /// </remarks>
         /// <param name="studentUserId">Student user ID</param>
         /// <param name="courseCode">Course code</param>
         /// <returns>Grade feedback details</returns>
@@ -220,7 +232,7 @@ namespace ASI.Basecode.WebApp.Controllers
         /// <response code="404">Feedback not found</response>
         /// <response code="500">Internal server error</response>
         [HttpGet("student/{studentUserId}/course/{courseCode}")]
-        [Authorize]
+        [Authorize(Roles = "Student,Teacher")]
         public IActionResult GetFeedbackForStudent(string studentUserId, string courseCode)
         {
             try
@@ -252,8 +264,11 @@ namespace ASI.Basecode.WebApp.Controllers
         }
 
         /// <summary>
-        /// Gets all grade feedback (Admin/Teacher only)
+        /// Gets all grade feedback
         /// </summary>
+        /// <remarks>
+        /// **Authorization:** Admin
+        /// </remarks>
         /// <returns>All grade feedback records</returns>
         /// <response code="200">Feedback retrieved successfully</response>
         /// <response code="401">Unauthorized - only teachers and admins can view all feedback</response>
@@ -290,6 +305,9 @@ namespace ASI.Basecode.WebApp.Controllers
         /// <summary>
         /// Gets grade feedback by ID
         /// </summary>
+        /// <remarks>
+        /// **Authorization:** Teacher, Admin
+        /// </remarks>
         /// <param name="feedbackId">Feedback ID</param>
         /// <returns>Grade feedback details</returns>
         /// <response code="200">Feedback retrieved successfully</response>
@@ -322,5 +340,7 @@ namespace ASI.Basecode.WebApp.Controllers
                 return StatusCode(500, new { message = "An internal server error has occurred." });
             }
         }
+        
+        // Need to create route: Get Gradefeedback by coursecode (for teacher only)
     }
 }

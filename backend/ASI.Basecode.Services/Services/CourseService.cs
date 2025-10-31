@@ -28,19 +28,51 @@ namespace ASI.Basecode.Services.Services
             _userRepository = userRepository;
         }
 
-        public Course FetchCourse(int courseId)
+        public CourseViewModel FetchCourse(int courseId)
         {
-            return _repository.GetCourses().FirstOrDefault(c => c.Id == courseId);
+            var course = _repository.GetCourses().FirstOrDefault(c => c.Id == courseId);
+            return new CourseViewModel
+            {
+                Id = course.Id,
+                CourseCode = course.CourseCode,
+                CourseName = course.CourseName,
+                CourseDescription = course.CourseDescription,
+                UserId = course.UserId,
+                CreatedAt = course.CreatedAt
+            };
         }
 
-        public Course FetchCourseByCourseCode(string courseCode)
+        /// <summary>
+        /// Fetches course by course code. UserId is nullable (assigned teacher)
+        /// </summary>
+        /// <param name="courseCode"></param>
+        /// <returns></returns> 
+        public CourseViewModel FetchCourseByCourseCode(string courseCode)
         {
-            return _repository.GetCourses().FirstOrDefault(c => c.CourseCode == courseCode);
+            var course = _repository.GetCourses().FirstOrDefault(c => c.CourseCode == courseCode);
+            return new CourseViewModel
+            {
+                Id = course.Id,
+                CourseCode = course.CourseCode,
+                CourseName = course.CourseName,
+                CourseDescription = course.CourseDescription,
+                UserId = course.UserId,
+                CreatedAt = course.CreatedAt
+            };
         }
 
-        public List<Course> FetchCoursesByUser(string userId)
+        public List<CourseViewModel> FetchCoursesByUser(string userId)
         {
-            return _repository.GetCourses().Where(c => c.UserId == userId).ToList();
+            var courses = _repository.GetCourses().Where(c => c.UserId == userId).ToList();
+            return courses.Select(course => new CourseViewModel
+            {
+                Id = course.Id,
+                CourseCode = course.CourseCode,
+                CourseName = course.CourseName,
+                CourseDescription = course.CourseDescription,
+                UserId = course.UserId,
+                CreatedAt = course.CreatedAt
+            }).ToList();
         }
 
         public void RegisterCourse(CourseViewModel model)
@@ -89,9 +121,18 @@ namespace ASI.Basecode.Services.Services
             _repository.DeleteCourseByCourseCode(courseCode);
         }
 
-        public List<Course> GetAllCourses()
+        public List<CourseViewModel> GetAllCourses()
         {
-            return _repository.GetCourses().ToList();
+            var courses = _repository.GetCourses().ToList();
+            return courses.Select(course => new CourseViewModel
+            {
+                Id = course.Id,
+                CourseCode = course.CourseCode,
+                CourseName = course.CourseName,
+                CourseDescription = course.CourseDescription,
+                UserId = course.UserId,
+                CreatedAt = course.CreatedAt
+            }).ToList();
         }
 
         public bool CourseExists(string courseCode)

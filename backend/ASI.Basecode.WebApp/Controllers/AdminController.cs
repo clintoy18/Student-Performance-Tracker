@@ -42,6 +42,9 @@ namespace ASI.Basecode.WebApp.Controllers
         /// <summary>
         /// Creates a new user account with admin privileges
         /// </summary>
+        /// <remarks>
+        /// **Authorization:** Admin
+        /// </remarks>
         /// <param name="request">User registration data including credentials and role</param>
         /// <returns>Success message or error details</returns>
         /// <response code="200">User created successfully</response>
@@ -87,6 +90,9 @@ namespace ASI.Basecode.WebApp.Controllers
         /// <summary>
         /// Updates an existing user's information
         /// </summary>
+        /// <remarks>
+        /// **Authorization:** Admin
+        /// </remarks>
         /// <param name="userId">The ID of the user to update</param>
         /// <param name="request">Updated user data (password optional)</param>
         /// <returns>Success message or error details</returns>
@@ -139,6 +145,9 @@ namespace ASI.Basecode.WebApp.Controllers
         /// <summary>
         /// Deletes a user account
         /// </summary>
+        /// <remarks>
+        /// **Authorization:** Admin
+        /// </remarks>
         /// <param name="userId">The ID of the user to delete</param>
         /// <returns>Success message or error details</returns>
         /// <response code="200">User deleted successfully</response>
@@ -174,6 +183,9 @@ namespace ASI.Basecode.WebApp.Controllers
         /// <summary>
         /// Retrieves a specific user's information
         /// </summary>
+        /// <remarks>
+        /// **Authorization:** Admin
+        /// </remarks>
         /// <param name="userId">The ID of the user to retrieve</param>
         /// <returns>User data without password information</returns>
         /// <response code="200">User data retrieved successfully</response>
@@ -226,6 +238,9 @@ namespace ASI.Basecode.WebApp.Controllers
         /// <summary>
         /// Retrieves all users
         /// </summary>
+        /// <remarks>
+        /// **Authorization:** Admin
+        /// </remarks>
         /// <returns>All user data</returns>
         /// <response code="200">Users retrieved successfully</response>
         /// <response code="500">Internal server error</response>
@@ -248,6 +263,9 @@ namespace ASI.Basecode.WebApp.Controllers
         /// <summary>
         /// Retrieves the most recently registered users
         /// </summary>
+        /// <remarks>
+        /// **Authorization:** Admin
+        /// </remarks>
         /// <param name="count">Number of recent users to retrieve (default: 5)</param>
         /// <returns>List of recently registered users without password information</returns>
         /// <response code="200">Recent users retrieved successfully</response>
@@ -271,6 +289,9 @@ namespace ASI.Basecode.WebApp.Controllers
         /// <summary>
         /// Retrieves dashboard statistics including user counts by role and total courses
         /// </summary>
+        /// <remarks>
+        /// **Authorization:** Admin
+        /// </remarks>
         /// <returns>Dashboard statistics including user and course counts</returns>
         /// <response code="200">Dashboard statistics retrieved successfully</response>
         /// <response code="500">Internal server error</response>
@@ -301,6 +322,9 @@ namespace ASI.Basecode.WebApp.Controllers
         /// <summary>
         /// Assigns a teacher to a course
         /// </summary>
+        /// <remarks>
+        /// **Authorization:** Admin
+        /// </remarks>
         /// <param name="courseId">The ID of the course</param>
         /// <param name="teacherId">The user ID of the teacher</param>
         /// <returns>Success or error</returns>

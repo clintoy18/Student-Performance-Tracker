@@ -57,7 +57,11 @@ namespace ASI.Basecode.WebApp.Controllers
         /// <summary>
         /// Gets all courses assigned to the currently logged-in teacher
         /// </summary>
+        /// <remarks>
+        /// **Authorization:** Teacher
+        /// </remarks>
         [HttpGet("my-courses")]
+        [Authorize(Roles = "Teacher")]
         public IActionResult GetMyCourses()
         {
             try
@@ -90,7 +94,11 @@ namespace ASI.Basecode.WebApp.Controllers
         /// <summary>
         /// Gets dashboard statistics for the teacher
         /// </summary>
+        /// <remarks>
+        /// **Authorization:** Teacher
+        /// </remarks>
         [HttpGet("dashboard-stats")]
+        [Authorize(Roles = "Teacher")]
         public IActionResult GetDashboardStats()
         {
             try
@@ -131,7 +139,11 @@ namespace ASI.Basecode.WebApp.Controllers
         /// <summary>
         /// Gets all feedback given by this teacher
         /// </summary>
+        /// <remarks>
+        /// **Authorization:** Teacher
+        /// </remarks>
         [HttpGet("my-feedback")]
+        [Authorize(Roles = "Teacher")]
         public IActionResult GetMyFeedback()
         {
             try

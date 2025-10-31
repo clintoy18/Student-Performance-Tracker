@@ -88,7 +88,7 @@ const SubjectForm: React.FC<SubjectFormProps> = ({
         CourseCode: formData.courseCode.trim(),
         CourseName: formData.courseName.trim(),
         CourseDescription: formData.courseDescription.trim(),
-        TeacherUserId: teacherUserId,
+        TeacherUserId: null,
       };
 
       if (initialData) {
@@ -145,7 +145,9 @@ const SubjectForm: React.FC<SubjectFormProps> = ({
           value={formData.courseDescription}
           onChange={(e) => handleChange("courseDescription", e.target.value)}
           placeholder="Enter course description (optional)"
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-400 focus:border-transparent resize-none"
+          className="w-full px-3 py-2 bg-transparent border rounded-md 
+            focus:outline-none focus:ring-2 font-sans text-sm
+            disabled:bg-gray-100 disabled:cursor-not-allowed resize-none"
           rows={3}
           disabled={loading}
         />

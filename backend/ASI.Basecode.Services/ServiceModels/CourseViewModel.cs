@@ -20,7 +20,7 @@ namespace ASI.Basecode.Services.ServiceModels
 
         // [(ErrorMessage = "User ID (Teacher) is required.")]
         // [StringLength(20, ErrorMessage = "User ID must not exceed 20 characters.")]
-        public string UserId { get; set; }
+        public string UserId { get; set; } = null;
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     }

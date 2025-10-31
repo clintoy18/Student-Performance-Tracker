@@ -10,17 +10,16 @@ namespace ASI.Basecode.Services.Interfaces
         /// <summary>
         /// Fetch a course by its ID.
         /// </summary>
-        Course FetchCourse(int courseId);
-
+        public CourseViewModel FetchCourse(int courseId);
         /// <summary>
         /// Fetch a course by its Course Code.
         /// </summary>
-        public Course FetchCourseByCourseCode(string courseCode);
+        public CourseViewModel FetchCourseByCourseCode(string courseCode);
 
         /// <summary>
         /// Fetch all courses assigned to a specific user (e.g., teacher).
         /// </summary>
-        List<Course> FetchCoursesByUser(string userId);
+        public List<CourseViewModel> FetchCoursesByUser(string userId);
 
         /// <summary>
         /// Register a new course.
@@ -45,7 +44,7 @@ namespace ASI.Basecode.Services.Interfaces
         /// <summary>
         /// Get all courses.
         /// </summary>
-        List<Course> GetAllCourses();
+        public List<CourseViewModel> GetAllCourses();
 
         public bool CourseExists(string courseCode);
 
