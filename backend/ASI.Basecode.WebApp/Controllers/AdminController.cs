@@ -1,20 +1,21 @@
+using ASI.Basecode.Data.Models;
+using ASI.Basecode.Resources.Constants;
+using ASI.Basecode.Services;
 using ASI.Basecode.Services.Interfaces;
 using ASI.Basecode.Services.ServiceModels;
+using ASI.Basecode.Services.Services;
 using ASI.Basecode.WebApp.Models;
-using ASI.Basecode.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
-using System.Threading.Tasks;
-using System.Collections.Generic;
-using ASI.Basecode.Data.Models;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using ASI.Basecode.Resources.Constants;
+using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System;
+using System.Security.Claims;
+using System.Threading.Tasks;
 using static ASI.Basecode.Resources.Constants.Enums;
-using Microsoft.Extensions.Logging;
-using Microsoft.AspNetCore.Authorization;
 
 namespace ASI.Basecode.WebApp.Controllers
 {
@@ -25,17 +26,20 @@ namespace ASI.Basecode.WebApp.Controllers
         private readonly IUserService _userService;
         private readonly ICourseService _courseService;
         private readonly IJwtService _jwtService;
+        private readonly IPdfService _pdfService;
         private readonly ILogger<AdminController> _logger;
 
         public AdminController(
             IJwtService jwtService,
             IUserService userService,
             ICourseService courseService,
-            ILogger<AdminController> logger)
+            IPdfService pdfService,
+        ILogger<AdminController> logger)
         {
             _jwtService = jwtService;
             _userService = userService;
             _courseService = courseService;
+            _pdfService = pdfService;
             _logger = logger;
         }
 
@@ -297,7 +301,7 @@ namespace ASI.Basecode.WebApp.Controllers
         /// <response code="500">Internal server error</response>
         [HttpGet("dashboard-stats")]
         [Authorize(Roles = "Admin")]
-        public IActionResult GetDashboardStats()
+        public IActionResult wGetDashboardStats()
         {
             try
             {
@@ -355,6 +359,34 @@ namespace ASI.Basecode.WebApp.Controllers
                 return StatusCode(500, new { message = "An internal server error occurred.", error = ex.Message });
             }
         }
+
+        [HttpGet("pdf/dashboard-summary")]
+        [AllowAnonymous]
+        public IActionResult GenerateDashboardSummaryPdf()
+        {
+            try
+            {
+                var userStats = _userService.GetUserStatistics();
+                var courseCount = _courseService.GetCourseCount();
+                var userLists = _userService.GetAllUsers();
+
+                var dashboardStats = new DashboardStatsViewModel
+                {
+                    UserStats = userStats,
+                    TotalCourses = courseCount
+                };
+
+                var pdfBytes = _pdfService.GenerateDashboardSummaryReport(dashboardStats, userLists);
+                return File(pdfBytes, "application/pdf", "dashboard_summary_report.pdf");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error generating dashboard summary PDF");
+                return StatusCode(500, new { message = "Error generating dashboard summary PDF", error = ex.Message });
+            }
+        }
+
+
     }
 
 }
