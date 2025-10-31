@@ -103,6 +103,10 @@ namespace ASI.Basecode.WebApp.Controllers
 
                 return Ok(new { message = "Grade feedback created successfully." });
             }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
             catch (ArgumentException ex)
             {
                 return BadRequest(new { message = ex.Message });
@@ -243,12 +247,6 @@ namespace ASI.Basecode.WebApp.Controllers
                     return Unauthorized(new { message = "Authentication required." });
                 }
 
-                // Only the student can view their own feedback
-                if (currentUserId != studentUserId)
-                {
-                    return Unauthorized(new { message = "You can only view your own feedback." });
-                }
-
                 var feedback = _gradeFeedbackService.GetGradeFeedbackForStudent(studentUserId, courseCode);
                 return Ok(feedback);
             }
@@ -340,7 +338,41 @@ namespace ASI.Basecode.WebApp.Controllers
                 return StatusCode(500, new { message = "An internal server error has occurred." });
             }
         }
-        
-        // Need to create route: Get Gradefeedback by coursecode (for teacher only)
+
+        /// <summary>
+        /// Checks if grade feedback exists for a student in a course
+        /// </summary>
+        /// <remarks>
+        /// **Authorization:** Teacher
+        /// </remarks>
+        /// <param name="studentUserId">Student user ID</param>
+        /// <param name="courseCode">Course code</param>
+        /// <returns>Boolean indicating if feedback exists</returns>
+        /// <response code="200">Check completed successfully</response>
+        /// <response code="401">Unauthorized</response>
+        /// <response code="500">Internal server error</response>
+        [HttpGet("exists/student/{studentUserId}/course/{courseCode}")]
+        [Authorize(Roles = "Teacher")]
+        public IActionResult CheckFeedbackExists(string studentUserId, string courseCode)
+        {
+            try
+            {
+                var currentUserId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (string.IsNullOrEmpty(currentUserId))
+                {
+                    return Unauthorized(new { message = "Authentication required." });
+                }
+
+                var exists = _gradeFeedbackService.CheckGradeFeedbackExists(studentUserId, courseCode);
+                return Ok(new { exists });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Internal server error occurred while checking grade feedback existence.");
+                return StatusCode(500, new { message = "An internal server error has occurred." });
+            }
+        }
+
+        // Need to create route: Get Gradefeedback by coursecode (for teacher)
     }
 }
