@@ -152,6 +152,9 @@ namespace ASI.Basecode.Data
                 entity.Property(e => e.CreatedTime)
                     .IsRequired();
 
+                entity.Property(e => e.UpdatedTime)
+                    .IsRequired();
+
                 entity.Property(e => e.UserId)
                     .IsRequired(false)
                     .HasMaxLength(50);

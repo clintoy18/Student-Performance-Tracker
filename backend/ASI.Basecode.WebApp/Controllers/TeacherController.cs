@@ -78,6 +78,7 @@ namespace ASI.Basecode.WebApp.Controllers
                         c.CourseName,
                         c.CourseDescription,
                         c.CreatedAt,
+                        teacherUserId = c.UserId,
                         StudentCount = GetStudentCount(c.CourseCode)
                     })
                     .ToList();

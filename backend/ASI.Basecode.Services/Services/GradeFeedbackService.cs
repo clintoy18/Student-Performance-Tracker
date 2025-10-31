@@ -37,6 +37,13 @@ namespace ASI.Basecode.Services.Services
             {
                 throw new ArgumentNullException("Student does not have a related course to be feedbacked on.");
             }
+
+            // Check if student has a grade assigned before allowing feedback
+            if (studentCourse.Grade == null)
+            {
+                throw new InvalidOperationException("Cannot create feedback for a student without an assigned grade. Please assign a grade first.");
+            }
+
             var gradeFeedback = new GradeFeedback
             {
                 Feedback = model.Feedback,
@@ -55,6 +62,7 @@ namespace ASI.Basecode.Services.Services
                 throw new ArgumentNullException("Grade feedback does not exist");
             }
             gradeFeedback.Feedback = feedback;
+            gradeFeedback.UpdatedTime = DateTime.UtcNow;
             _repository.UpdateGradeFeedback(gradeFeedback);
         }
 
@@ -99,6 +107,7 @@ namespace ASI.Basecode.Services.Services
                     Feedback = gf.Feedback,
                     StudentCourseId = gf.StudentCourseId,
                     CreatedTime = gf.CreatedTime,
+                    UpdatedTime = gf.UpdatedTime,
                     TeacherUserId = gf.UserId,
                     TeacherName = gf.User != null ? $"{gf.User.FirstName} {gf.User.LastName}" : "",
                     CourseCode = gf.StudentCourse != null ? gf.StudentCourse.CourseCode : "",
@@ -112,6 +121,13 @@ namespace ASI.Basecode.Services.Services
         {
             var gradeFeedback = _repository.GetGradeFeedback(id);
             return _mapper.Map<GradeFeedbackViewModel>(gradeFeedback);
+        }
+
+        // Check if grade feedback exists for a student in a course
+        public bool CheckGradeFeedbackExists(string studentUserId, string courseCode)
+        {
+            var gradeFeedback = _repository.GetGradeFeedbackByStudentId(studentUserId, courseCode);
+            return gradeFeedback != null;
         }
 
     }

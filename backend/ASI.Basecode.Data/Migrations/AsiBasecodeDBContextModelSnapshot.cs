@@ -72,6 +72,9 @@ namespace ASI.Basecode.Data.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("TEXT");
 
+                    b.Property<DateTime>("UpdatedTime")
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("UserId")
                         .HasMaxLength(50)
                         .HasColumnType("TEXT");

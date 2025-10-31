@@ -15,10 +15,6 @@ export const AuthContext = createContext<IAuthContext | undefined>(undefined);
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState<TNullableUser>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  
-  useEffect(() => {
-    console.log(user)
-  }, [user])
 
   const handleFetchUser = async () => {
     try {
