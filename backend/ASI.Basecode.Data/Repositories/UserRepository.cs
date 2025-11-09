@@ -66,5 +66,10 @@ namespace ASI.Basecode.Data.Repositories
                 .Where(u => u.Role == role);
         }
 
+        public bool IsIDExists<T>(string id, string idPropertyName) where T : class
+        {
+            return Context.Set<T>().Any(e => EF.Property<string>(e, idPropertyName) == id);
+        }
+
     }
 }

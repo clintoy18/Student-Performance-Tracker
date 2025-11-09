@@ -5,9 +5,11 @@ using ASI.Basecode.Services.Interfaces;
 using ASI.Basecode.Services.Manager;
 using ASI.Basecode.Services.ServiceModels;
 using AutoMapper;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Data.Entity;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -47,23 +49,50 @@ namespace ASI.Basecode.Services.Services
             }
         }
 
-        public void RegisterUser(RegisterUserViewModel model)
+        private string GenerateIDNumber<T>(string idPropertyName, string prefix = null) where T : class
+        {
+            var rand = new Random();
+            var year = DateTime.Now.Year.ToString(CultureInfo.InvariantCulture).Substring(2, 2);
+            string id;
+
+            do
+            {
+                var digit4 = $"{rand.Next(0, 9999):D4}";
+                var digit3 = $"{rand.Next(0, 999):D3}";
+                id = string.IsNullOrEmpty(prefix) ? $"{year}-{digit4}-{digit3}" : $"{prefix}-{digit4}-{digit3}";
+
+            } while (_repository.IsIDExists<T>(id, idPropertyName)); 
+
+            return id;
+        }
+
+
+        public string RegisterUser(RegisterUserViewModel model)
         {
             ArgumentNullException.ThrowIfNull(model);
 
             // Check if this is the first user
             bool isFirstUser = !_repository.GetUsers().Any();
 
-            if (!_repository.UserExists(model.UserId))
+            //auto generate user-id
+            string generatedUserId = GenerateIDNumber<User>("UserId", "STU");
+
+            if (!_repository.UserExists(generatedUserId))
             {
                 var user = new User();
                 _mapper.Map(model, user);
+                    
+                //assign the id
+                user.UserId = generatedUserId;
 
                 // Assign Admin role if first user, otherwise default (e.g., Student)
                 user.Role = isFirstUser ? UserRoles.Admin : UserRoles.Student;
 
                 user.HashedPassword = PasswordManager.EncryptPassword(model.Password);
                 _repository.AddUser(user);
+
+                return generatedUserId;
+
             }
             else
             {

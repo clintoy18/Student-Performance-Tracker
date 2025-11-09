@@ -16,7 +16,7 @@ namespace ASI.Basecode.Data.Interfaces
         void DeleteUserById(string userId);
         IQueryable<User> GetRecentUsers(int count);
         IQueryable<User> GetUsersByRole(UserRoles role);
-
+        bool IsIDExists<T>(string id, string idPropertyName) where T : class;
 
     }
 }
