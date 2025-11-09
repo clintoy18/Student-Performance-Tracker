@@ -33,6 +33,7 @@ namespace ASI.Basecode.WebApp
                     .ForMember(dest => dest.CreatedAt, opt => opt.Ignore())    // Keep original creation time
                     .ForMember(dest => dest.UserId, opt => opt.MapFrom(src => src.UserId)); // Map assigned teacher
                 CreateMap<GradeFeedback, GradeFeedbackViewModel>();
+                CreateMap<CourseViewModel, Course>();
             }
         }
     }

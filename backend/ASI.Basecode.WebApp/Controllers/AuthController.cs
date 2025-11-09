@@ -14,6 +14,7 @@ using System.Linq;
 using System;
 using static ASI.Basecode.Resources.Constants.Enums;
 using Microsoft.Extensions.Logging;
+using Microsoft.AspNetCore.Authorization;
 
 namespace ASI.Basecode.WebApp.Controllers
 {
@@ -97,7 +98,6 @@ namespace ASI.Basecode.WebApp.Controllers
         /// <summary>
         /// Registers a new user in the system.
         /// </summary>
-        /// <param name="request">User registration data including UserId, name, password, and program.</param>
         /// <returns>
         /// Returns 200 OK if user is registered successfully.
         /// Returns 400 Bad Request if UserId already exists or model validation fails.
@@ -144,12 +144,16 @@ namespace ASI.Basecode.WebApp.Controllers
         /// <summary>
         /// Retrieves the profile of the currently authenticated user based on the provided JWT token.
         /// </summary>
+        /// <remarks>
+        /// **Authorization:** Authenticated
+        /// </remarks>
         /// <returns>
         /// Returns 200 OK with user details (UserId, FirstName, LastName, Role) if token is valid.
         /// Returns 401 Unauthorized if token is missing, invalid, expired, or user not found.
         /// </returns>
         /// <response code="200">User profile retrieved successfully.</response>
         /// <response code="401">Missing, invalid, or expired token; or user not found.</response>
+        [Authorize]
         [HttpGet("me")]
         public IActionResult GetCurrentUser()
         {
@@ -199,6 +203,10 @@ namespace ASI.Basecode.WebApp.Controllers
         /// Updates the current authenticated user's profile.
         /// Frontend must NOT send UserId — it's inferred from the token.
         /// </summary>
+        /// <remarks>
+        /// **Authorization:** Authenticated
+        /// </remarks>
+        [Authorize]
         [HttpPut("me/update")]
         public IActionResult UpdateCurrentUser([FromBody] UpdateMyProfileModel request)
         {

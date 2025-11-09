@@ -27,6 +27,11 @@ namespace ASI.Basecode.Data.Repositories
             ArgumentNullException.ThrowIfNull(user);
             return user;
         }
+        public User GetUserNoNullException(string userId)
+        {
+            var user = GetDbSet<User>().FirstOrDefault(u => u.UserId == userId);
+            return user;
+        }
 
         public bool UserExists(string userId)
         {

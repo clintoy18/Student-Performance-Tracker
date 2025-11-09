@@ -30,12 +30,16 @@ import { getAllCourses, addCourse, updateCourse, deleteCourseByCourseCode } from
 import type { ICourse } from "@interfaces/models/ICourse";
 import { useAuth } from "../../../context/AuthContext";
 import { InlineSpinner } from "../../../components/common/LoadingSpinnerPage";
+import type { IUser } from "@interfaces";
+interface ICourseWithTeacherDetails extends ICourse {
+  TeacherDetails: IUser
+}
 
-const columnHelper = createColumnHelper<ICourse>();
+const columnHelper = createColumnHelper<ICourseWithTeacherDetails>();
 
 export default function Subjects() {
   const { user } = useAuth();
-  const [courses, setCourses] = useState<ICourse[]>([]);
+  const [courses, setCourses] = useState<ICourseWithTeacherDetails[]>([]);
   const [loading, setLoading] = useState(true);
   const [globalFilter, setGlobalFilter] = useState("");
 
@@ -51,19 +55,38 @@ export default function Subjects() {
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [error, setError] = useState("");
 
+
   const fetchCourses = async () => {
     setLoading(true);
     setError("");
     try {
       const rawData = await getAllCourses();
-      const parsedData: ICourse[] = rawData.map(course => ({
-        Id: course.id,
-        CourseCode: course.courseCode,
-        CourseName: course.courseName,
-        CourseDescription: course.courseDescription,
-        CreatedAt: course.createdAt,
-        TeacherUserId: course.userId,
-      }));
+
+      const parsedData: ICourseWithTeacherDetails[] = rawData.map((course) => {
+        // Handle assignedTeacher being null
+        const teacher = course.assignedTeacher;
+
+        return {
+          Id: course.id,
+          CourseCode: course.courseCode,
+          CourseName: course.courseName,
+          CourseDescription: course.courseDescription,
+          CreatedAt: course.createdAt,
+          TeacherUserId: teacher?.userId ?? null, // or "" if you prefer string
+          TeacherDetails: teacher
+            ? {
+              UserId: teacher.userId,
+              FirstName: teacher.firstName ?? "",
+              MiddleName: teacher.middleName ?? "",
+              LastName: teacher.lastName ?? "",
+              Program: teacher.program ?? "",
+              CreatedTime: teacher.createdTime,
+              Role: teacher.role,
+            }
+            : null,
+        };
+      });
+
       setCourses(parsedData);
     } catch (err: any) {
       setError("Failed to load courses");
@@ -164,6 +187,24 @@ export default function Subjects() {
     columnHelper.accessor("CourseDescription", {
       header: "Description",
       cell: (info) => <div className="text-gray-600 text-sm">{info.getValue() || "—"}</div>,
+    }),
+    columnHelper.accessor("TeacherDetails", {
+      header: "Assigned Teacher",
+      cell: (info) => {
+        const teacher = info.getValue() as IUser | undefined;
+        if (!teacher || !teacher.UserId) {
+          return <span className="text-gray-500 text-sm">—</span>;
+        }
+        const fullName = [teacher.FirstName, teacher.MiddleName, teacher.LastName]
+          .filter(Boolean)
+          .join(" ");
+        return (
+          <div className="text-gray-900 text-sm">
+            <div>{fullName}</div>
+            <div className="text-xs text-gray-500">ID: {teacher.UserId}</div>
+          </div>
+        );
+      },
     }),
     {
       id: "actions",

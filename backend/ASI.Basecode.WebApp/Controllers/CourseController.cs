@@ -20,41 +20,52 @@ namespace ASI.Basecode.WebApp.Controllers
         private readonly ICourseService _courseService;
         private readonly ILogger<CourseController> _logger;
         private readonly IRbacService _rbacService;
+        private readonly IUserService _userService;
 
         public CourseController(
             ICourseService courseService,
             IRbacService rbacService,
+            IUserService userService,
             ILogger<CourseController> logger)
         {
             _courseService = courseService;
             _rbacService = rbacService;
+            _userService = userService;
             _logger = logger;
         }
 
         /// <summary>
         /// Retrieves all courses
         /// </summary>
+        /// <remarks>
+        /// **Authorization:** Admin
+        /// </remarks>
         /// <returns>List of courses</returns>
         /// <response code="200">Courses retrieved successfully</response>
         /// <response code="500">Internal server error</response>
         [HttpGet("list")]
+        [Authorize(Roles = "Admin")]
         public IActionResult GetAllCourses()
         {
             try
             {
-                var courses = _courseService.GetAllCourses()
-                    .Select(c => new
-                    {
-                        c.Id,
-                        c.CourseCode,
-                        c.CourseName,
-                        c.CourseDescription,
-                        c.UserId,
-                        c.CreatedAt
-                    })
-                    .ToList();
+                var courses = _courseService.GetAllCourses();
 
-                return Ok(courses);
+                var coursesDto = courses.Select(c =>
+                {
+                    var teacher = _userService.FetchUserNoNullException(c.UserId);
+                    return new CourseListViewModel
+                    {
+                        Id = c.Id,
+                        CourseCode = c.CourseCode,
+                        CourseName = c.CourseName,
+                        CourseDescription = c.CourseDescription,
+                        AssignedTeacher = teacher,
+                        CreatedAt = c.CreatedAt
+                    };
+                }).ToList();
+
+                return Ok(coursesDto);
             }
             catch (Exception ex)
             {
@@ -66,6 +77,9 @@ namespace ASI.Basecode.WebApp.Controllers
         /// <summary>
         /// Retrieves a specific course by ID
         /// </summary>
+        /// <remarks>
+        /// **Authorization:** Admin
+        /// </remarks>
         /// <param name="courseId">Course ID</param>
         /// <returns>Course details</returns>
         /// <response code="200">Course retrieved successfully</response>
@@ -73,7 +87,7 @@ namespace ASI.Basecode.WebApp.Controllers
         /// <response code="404">Course not found</response>
         /// <response code="500">Internal server error</response>
         [HttpGet("{courseId:int}")]
-        [Authorize]
+        [Authorize(Roles = "Admin")]
         public IActionResult GetCourse(int courseId)
         {
             if (courseId <= 0)
@@ -107,6 +121,9 @@ namespace ASI.Basecode.WebApp.Controllers
         /// <summary>
         /// Retrieves a specific course by course code
         /// </summary>
+        /// <remarks>
+        /// **Authorization:** Admin
+        /// </remarks>
         /// <param name="courseCode">Course code</param>
         /// <returns>Course details</returns>
         /// <response code="200">Course retrieved successfully</response>
@@ -114,7 +131,7 @@ namespace ASI.Basecode.WebApp.Controllers
         /// <response code="404">Course not found</response>
         /// <response code="500">Internal server error</response>
         [HttpGet("code/{courseCode}")]
-        [Authorize]
+        [Authorize(Roles = "Admin")]
         public IActionResult GetCourseByCourseCode(string courseCode)
         {
             if (string.IsNullOrWhiteSpace(courseCode))
@@ -147,6 +164,9 @@ namespace ASI.Basecode.WebApp.Controllers
         /// <summary>
         /// Adds a new course
         /// </summary>
+        /// <remarks>
+        /// **Authorization:** Admin
+        /// </remarks>
         /// <param name="model">Course data</param>
         /// <returns>Success message</returns>
         /// <response code="200">Course added successfully</response>
@@ -154,7 +174,7 @@ namespace ASI.Basecode.WebApp.Controllers
         /// <response code="401">Unauthorized</response>
         /// <response code="500">Internal server error</response>
         [HttpPost("add")]
-        [Authorize]
+        [Authorize(Roles = "Admin")]
         public IActionResult AddCourse([FromBody] CourseViewModel model)
         {
             if (!ModelState.IsValid)
@@ -179,6 +199,9 @@ namespace ASI.Basecode.WebApp.Controllers
         /// <summary>
         /// Updates a course
         /// </summary>
+        /// <remarks>
+        /// **Authorization:** Admin
+        /// </remarks>
         /// <param name="model">Updated course data</param>
         /// <returns>Success message</returns>
         /// <response code="200">Course updated successfully</response>
@@ -188,7 +211,7 @@ namespace ASI.Basecode.WebApp.Controllers
         /// <response code="404">Course not found</response>
         /// <response code="500">Internal server error</response>
         [HttpPut("update")]
-        [Authorize(Roles = "Admin,Teacher")]
+        [Authorize(Roles = "Admin")]
         public IActionResult UpdateCourse([FromBody] CourseUpdateViewModel model)
         {
             if (!ModelState.IsValid)
@@ -235,6 +258,9 @@ namespace ASI.Basecode.WebApp.Controllers
         /// <summary>
         /// Deletes a course by ID
         /// </summary>
+        /// <remarks>
+        /// **Authorization:** Admin
+        /// </remarks>
         /// <param name="courseId">Course ID to delete</param>
         /// <returns>Success message</returns>
         /// <response code="200">Course deleted successfully</response>
@@ -244,7 +270,7 @@ namespace ASI.Basecode.WebApp.Controllers
         /// <response code="404">Course not found</response>
         /// <response code="500">Internal server error</response>
         [HttpDelete("delete/{courseId:int}")]
-        [Authorize(Roles = "Admin,Teacher")]
+        [Authorize(Roles = "Admin")]
         public IActionResult DeleteCourse(int courseId)
         {
             if (courseId <= 0)
@@ -288,6 +314,9 @@ namespace ASI.Basecode.WebApp.Controllers
         /// <summary>
         /// Deletes a course by course code
         /// </summary>
+        /// <remarks>
+        /// **Authorization:** Admin
+        /// </remarks>
         /// <param name="courseCode">Course code to delete</param>
         /// <returns>Success message</returns>
         /// <response code="200">Course deleted successfully</response>
@@ -297,7 +326,7 @@ namespace ASI.Basecode.WebApp.Controllers
         /// <response code="404">Course not found</response>
         /// <response code="500">Internal server error</response>
         [HttpDelete("delete/code/{courseCode}")]
-        [Authorize(Roles = "Admin,Teacher")]
+        [Authorize(Roles = "Admin")]
         public IActionResult DeleteCourseByCourseCode(string courseCode)
         {
             if (string.IsNullOrWhiteSpace(courseCode))

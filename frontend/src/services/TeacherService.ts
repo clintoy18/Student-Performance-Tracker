@@ -1,7 +1,7 @@
 // src/services/teacherService.ts
 import { teacher, course, studentCourse, feedback } from "../lib/api";
 import type { ICourse } from "@interfaces/models/ICourse";
-import type { IStudentCourseListRequest } from "@interfaces";
+import type { ICourseData, IStudentCourseListRequest } from "@interfaces";
 
 // ==================== Dashboard Stats ====================
 
@@ -32,7 +32,7 @@ export interface ITeacherCourse extends ICourse {
 /**
  * Get all courses assigned to the logged-in teacher
  */
-export const getTeacherCourses = async (): Promise<ITeacherCourse[]> => {
+export const getTeacherCourses = async (): Promise<ICourseData[]> => {
   const response = await teacher.get("/my-courses");
   return response.data;
 };
@@ -152,7 +152,7 @@ export const deleteFeedback = async (feedbackId: number) => {
  */
 export const isTeacherCourse = async (courseCode: string, teacherUserId: string): Promise<boolean> => {
   const courses = await getTeacherCourses();
-  return courses.some((c) => c.CourseCode === courseCode && c.TeacherUserId === teacherUserId);
+  return courses.some((c) => c.courseCode === courseCode && c.teacherUserId === teacherUserId);
 };
 
 /**
