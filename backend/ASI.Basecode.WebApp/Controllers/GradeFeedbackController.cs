@@ -42,6 +42,9 @@ namespace ASI.Basecode.WebApp.Controllers
         /// <summary>
         /// Creates grade feedback for a student course
         /// </summary>
+        /// <remarks>
+        /// **Authorization:** Teacher
+        /// </remarks>
         /// <param name="request">Feedback creation data</param>
         /// <returns>Success message or error details</returns>
         /// <response code="200">Feedback created successfully</response>
@@ -100,6 +103,10 @@ namespace ASI.Basecode.WebApp.Controllers
 
                 return Ok(new { message = "Grade feedback created successfully." });
             }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
             catch (ArgumentException ex)
             {
                 return BadRequest(new { message = ex.Message });
@@ -114,6 +121,9 @@ namespace ASI.Basecode.WebApp.Controllers
         /// <summary>
         /// Updates existing grade feedback
         /// </summary>
+        /// <remarks>
+        /// **Authorization:** Teacher
+        /// </remarks>
         /// <param name="feedbackId">ID of the feedback to update</param>
         /// <param name="request">Updated feedback data</param>
         /// <returns>Success message or error details</returns>
@@ -124,7 +134,7 @@ namespace ASI.Basecode.WebApp.Controllers
         /// <response code="404">Feedback not found</response>
         /// <response code="500">Internal server error</response>
         [HttpPut("update/{feedbackId}")]
-        [Authorize(Roles = "Admin,Teacher")]
+        [Authorize(Roles = "Teacher")]
         public IActionResult UpdateFeedback(int feedbackId, [FromBody] GradeFeedbackUpdateRequestModel request)
         {
             if (!ModelState.IsValid)
@@ -139,7 +149,7 @@ namespace ASI.Basecode.WebApp.Controllers
                 {
                     return Unauthorized(new { message = "Authentication required." });
                 }
-                
+
                 _gradeFeedbackService.UpdateGradeFeedback(feedbackId, request.Feedback);
 
                 return Ok(new { message = "Grade feedback updated successfully." });
@@ -158,6 +168,9 @@ namespace ASI.Basecode.WebApp.Controllers
         /// <summary>
         /// Deletes grade feedback
         /// </summary>
+        /// <remarks>
+        /// **Authorization:** Teacher
+        /// </remarks>
         /// <param name="feedbackId">ID of the feedback to delete</param>
         /// <returns>Success message or error details</returns>
         /// <response code="200">Feedback deleted successfully</response>
@@ -166,7 +179,7 @@ namespace ASI.Basecode.WebApp.Controllers
         /// <response code="404">Feedback not found</response>
         /// <response code="500">Internal server error</response>
         [HttpDelete("delete/{feedbackId}")]
-        [Authorize(Roles = "Admin,Teacher")]
+        [Authorize(Roles = "Teacher")]
         public IActionResult DeleteFeedback(int feedbackId)
         {
             try
@@ -212,6 +225,9 @@ namespace ASI.Basecode.WebApp.Controllers
         /// <summary>
         /// Gets grade feedback for a specific student
         /// </summary>
+        /// <remarks>
+        /// **Authorization:** Student, Teacher
+        /// </remarks>
         /// <param name="studentUserId">Student user ID</param>
         /// <param name="courseCode">Course code</param>
         /// <returns>Grade feedback details</returns>
@@ -220,7 +236,7 @@ namespace ASI.Basecode.WebApp.Controllers
         /// <response code="404">Feedback not found</response>
         /// <response code="500">Internal server error</response>
         [HttpGet("student/{studentUserId}/course/{courseCode}")]
-        [Authorize]
+        [Authorize(Roles = "Student,Teacher")]
         public IActionResult GetFeedbackForStudent(string studentUserId, string courseCode)
         {
             try
@@ -229,12 +245,6 @@ namespace ASI.Basecode.WebApp.Controllers
                 if (string.IsNullOrEmpty(currentUserId))
                 {
                     return Unauthorized(new { message = "Authentication required." });
-                }
-
-                // Only the student can view their own feedback
-                if (currentUserId != studentUserId)
-                {
-                    return Unauthorized(new { message = "You can only view your own feedback." });
                 }
 
                 var feedback = _gradeFeedbackService.GetGradeFeedbackForStudent(studentUserId, courseCode);
@@ -252,8 +262,11 @@ namespace ASI.Basecode.WebApp.Controllers
         }
 
         /// <summary>
-        /// Gets all grade feedback (Admin/Teacher only)
+        /// Gets all grade feedback
         /// </summary>
+        /// <remarks>
+        /// **Authorization:** Admin
+        /// </remarks>
         /// <returns>All grade feedback records</returns>
         /// <response code="200">Feedback retrieved successfully</response>
         /// <response code="401">Unauthorized - only teachers and admins can view all feedback</response>
@@ -290,6 +303,9 @@ namespace ASI.Basecode.WebApp.Controllers
         /// <summary>
         /// Gets grade feedback by ID
         /// </summary>
+        /// <remarks>
+        /// **Authorization:** Teacher, Admin
+        /// </remarks>
         /// <param name="feedbackId">Feedback ID</param>
         /// <returns>Grade feedback details</returns>
         /// <response code="200">Feedback retrieved successfully</response>
@@ -322,5 +338,41 @@ namespace ASI.Basecode.WebApp.Controllers
                 return StatusCode(500, new { message = "An internal server error has occurred." });
             }
         }
+
+        /// <summary>
+        /// Checks if grade feedback exists for a student in a course
+        /// </summary>
+        /// <remarks>
+        /// **Authorization:** Teacher
+        /// </remarks>
+        /// <param name="studentUserId">Student user ID</param>
+        /// <param name="courseCode">Course code</param>
+        /// <returns>Boolean indicating if feedback exists</returns>
+        /// <response code="200">Check completed successfully</response>
+        /// <response code="401">Unauthorized</response>
+        /// <response code="500">Internal server error</response>
+        [HttpGet("exists/student/{studentUserId}/course/{courseCode}")]
+        [Authorize(Roles = "Teacher")]
+        public IActionResult CheckFeedbackExists(string studentUserId, string courseCode)
+        {
+            try
+            {
+                var currentUserId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (string.IsNullOrEmpty(currentUserId))
+                {
+                    return Unauthorized(new { message = "Authentication required." });
+                }
+
+                var exists = _gradeFeedbackService.CheckGradeFeedbackExists(studentUserId, courseCode);
+                return Ok(new { exists });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Internal server error occurred while checking grade feedback existence.");
+                return StatusCode(500, new { message = "An internal server error has occurred." });
+            }
+        }
+
+        // Need to create route: Get Gradefeedback by coursecode (for teacher)
     }
 }

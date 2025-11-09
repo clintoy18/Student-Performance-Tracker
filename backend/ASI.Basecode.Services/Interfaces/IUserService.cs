@@ -11,6 +11,7 @@ namespace ASI.Basecode.Services.Interfaces
         LoginResult AuthenticateUser(string userId, string password);
         string RegisterUser(RegisterUserViewModel model);
         User FetchUser(string userId);
+        public User FetchUserNoNullException(string userId);
         // void UpdateUser(RegisterUserViewModel model);
         void DeleteUser(string userId);
         void RegisterUserAdmin(RegisterUserAdminModel model);

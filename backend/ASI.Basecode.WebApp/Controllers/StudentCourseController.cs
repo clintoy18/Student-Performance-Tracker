@@ -46,6 +46,9 @@ namespace ASI.Basecode.WebApp.Controllers
         /// <summary>
         /// Enrolls a student to a course
         /// </summary>
+        /// <remarks>
+        /// **Authorization:** Admin
+        /// </remarks>
         /// <param name="request">The StudentCourseCreateRequest model</param>
         /// <response code="201">Student has been successfully enrolled to this course.</response>
         /// <response code="400">Student's userId must be related to a student.</response>
@@ -106,10 +109,13 @@ namespace ASI.Basecode.WebApp.Controllers
         /// <summary>
         /// Updates the grade of a student for a specific course.
         /// </summary>
+        /// <remarks>
+        /// **Authorization:** Teacher
+        /// </remarks>
         /// <param name="model">The student grade update model containing StudentUserId, CourseCode, and Grade.</param>
         /// <returns>Returns 200 if successful, 400/404 on errors.</returns>
         [HttpPut("update")]
-        [AllowAnonymous]
+        [Authorize(Roles = "Teacher")]
         public IActionResult UpdateStudentGrade([FromBody] StudentGradeUpdateViewModel model)
         {
             if (!ModelState.IsValid)
@@ -157,6 +163,9 @@ namespace ASI.Basecode.WebApp.Controllers
         /// <summary>
         /// Deletes a student's enrollment in a course.
         /// </summary>
+        /// <remarks>
+        /// **Authorization:** Admin
+        /// </remarks>
         /// <param name="studentUserId">Student's user ID</param>
         /// <param name="courseCode">Course code</param>
         /// <response code="204">Successfully deleted</response>
@@ -185,11 +194,14 @@ namespace ASI.Basecode.WebApp.Controllers
         /// <summary>
         /// Gets all courses enrolled by a specific student.
         /// </summary>
+        /// <remarks>
+        /// **Authorization:** Student, Teacher, Admin
+        /// </remarks>
         /// <param name="studentUserId">Student's user ID</param>
         /// <response code="200">List of student courses</response>
         /// <response code="500">Internal server error</response>
         [HttpGet("student/{studentUserId}")]
-        [Authorize]
+        [Authorize(Roles = "Student,Teacher,Admin")]
         public IActionResult GetCoursesByStudent(string studentUserId)
         {
             try
@@ -207,6 +219,9 @@ namespace ASI.Basecode.WebApp.Controllers
         /// <summary>
         /// Gets all students enrolled in a specific course.
         /// </summary>
+        /// <remarks>
+        /// **Authorization:** Admin, Teacher
+        /// </remarks>
         /// <param name="courseCode">Course code</param>
         /// <response code="200">List of student courses</response>
         /// <response code="500">Internal server error</response>
@@ -229,6 +244,9 @@ namespace ASI.Basecode.WebApp.Controllers
         /// <summary>
         /// Gets all student-course enrollments.
         /// </summary>
+        /// <remarks>
+        /// **Authorization:** Admin
+        /// </remarks>
         /// <response code="200">List of all student courses</response>
         /// <response code="500">Internal server error</response>
         [HttpGet("all")]
