@@ -9,7 +9,7 @@ namespace ASI.Basecode.Services.Interfaces
     public interface IUserService
     {
         LoginResult AuthenticateUser(string userId, string password);
-        void RegisterUser(RegisterUserViewModel model);
+        string RegisterUser(RegisterUserViewModel model);
         User FetchUser(string userId);
         public User FetchUserNoNullException(string userId);
         // void UpdateUser(RegisterUserViewModel model);
@@ -20,7 +20,7 @@ namespace ASI.Basecode.Services.Interfaces
         public bool UserExists(string userId);
         public List<UserViewAdminModel> GetRecentUsers(int count);
         public UserStatisticsViewModel GetUserStatistics();
-
         public List<User> GetUsersByRole(UserRoles role);
+
     }
 }
