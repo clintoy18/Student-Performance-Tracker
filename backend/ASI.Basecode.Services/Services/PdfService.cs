@@ -134,7 +134,7 @@ namespace ASI.Basecode.Services.Services
         //        }
         //    }
         //}
-        public byte[] GenerateDashboardSummaryReport(DashboardStatsViewModel dashboardStats, List<UserViewAdminModel> users)
+        public byte[] GenerateDashboardSummaryReport(DashboardStatsViewModel dashboardStats, List<UserViewAdminModel> users, UserRoles? roleFilter = null)
         {
             if (dashboardStats == null)
                 throw new ArgumentNullException(nameof(dashboardStats));
@@ -165,8 +165,12 @@ namespace ASI.Basecode.Services.Services
                 var linePen = new XPen(XColor.FromArgb(200, 200, 200), 0.8);
 
                 // --- Header Bar ---
+                string headerTitle = roleFilter.HasValue
+                    ? $"{roleFilter.Value.ToString().ToUpper()} DASHBOARD SUMMARY REPORT"
+                    : "ADMIN DASHBOARD SUMMARY REPORT";
+
                 gfx.DrawRectangle(XBrushes.SteelBlue, 0, 0, page.Width, 70);
-                gfx.DrawString("ADMIN DASHBOARD SUMMARY REPORT", titleFont, XBrushes.White,
+                gfx.DrawString(headerTitle, titleFont, XBrushes.White,
                     new XRect(0, 20, page.Width, 40), XStringFormats.TopCenter);
 
                 // --- Section: System Overview ---
@@ -178,10 +182,20 @@ namespace ASI.Basecode.Services.Services
                 y += 30;
 
                 double textX = margin + 20;
-                gfx.DrawString($"Total Users: {dashboardStats.UserStats.TotalUsers}", textFont, XBrushes.Black, new XPoint(textX, y)); y += 20;
-                gfx.DrawString($"Total Students: {dashboardStats.UserStats.TotalStudents}", textFont, XBrushes.Black, new XPoint(textX, y)); y += 20;
-                gfx.DrawString($"Total Teachers: {dashboardStats.UserStats.TotalTeachers}", textFont, XBrushes.Black, new XPoint(textX, y)); y += 20;
-                gfx.DrawString($"Total Admins: {dashboardStats.UserStats.TotalAdmins}", textFont, XBrushes.Black, new XPoint(textX, y));
+
+                // Dynamic stats based on role filter
+                int totalUsers = users.Count;
+                int totalStudents = users.Count(u => u.Role == UserRoles.Student);
+                int totalTeachers = users.Count(u => u.Role == UserRoles.Teacher);
+                int totalAdmins = users.Count(u => u.Role == UserRoles.Admin);
+
+                gfx.DrawString($"Total Users: {totalUsers}", textFont, XBrushes.Black, new XPoint(textX, y)); y += 20;
+                if (!roleFilter.HasValue || roleFilter == UserRoles.Student)
+                    gfx.DrawString($"Total Students: {totalStudents}", textFont, XBrushes.Black, new XPoint(textX, y)); y += 20;
+                if (!roleFilter.HasValue || roleFilter == UserRoles.Teacher)
+                    gfx.DrawString($"Total Teachers: {totalTeachers}", textFont, XBrushes.Black, new XPoint(textX, y)); y += 20;
+                if (!roleFilter.HasValue || roleFilter == UserRoles.Admin)
+                    gfx.DrawString($"Total Admins: {totalAdmins}", textFont, XBrushes.Black, new XPoint(textX, y));
                 y += 50;
 
                 // --- Section: Course Statistics ---
@@ -196,15 +210,14 @@ namespace ASI.Basecode.Services.Services
                 gfx.DrawString("USER LIST", sectionFont, primaryColor, new XPoint(margin, y));
                 y += 25;
 
-                // Column layout (consistent with screenshot)
+                // Column layout
                 double[] colWidths = { 90, 200, 140, 110 };
                 double tableStartX = margin;
                 double rowHeight = 25;
 
                 // --- Table Header ---
                 gfx.DrawRoundedRectangle(XBrushes.LightSteelBlue, tableStartX, y, contentWidth, rowHeight, 5, 5);
-
-                double textY = y + 7; // Vertical alignment inside header
+                double textY = y + 7;
                 gfx.DrawString("User ID", headerFont, XBrushes.Black, new XPoint(tableStartX + 10, textY));
                 gfx.DrawString("Name", headerFont, XBrushes.Black, new XPoint(tableStartX + colWidths[0] + 10, textY));
                 gfx.DrawString("Program", headerFont, XBrushes.Black, new XPoint(tableStartX + colWidths[0] + colWidths[1] + 10, textY));
@@ -215,17 +228,13 @@ namespace ASI.Basecode.Services.Services
 
                 foreach (var user in users)
                 {
-                    // --- Page Break ---
                     if (y > page.Height - 100)
                     {
                         page = document.AddPage();
                         gfx = XGraphics.FromPdfPage(page);
                         y = 100;
-
                         gfx.DrawString("USER LIST (continued)", sectionFont, primaryColor, new XPoint(margin, y));
                         y += 25;
-
-                        // Re-draw header on new page
                         gfx.DrawRoundedRectangle(XBrushes.LightSteelBlue, tableStartX, y, contentWidth, rowHeight, 10, 10);
                         gfx.DrawString("User ID", headerFont, XBrushes.Black, new XPoint(tableStartX + 10, y + 7));
                         gfx.DrawString("Name", headerFont, XBrushes.Black, new XPoint(tableStartX + colWidths[0] + 10, y + 7));
@@ -235,12 +244,10 @@ namespace ASI.Basecode.Services.Services
                         row = 0;
                     }
 
-                    // --- Alternate Row Background ---
                     var bgColor = (row % 2 == 0) ? XBrushes.White : altRowColor;
                     gfx.DrawRectangle(bgColor, tableStartX, y, contentWidth, rowHeight);
                     gfx.DrawLine(linePen, tableStartX, y + rowHeight, tableStartX + contentWidth, y + rowHeight);
 
-                    // --- Row Data ---
                     var fullName = $"{user?.FirstName ?? "-"} {user?.LastName ?? "-"}";
                     var roleString = user?.Role.ToString() ?? "-";
 
@@ -257,7 +264,7 @@ namespace ASI.Basecode.Services.Services
                 // --- Footer ---
                 gfx.DrawLine(linePen, margin, page.Height - 60, page.Width - margin, page.Height - 60);
                 gfx.DrawString($"Generated on: {DateTime.Now:MMMM dd, yyyy h:mm tt}", footerFont, XBrushes.Gray, new XPoint(margin, page.Height - 45));
-                gfx.DrawString("Generated by: Admin Portal"+ " @All rights reserved Student-Performance-Tracker", footerFont, XBrushes.Gray, new XPoint(margin, page.Height - 30));
+                gfx.DrawString("Generated by: Admin Portal @All rights reserved Student-Performance-Tracker", footerFont, XBrushes.Gray, new XPoint(margin, page.Height - 30));
 
                 using (var stream = new MemoryStream())
                 {
@@ -266,7 +273,6 @@ namespace ASI.Basecode.Services.Services
                 }
             }
         }
-
 
 
 

@@ -370,7 +370,8 @@ namespace ASI.Basecode.WebApp.Controllers
         //3.teachers = teachers
         //4.admin = admin)
         [HttpGet("pdf/dashboard-summary")]
-        [Authorize(Roles = "Admin")]
+        //[Authorize(Roles = "Admin")]
+        [AllowAnonymous]
         public IActionResult GenerateDashboardSummaryPdf(string? role = null)
         {
             try
@@ -378,14 +379,18 @@ namespace ASI.Basecode.WebApp.Controllers
                 var userStats = _userService.GetUserStatistics();
                 var courseCount = _courseService.GetCourseCount();
 
+
+                UserRoles? parsedRole = null;
+
                 // Fetch filtered or all users
                 List<UserViewAdminModel> userLists;
 
                 if (!string.IsNullOrWhiteSpace(role))
                 {
-                    if (Enum.TryParse<UserRoles>(role.Trim(), true, out var parsedRole))
+                    if (Enum.TryParse<UserRoles>(role.Trim(), true, out var tempRole))
                     {
-                        userLists = _userService.GetUsersByRole(parsedRole)
+                        parsedRole = tempRole;
+                        userLists = _userService.GetUsersByRole(parsedRole.Value)
                             .Select(u => new UserViewAdminModel
                             {
                                 UserId = u.UserId,
@@ -419,9 +424,10 @@ namespace ASI.Basecode.WebApp.Controllers
                 {
                     UserStats = userStats,
                     TotalCourses = courseCount
+                    
                 };
 
-                var pdfBytes = _pdfService.GenerateDashboardSummaryReport(dashboardStats, userLists);
+                var pdfBytes = _pdfService.GenerateDashboardSummaryReport(dashboardStats, userLists, parsedRole);
 
                 string fileName = string.IsNullOrWhiteSpace(role)
                     ? "dashboard_summary_report.pdf"
