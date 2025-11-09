@@ -36,7 +36,9 @@ namespace ASI.Basecode.Data.Repositories
 
         public StudentCourse GetStudentCourse(string userId, string courseCode)
         {
-            return GetDbSet<StudentCourse>().FirstOrDefault(sc => sc.UserId == userId && sc.CourseCode == courseCode);
+            return GetDbSet<StudentCourse>()
+                .Include(sc => sc.Course)
+                .FirstOrDefault(sc => sc.UserId == userId && sc.CourseCode == courseCode);
         }
 
         public bool StudentCourseExists(string studentCourseId)
@@ -70,7 +72,5 @@ namespace ASI.Basecode.Data.Repositories
             GetDbSet<StudentCourse>().Remove(studentCourse);
             UnitOfWork.SaveChanges();
         }
-        
-
     }
 }

@@ -10,6 +10,8 @@ using System.Security.Claims;
 using ASI.Basecode.Resources.Constants;
 using Microsoft.AspNetCore.Authorization;
 using static ASI.Basecode.Resources.Constants.Enums;
+using Microsoft.AspNetCore.Http;
+using System.Collections.Generic;
 
 namespace ASI.Basecode.WebApp.Controllers
 {
@@ -45,6 +47,8 @@ namespace ASI.Basecode.WebApp.Controllers
         /// <response code="500">Internal server error</response>
         [HttpGet("list")]
         [Authorize(Roles = "Admin")]
+        [ProducesResponseType(typeof(IEnumerable<CourseListViewModel>), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public IActionResult GetAllCourses()
         {
             try
@@ -88,6 +92,10 @@ namespace ASI.Basecode.WebApp.Controllers
         /// <response code="500">Internal server error</response>
         [HttpGet("{courseId:int}")]
         [Authorize(Roles = "Admin")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public IActionResult GetCourse(int courseId)
         {
             if (courseId <= 0)
@@ -132,6 +140,10 @@ namespace ASI.Basecode.WebApp.Controllers
         /// <response code="500">Internal server error</response>
         [HttpGet("code/{courseCode}")]
         [Authorize(Roles = "Admin")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public IActionResult GetCourseByCourseCode(string courseCode)
         {
             if (string.IsNullOrWhiteSpace(courseCode))
@@ -175,6 +187,9 @@ namespace ASI.Basecode.WebApp.Controllers
         /// <response code="500">Internal server error</response>
         [HttpPost("add")]
         [Authorize(Roles = "Admin")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public IActionResult AddCourse([FromBody] CourseViewModel model)
         {
             if (!ModelState.IsValid)
@@ -212,6 +227,12 @@ namespace ASI.Basecode.WebApp.Controllers
         /// <response code="500">Internal server error</response>
         [HttpPut("update")]
         [Authorize(Roles = "Admin")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public IActionResult UpdateCourse([FromBody] CourseUpdateViewModel model)
         {
             if (!ModelState.IsValid)
@@ -271,6 +292,12 @@ namespace ASI.Basecode.WebApp.Controllers
         /// <response code="500">Internal server error</response>
         [HttpDelete("delete/{courseId:int}")]
         [Authorize(Roles = "Admin")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public IActionResult DeleteCourse(int courseId)
         {
             if (courseId <= 0)
@@ -327,6 +354,12 @@ namespace ASI.Basecode.WebApp.Controllers
         /// <response code="500">Internal server error</response>
         [HttpDelete("delete/code/{courseCode}")]
         [Authorize(Roles = "Admin")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public IActionResult DeleteCourseByCourseCode(string courseCode)
         {
             if (string.IsNullOrWhiteSpace(courseCode))
