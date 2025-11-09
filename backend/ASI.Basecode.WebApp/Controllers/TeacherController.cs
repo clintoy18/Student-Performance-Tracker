@@ -6,6 +6,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.AspNetCore.Authorization;
 using System;
 using System.Linq;
+using Microsoft.AspNetCore.Http;
 
 namespace ASI.Basecode.WebApp.Controllers
 {
@@ -62,6 +63,9 @@ namespace ASI.Basecode.WebApp.Controllers
         /// </remarks>
         [HttpGet("my-courses")]
         [Authorize(Roles = "Teacher")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public IActionResult GetMyCourses()
         {
             try
@@ -100,6 +104,9 @@ namespace ASI.Basecode.WebApp.Controllers
         /// </remarks>
         [HttpGet("dashboard-stats")]
         [Authorize(Roles = "Teacher")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public IActionResult GetDashboardStats()
         {
             try
@@ -145,6 +152,9 @@ namespace ASI.Basecode.WebApp.Controllers
         /// </remarks>
         [HttpGet("my-feedback")]
         [Authorize(Roles = "Teacher")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public IActionResult GetMyFeedback()
         {
             try

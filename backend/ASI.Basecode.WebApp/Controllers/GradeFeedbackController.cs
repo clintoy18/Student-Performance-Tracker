@@ -12,6 +12,7 @@ using ASI.Basecode.Resources.Constants;
 
 
 using System.Linq;
+using Microsoft.AspNetCore.Http;
 
 namespace ASI.Basecode.WebApp.Controllers
 {
@@ -54,6 +55,10 @@ namespace ASI.Basecode.WebApp.Controllers
         /// <response code="500">Internal server error</response>
         [HttpPost("create")]
         [Authorize(Roles = "Teacher")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public IActionResult CreateFeedback([FromBody] GradeFeedbackCreateRequestModel request)
         {
             if (!ModelState.IsValid)
@@ -135,6 +140,11 @@ namespace ASI.Basecode.WebApp.Controllers
         /// <response code="500">Internal server error</response>
         [HttpPut("update/{feedbackId}")]
         [Authorize(Roles = "Teacher")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public IActionResult UpdateFeedback(int feedbackId, [FromBody] GradeFeedbackUpdateRequestModel request)
         {
             if (!ModelState.IsValid)
@@ -180,6 +190,10 @@ namespace ASI.Basecode.WebApp.Controllers
         /// <response code="500">Internal server error</response>
         [HttpDelete("delete/{feedbackId}")]
         [Authorize(Roles = "Teacher")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public IActionResult DeleteFeedback(int feedbackId)
         {
             try
@@ -237,6 +251,10 @@ namespace ASI.Basecode.WebApp.Controllers
         /// <response code="500">Internal server error</response>
         [HttpGet("student/{studentUserId}/course/{courseCode}")]
         [Authorize(Roles = "Student,Teacher")]
+        [ProducesResponseType(typeof(GradeFeedbackViewModel), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public IActionResult GetFeedbackForStudent(string studentUserId, string courseCode)
         {
             try
@@ -273,6 +291,9 @@ namespace ASI.Basecode.WebApp.Controllers
         /// <response code="500">Internal server error</response>
         [HttpGet("all")]
         [Authorize(Roles = "Admin")]
+        [ProducesResponseType(typeof(IEnumerable<GradeFeedbackViewModel>), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public IActionResult GetAllFeedback()
         {
             try
@@ -314,6 +335,10 @@ namespace ASI.Basecode.WebApp.Controllers
         /// <response code="500">Internal server error</response>
         [HttpGet("{feedbackId}")]
         [Authorize(Roles = "Teacher,Admin")]
+        [ProducesResponseType(typeof(GradeFeedbackViewModel), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public IActionResult GetFeedbackById(int feedbackId)
         {
             try
@@ -353,6 +378,9 @@ namespace ASI.Basecode.WebApp.Controllers
         /// <response code="500">Internal server error</response>
         [HttpGet("exists/student/{studentUserId}/course/{courseCode}")]
         [Authorize(Roles = "Teacher")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public IActionResult CheckFeedbackExists(string studentUserId, string courseCode)
         {
             try

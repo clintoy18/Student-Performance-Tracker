@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Authorization;
 using System;
 using static ASI.Basecode.Resources.Constants.Enums;
 using ASI.Basecode.Resources.Constants;
+using Microsoft.AspNetCore.Http;
 
 namespace YourApp.WebApp.Controllers
 {
@@ -24,6 +25,8 @@ public class PdfController : ControllerBase
     }
 
     [HttpGet("test")]
+    [ProducesResponseType(typeof(FileContentResult), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(string), StatusCodes.Status500InternalServerError)]
     public IActionResult GenerateTestPdf()
     {
         try

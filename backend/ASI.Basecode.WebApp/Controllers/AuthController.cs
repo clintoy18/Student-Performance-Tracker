@@ -15,6 +15,7 @@ using System;
 using static ASI.Basecode.Resources.Constants.Enums;
 using Microsoft.Extensions.Logging;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 
 namespace ASI.Basecode.WebApp.Controllers
 {
@@ -52,6 +53,9 @@ namespace ASI.Basecode.WebApp.Controllers
         /// <response code="400">Invalid request format or missing fields.</response>
         /// <response code="401">Invalid UserId or password.</response>
         [HttpPost("login")]
+        [ProducesResponseType(typeof(LoginResponse), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         public IActionResult Login([FromBody] LoginRequest request)
         {
             if (!ModelState.IsValid)
@@ -107,6 +111,9 @@ namespace ASI.Basecode.WebApp.Controllers
         /// <response code="400">UserId already exists or invalid input data.</response>
         /// <response code="500">Internal server error during registration.</response>
         [HttpPost("register")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public IActionResult Register([FromBody] RegisterUserViewModel request)
         {
             if (!ModelState.IsValid)
@@ -155,6 +162,8 @@ namespace ASI.Basecode.WebApp.Controllers
         /// <response code="401">Missing, invalid, or expired token; or user not found.</response>
         [Authorize]
         [HttpGet("me")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         public IActionResult GetCurrentUser()
         {
             // Get token from Authorization header: "Bearer <token>"
@@ -187,8 +196,7 @@ namespace ASI.Basecode.WebApp.Controllers
                 return Unauthorized(new { message = "User not found." });
             }
 
-            // Return user info (safe subset)
-            return Ok(new
+            var userInfo = new
             {
                 user.UserId,
                 user.FirstName,
@@ -196,7 +204,10 @@ namespace ASI.Basecode.WebApp.Controllers
                 user.LastName,
                 user.Program,
                 Role = user.Role.ToString()
-            });
+            };
+
+            // Return user info (safe subset)
+            return Ok(userInfo);
         }
 
         /// <summary>
@@ -208,6 +219,10 @@ namespace ASI.Basecode.WebApp.Controllers
         /// </remarks>
         [Authorize]
         [HttpPut("me/update")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public IActionResult UpdateCurrentUser([FromBody] UpdateMyProfileModel request)
         {
             if (!ModelState.IsValid)

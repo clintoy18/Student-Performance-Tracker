@@ -11,6 +11,7 @@ using static ASI.Basecode.Resources.Constants.Enums;
 using System.Linq;
 using ASI.Basecode.Resources.Constants;
 using ASI.Basecode.Data.Interfaces;
+using Microsoft.AspNetCore.Http;
 namespace ASI.Basecode.WebApp.Controllers
 {
     [ApiController]
@@ -57,6 +58,10 @@ namespace ASI.Basecode.WebApp.Controllers
         /// <response code="500">Internal server error</response>
         [HttpPost("enroll")]
         [Authorize(Roles = "Admin")]
+        [ProducesResponseType(StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public IActionResult EnrollStudentAdmin([FromBody] StudentCourseCreateAdminRequest request)
         {
             if (!ModelState.IsValid)
@@ -116,6 +121,10 @@ namespace ASI.Basecode.WebApp.Controllers
         /// <returns>Returns 200 if successful, 400/404 on errors.</returns>
         [HttpPut("update")]
         [Authorize(Roles = "Teacher")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public IActionResult UpdateStudentGrade([FromBody] StudentGradeUpdateViewModel model)
         {
             if (!ModelState.IsValid)
@@ -173,6 +182,9 @@ namespace ASI.Basecode.WebApp.Controllers
         /// <response code="500">Internal server error</response>
         [HttpDelete("delete")]
         [Authorize(Roles = "Admin")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public IActionResult DeleteStudentCourse(string studentUserId, string courseCode)
         {
             try
@@ -202,6 +214,8 @@ namespace ASI.Basecode.WebApp.Controllers
         /// <response code="500">Internal server error</response>
         [HttpGet("student/{studentUserId}")]
         [Authorize(Roles = "Student,Teacher,Admin")]
+        [ProducesResponseType(typeof(IEnumerable<StudentCourseViewModel>), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public IActionResult GetCoursesByStudent(string studentUserId)
         {
             try
@@ -227,6 +241,8 @@ namespace ASI.Basecode.WebApp.Controllers
         /// <response code="500">Internal server error</response>
         [HttpGet("course/{courseCode}")]
         [Authorize(Roles = "Admin,Teacher")]
+        [ProducesResponseType(typeof(IEnumerable<StudentCourseViewModel>), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public IActionResult GetStudentsByCourse(string courseCode)
         {
             try
@@ -251,6 +267,8 @@ namespace ASI.Basecode.WebApp.Controllers
         /// <response code="500">Internal server error</response>
         [HttpGet("all")]
         [Authorize(Roles = "Admin")]
+        [ProducesResponseType(typeof(IEnumerable<StudentCourse>), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public IActionResult GetAllStudentCourses()
         {
             try
