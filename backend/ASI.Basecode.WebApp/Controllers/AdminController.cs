@@ -16,6 +16,7 @@ using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using static ASI.Basecode.Resources.Constants.Enums;
+using Microsoft.AspNetCore.Http;
 
 namespace ASI.Basecode.WebApp.Controllers
 {
@@ -56,6 +57,9 @@ namespace ASI.Basecode.WebApp.Controllers
         /// <response code="500">Internal server error</response>
         [HttpPost("user/create/")]
         [Authorize(Roles = "Admin")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public IActionResult CreateUser([FromBody] RegisterUserAdminModel request)
         {
             if (!ModelState.IsValid)
@@ -106,6 +110,10 @@ namespace ASI.Basecode.WebApp.Controllers
         /// <response code="500">Internal server error</response>
         [HttpPut("user/update/{userId}")]
         [Authorize(Roles = "Admin")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public IActionResult UpdateUser(string userId, [FromBody] RegisterUserAdminModel request)
         {
             if (!ModelState.IsValid)
@@ -160,6 +168,10 @@ namespace ASI.Basecode.WebApp.Controllers
         /// <response code="500">Internal server error</response>
         [HttpDelete("user/delete/{userId}")]
         [Authorize(Roles = "Admin")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public IActionResult DeleteUser(string userId)
         {
             if (string.IsNullOrWhiteSpace(userId))
@@ -198,6 +210,10 @@ namespace ASI.Basecode.WebApp.Controllers
         /// <response code="500">Internal server error</response>
         [HttpGet("user/{userId}")]
         [Authorize(Roles = "Admin")]
+        [ProducesResponseType(typeof(UserViewAdminModel), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public IActionResult GetUser(string userId)
         {
             if (string.IsNullOrWhiteSpace(userId))
@@ -251,6 +267,8 @@ namespace ASI.Basecode.WebApp.Controllers
 
         [HttpGet("getUsersByRole")]
         [AllowAnonymous]
+        [ProducesResponseType(typeof(IEnumerable<UserViewAdminModel>), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public IActionResult GetUsersByRole(UserRoles role)
         {
             try
@@ -277,6 +295,8 @@ namespace ASI.Basecode.WebApp.Controllers
         /// <response code="500">Internal server error</response>
         [HttpGet("user")]
         [Authorize(Roles = "Admin")]
+        [ProducesResponseType(typeof(IEnumerable<UserViewAdminModel>), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public IActionResult GetAllUsers()
         {
             try
@@ -303,6 +323,8 @@ namespace ASI.Basecode.WebApp.Controllers
         /// <response code="500">Internal server error</response>
         [HttpGet("user/recent")]
         [Authorize(Roles = "Admin")]
+        [ProducesResponseType(typeof(IEnumerable<UserViewAdminModel>), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public IActionResult GetRecentUsers([FromQuery] int count = 5)
         {
             try
@@ -328,6 +350,8 @@ namespace ASI.Basecode.WebApp.Controllers
         /// <response code="500">Internal server error</response>
         [HttpGet("dashboard-stats")]
         [Authorize(Roles = "Admin")]
+        [ProducesResponseType(typeof(DashboardStatsViewModel), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public IActionResult wGetDashboardStats()
         {
             try
@@ -361,6 +385,9 @@ namespace ASI.Basecode.WebApp.Controllers
         /// <returns>Success or error</returns>
         [HttpPut("course/assign-teacher/{courseId}")]
         [Authorize(Roles = "Admin")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public IActionResult AssignTeacherToCourse(int courseId, [FromQuery] string teacherId)
         {
             if (string.IsNullOrWhiteSpace(teacherId))
@@ -396,6 +423,9 @@ namespace ASI.Basecode.WebApp.Controllers
         [HttpGet("pdf/dashboard-summary")]
         //[Authorize(Roles = "Admin")]
         [AllowAnonymous]
+        [ProducesResponseType(typeof(FileContentResult), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public IActionResult GenerateDashboardSummaryPdf(string? role = null)
         {
             try
