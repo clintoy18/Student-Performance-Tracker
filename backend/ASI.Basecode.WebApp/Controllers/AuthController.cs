@@ -111,25 +111,24 @@ namespace ASI.Basecode.WebApp.Controllers
         {
             if (!ModelState.IsValid)
             {
-                return BadRequest(new { message = "Invalid request format.", errors = ModelState.Values.SelectMany(v => v.Errors) });
+                return BadRequest(new
+                {
+                    message = "Invalid request format.",
+                    errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage)
+                });
             }
 
             try
             {
-                var userViewModel = new RegisterUserViewModel
+                // Call the service — this returns the generated UserId
+                string generatedUserId = _userService.RegisterUser(request);
+
+                // Return the generated ID in the response
+                return Ok(new
                 {
-                    UserId = request.UserId,
-                    FirstName = request.FirstName,
-                    MiddleName = request.MiddleName,
-                    LastName = request.LastName,
-                    Password = request.Password,
-                    Program = request.Program
-                    // Add Role if needed, e.g., Role = UserRoles.User
-                };
-
-                _userService.RegisterUser(userViewModel);
-
-                return Ok(new { message = "User registered successfully." });
+                    userId = generatedUserId,       // <--- this is the generated ID
+                    message = "User registered successfully."
+                });
             }
             catch (InvalidDataException ex)
             {
@@ -140,6 +139,7 @@ namespace ASI.Basecode.WebApp.Controllers
                 return StatusCode(500, new { message = "An internal server error has occurred." });
             }
         }
+
 
         /// <summary>
         /// Retrieves the profile of the currently authenticated user based on the provided JWT token.
