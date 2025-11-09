@@ -37,6 +37,8 @@ namespace ASI.Basecode.Data.Repositories
         {
             return GetDbSet<GradeFeedback>()
                 .Include(gf => gf.StudentCourse)
+                .Include(gf => gf.StudentCourse.Course)
+                .Include(gf => gf.User)
                 .FirstOrDefault(gf => gf.StudentCourse != null &&
                                     gf.StudentCourse.UserId == studentId &&
                                     gf.StudentCourse.CourseCode == courseCode);   

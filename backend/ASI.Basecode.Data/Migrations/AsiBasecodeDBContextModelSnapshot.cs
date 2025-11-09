@@ -64,12 +64,15 @@ namespace ASI.Basecode.Data.Migrations
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Feedback")
-                        .IsRequired()
                         .HasMaxLength(1000)
                         .HasColumnType("TEXT");
 
                     b.Property<string>("StudentCourseId")
                         .HasMaxLength(50)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("StudentFeedback")
+                        .HasMaxLength(1000)
                         .HasColumnType("TEXT");
 
                     b.Property<DateTime>("UpdatedTime")

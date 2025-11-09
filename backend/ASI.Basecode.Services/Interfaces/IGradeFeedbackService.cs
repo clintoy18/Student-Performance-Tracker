@@ -8,7 +8,8 @@ namespace ASI.Basecode.Services.Interfaces
 {
     public interface IGradeFeedbackService
     {
-        public void CreateGradeFeedback(GradeFeedbackCreateModel model);
+        public void CreateGradeFeedbackForStudent(GradeFeedbackCreateForStudentModel model);
+        public void CreateGradeFeedbackForTeacher(GradeFeedbackCreateForTeacherModel model);
 
         public void UpdateGradeFeedback(int feedbackId, string feedback);
 

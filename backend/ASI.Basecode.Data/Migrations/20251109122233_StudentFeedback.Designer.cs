@@ -11,8 +11,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ASI.Basecode.Data.Migrations
 {
     [DbContext(typeof(AsiBasecodeDBContext))]
-    [Migration("20251011040214_Init")]
-    partial class Init
+    [Migration("20251109122233_StudentFeedback")]
+    partial class StudentFeedback
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -67,12 +67,18 @@ namespace ASI.Basecode.Data.Migrations
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Feedback")
-                        .IsRequired()
                         .HasMaxLength(1000)
                         .HasColumnType("TEXT");
 
                     b.Property<string>("StudentCourseId")
                         .HasMaxLength(50)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("StudentFeedback")
+                        .HasMaxLength(1000)
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("UpdatedTime")
                         .HasColumnType("TEXT");
 
                     b.Property<string>("UserId")
@@ -100,6 +106,9 @@ namespace ASI.Basecode.Data.Migrations
                         .HasColumnType("TEXT");
 
                     b.Property<DateTime>("CreatedTime")
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal?>("Grade")
                         .HasColumnType("TEXT");
 
                     b.Property<string>("StudentCourseId")
@@ -191,12 +200,14 @@ namespace ASI.Basecode.Data.Migrations
                     b.HasOne("ASI.Basecode.Data.Models.StudentCourse", "StudentCourse")
                         .WithMany()
                         .HasForeignKey("StudentCourseId")
-                        .HasPrincipalKey("StudentCourseId");
+                        .HasPrincipalKey("StudentCourseId")
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.HasOne("ASI.Basecode.Data.Models.User", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
-                        .HasPrincipalKey("UserId");
+                        .HasPrincipalKey("UserId")
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.Navigation("StudentCourse");
 

@@ -40,6 +40,86 @@ namespace ASI.Basecode.WebApp.Controllers
             _logger = logger;
         }
 
+        
+        /// <summary>
+        /// Creates grade feedback for a student course (student route)
+        /// </summary>
+        /// <remarks>
+        /// **Authorization:** Student
+        /// </remarks>
+        /// <param name="request">Feedback creation data</param>
+        /// <returns>Success message or error details</returns>
+        /// <response code="200">Feedback created successfully</response>
+        /// <response code="400">Invalid request data</response>
+        /// <response code="401">Unauthorized - only teachers can create feedback</response>
+        /// <response code="403">Forbidden - insufficient permissions</response>
+        /// <response code="500">Internal server error</response>
+        [HttpPost("student/create")]
+        [Authorize(Roles = "Student")]
+        public IActionResult CreateStudentFeedback([FromBody] GradeFeedbackForStudentCreateRequestModel request)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(new { message = "Invalid request format.", errors = ModelState.Values.SelectMany(v => v.Errors) });
+            }
+
+            try
+            {
+                // Get current user from JWT token
+                var currentUserId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (string.IsNullOrEmpty(currentUserId))
+                {
+                    return Unauthorized(new { message = "Authentication required." });
+                }
+
+                // Validate current user is Student
+                var currentUserRole = _rbacService.GetUserRole(currentUserId);
+                if (currentUserRole != UserRoles.Student)
+                {
+                    return Unauthorized(new { message = "Only students can access this route." });
+                }
+
+                // Validate if StudentCourseId really is a student
+                var studentRole = _rbacService.GetUserRole(request.CourseStudentUserId);
+                if (studentRole != UserRoles.Student)
+                {
+                    return BadRequest(new { message = "Course student userId must be a userId of a student." });
+                }
+
+                // Validate if Course exists by courseCode
+                var courseExists = _courseService.CourseExists(request.CourseCode);
+                if (!courseExists)
+                {
+                    return BadRequest(new { message = "Coursecode does not link to any existing courses." });
+                }
+
+                var newFeedback = new GradeFeedbackCreateForStudentModel
+                {
+                    StudentFeedback = request.StudentFeedback,
+                    StudentUserId = request.CourseStudentUserId,
+                    CourseCode = request.CourseCode
+                };
+
+                _gradeFeedbackService.CreateGradeFeedbackForStudent(newFeedback);
+
+                return Ok(new { message = "Grade feedback created successfully." });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Internal server error occurred while creating grade feedback.");
+                return StatusCode(500, new { message = "An internal server error has occurred." });
+            }
+        }
+
+
         /// <summary>
         /// Creates grade feedback for a student course
         /// </summary>
@@ -54,11 +134,8 @@ namespace ASI.Basecode.WebApp.Controllers
         /// <response code="403">Forbidden - insufficient permissions</response>
         /// <response code="500">Internal server error</response>
         [HttpPost("create")]
+        [ProducesResponseType(typeof(GradeFeedbackCreateForTeacherModel), StatusCodes.Status200OK)]
         [Authorize(Roles = "Teacher")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public IActionResult CreateFeedback([FromBody] GradeFeedbackCreateRequestModel request)
         {
             if (!ModelState.IsValid)
@@ -96,7 +173,7 @@ namespace ASI.Basecode.WebApp.Controllers
                     return BadRequest(new { message = "Coursecode does not link to any existing courses." });
                 }
 
-                var newFeedback = new GradeFeedbackCreateModel
+                var newFeedback = new GradeFeedbackCreateForTeacherModel
                 {
                     Feedback = request.Feedback,
                     TeacherUserId = currentUserId,
@@ -104,7 +181,7 @@ namespace ASI.Basecode.WebApp.Controllers
                     CourseCode = request.CourseCode
                 };
 
-                _gradeFeedbackService.CreateGradeFeedback(newFeedback);
+                _gradeFeedbackService.CreateGradeFeedbackForTeacher(newFeedback);
 
                 return Ok(new { message = "Grade feedback created successfully." });
             }

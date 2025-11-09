@@ -32,8 +32,18 @@ namespace ASI.Basecode.WebApp
                     .ForMember(dest => dest.Id, opt => opt.Ignore())           // Don't overwrite primary key
                     .ForMember(dest => dest.CreatedAt, opt => opt.Ignore())    // Keep original creation time
                     .ForMember(dest => dest.UserId, opt => opt.MapFrom(src => src.UserId)); // Map assigned teacher
-                CreateMap<GradeFeedback, GradeFeedbackViewModel>();
+                CreateMap<GradeFeedback, GradeFeedbackViewModel>()
+                    .ForMember(dest => dest.TeacherUserId, opt => opt.MapFrom(src => src.UserId))
+                    .ForMember(dest => dest.CourseCode, opt => opt.MapFrom(src => src.StudentCourse.CourseCode))
+                    .ForMember(dest => dest.CourseName, opt => opt.MapFrom(src => src.StudentCourse.Course.CourseName))
+                    .ForMember(dest => dest.TeacherName, opt => opt.MapFrom(src =>
+                        $"{src.User.FirstName} {(string.IsNullOrEmpty(src.User.MiddleName) ? "" : src.User.MiddleName + " ")}{src.User.LastName}"));
                 CreateMap<CourseViewModel, Course>();
+                CreateMap<GradeFeedbackForTeacherDto, GradeFeedback>()
+                    .ForMember(dest => dest.Id, opt => opt.Ignore())
+                    .ForMember(dest => dest.CreatedTime, opt => opt.Ignore())
+                    .ForMember(dest => dest.UpdatedTime, opt => opt.Ignore())
+                    .ForMember(dest => dest.StudentFeedback, opt => opt.Ignore());
             }
         }
     }

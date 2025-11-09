@@ -146,7 +146,9 @@ namespace ASI.Basecode.Data
             modelBuilder.Entity<GradeFeedback>(entity =>
             {
                 entity.Property(e => e.Feedback)
-                    .IsRequired()
+                    .HasMaxLength(1000);
+
+                entity.Property(e => e.StudentFeedback)
                     .HasMaxLength(1000);
 
                 entity.Property(e => e.CreatedTime)
