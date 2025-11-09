@@ -70,5 +70,7 @@ namespace ASI.Basecode.Data.Repositories
             GetDbSet<StudentCourse>().Remove(studentCourse);
             UnitOfWork.SaveChanges();
         }
+        
+
     }
 }

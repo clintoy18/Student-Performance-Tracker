@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using static ASI.Basecode.Resources.Constants.Enums;
 
 namespace ASI.Basecode.Data.Repositories
 {
@@ -59,5 +60,11 @@ namespace ASI.Basecode.Data.Repositories
                 .OrderByDescending(u => u.CreatedTime)
                 .Take(count);
         }
+        public IQueryable<User> GetUsersByRole(UserRoles role)
+        {
+            return GetDbSet<User>()
+                .Where(u => u.Role == role);
+        }
+
     }
 }

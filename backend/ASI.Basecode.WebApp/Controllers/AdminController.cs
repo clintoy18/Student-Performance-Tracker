@@ -228,6 +228,33 @@ namespace ASI.Basecode.WebApp.Controllers
 
 
         /// <summary>
+        /// Retrieves all users with respective roles
+        /// </summary>
+        /// <remarks>
+        /// **Authorization:** Admin
+        /// </remarks>
+        /// <returns>All user  with respective roles</returns>
+        /// <response code="200">Users retrieved successfully</response>
+        /// <response code="500">Internal server error</response>
+
+        [HttpGet("getUsersByRole")]
+        [AllowAnonymous]
+        public IActionResult GetUsersByRole(UserRoles role)
+        {
+            try
+            {
+                var users = _userService.GetUsersByRole(role);
+                return Ok(users);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "An internal server error has occurred: ");
+                return StatusCode(500, new { message = "An internal server error has occurred.", error = ex.Message });
+            }
+
+        }
+
+        /// <summary>
         /// Retrieves all users
         /// </summary>
         /// <returns>All user data</returns>
@@ -336,15 +363,57 @@ namespace ASI.Basecode.WebApp.Controllers
             }
         }
 
+        //Generate pdf for dashboard summary frontend buttons is missing please provide for it
+        //(choose :
+        //1.all users : null
+        //2.students = students
+        //3.teachers = teachers
+        //4.admin = admin)
         [HttpGet("pdf/dashboard-summary")]
-        [AllowAnonymous]
-        public IActionResult GenerateDashboardSummaryPdf()
+        [Authorize(Roles = "Admin")]
+        public IActionResult GenerateDashboardSummaryPdf(string? role = null)
         {
             try
             {
                 var userStats = _userService.GetUserStatistics();
                 var courseCount = _courseService.GetCourseCount();
-                var userLists = _userService.GetAllUsers();
+
+                // Fetch filtered or all users
+                List<UserViewAdminModel> userLists;
+
+                if (!string.IsNullOrWhiteSpace(role))
+                {
+                    if (Enum.TryParse<UserRoles>(role.Trim(), true, out var parsedRole))
+                    {
+                        userLists = _userService.GetUsersByRole(parsedRole)
+                            .Select(u => new UserViewAdminModel
+                            {
+                                UserId = u.UserId,
+                                FirstName = u.FirstName,
+                                LastName = u.LastName,
+                                Program = u.Program,
+                                Role = u.Role
+                            })
+                            .ToList();
+                    }
+                    else
+                    {
+                        return BadRequest(new { message = "Invalid role. Use Student, Teacher, or Admin." });
+                    }
+                }
+                else
+                {
+                    userLists = _userService.GetAllUsers()
+                        .Select(u => new UserViewAdminModel
+                        {
+                            UserId = u.UserId,
+                            FirstName = u.FirstName,
+                            LastName = u.LastName,
+                            Program = u.Program,
+                            Role = u.Role
+                        })
+                        .ToList();
+                }
 
                 var dashboardStats = new DashboardStatsViewModel
                 {
@@ -353,15 +422,23 @@ namespace ASI.Basecode.WebApp.Controllers
                 };
 
                 var pdfBytes = _pdfService.GenerateDashboardSummaryReport(dashboardStats, userLists);
-                return File(pdfBytes, "application/pdf", "dashboard_summary_report.pdf");
+
+                string fileName = string.IsNullOrWhiteSpace(role)
+                    ? "dashboard_summary_report.pdf"
+                    : $"dashboard_summary_{role.Trim().ToLower()}_report.pdf";
+
+                return File(pdfBytes, "application/pdf", fileName);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error generating dashboard summary PDF");
-                return StatusCode(500, new { message = "Error generating dashboard summary PDF", error = ex.Message });
+                return StatusCode(500, new
+                {
+                    message = "Error generating dashboard summary PDF",
+                    error = ex.Message
+                });
             }
         }
-
 
     }
 
