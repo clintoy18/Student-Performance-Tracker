@@ -30,7 +30,28 @@ namespace ASI.Basecode.Services.Services
             _repository = repository;
         }
 
-        public void CreateGradeFeedback(GradeFeedbackCreateModel model)
+        public void CreateGradeFeedbackForStudent(GradeFeedbackCreateForStudentModel model)
+        {
+            var studentCourse = _studentCourseRepository.GetStudentCourse(model.StudentUserId, model.CourseCode);
+            if (studentCourse == null)
+            {
+                throw new ArgumentNullException("Student does not have a related course to be feedbacked on.");
+            }
+
+            var currentGradeFeedback = _repository.GetGradeFeedback(studentCourse.Course.UserId, studentCourse.CourseCode);
+
+            if (currentGradeFeedback == null)
+            {
+                throw new ArgumentNullException("Student does not yet have a grade feedback.");
+            }
+
+            currentGradeFeedback.StudentFeedback = model.StudentFeedback;
+            currentGradeFeedback.UpdatedTime = DateTime.UtcNow;
+
+            _repository.UpdateGradeFeedback(currentGradeFeedback);
+        }
+
+        public void CreateGradeFeedbackForTeacher(GradeFeedbackCreateForTeacherModel model)
         {
             var studentCourse = _studentCourseRepository.GetStudentCourse(model.CourseStudentUserId, model.CourseCode);
             if (studentCourse == null)
@@ -44,14 +65,15 @@ namespace ASI.Basecode.Services.Services
                 throw new InvalidOperationException("Cannot create feedback for a student without an assigned grade. Please assign a grade first.");
             }
 
-            var gradeFeedback = new GradeFeedback
+            var dto = new GradeFeedbackForTeacherDto
             {
                 Feedback = model.Feedback,
                 StudentCourseId = studentCourse.StudentCourseId,
-                UserId = model.TeacherUserId,
-                StudentCourse = studentCourse
+                UserId = model.TeacherUserId
             };
-            _repository.AddGradeFeedback(gradeFeedback);
+
+            var gradeFeedbackEntity = _mapper.Map<GradeFeedback>(dto);
+            _repository.AddGradeFeedback(gradeFeedbackEntity);
         }
 
         public void UpdateGradeFeedback(int feedbackId, string feedback)
