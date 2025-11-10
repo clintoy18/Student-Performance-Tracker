@@ -13,7 +13,7 @@ const RegisterForm = ({
   error?: string
 }) => {
   const [formData, setFormData] = useState<IRegisterRequest>({
-    userId: '',
+    // userId: '',
     firstName: '',
     middleName: '',
     lastName: '',
@@ -42,7 +42,7 @@ const RegisterForm = ({
   const validateForm = (): boolean => {
     const errors: Partial<IRegisterRequest> = {};
     
-    if (!formData.userId.trim()) errors.userId = 'Required';
+    // if (!formData.userId.trim()) errors.userId = 'Required';
     if (!formData.firstName.trim()) errors.firstName = 'Required';
     if (!formData.lastName.trim()) errors.lastName = 'Required';
     if (!formData.program.trim()) errors.program = 'Required';
@@ -70,7 +70,7 @@ const RegisterForm = ({
 
   return (
     <form onSubmit={handleSubmit} className="">
-      <TextInputField
+      {/* <TextInputField
         id="userId"
         label="User ID"
         value={formData.userId}
@@ -78,7 +78,7 @@ const RegisterForm = ({
         placeholder="Choose a user ID"
         error={formErrors.userId}
         required
-      />
+      /> */}
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <TextInputField

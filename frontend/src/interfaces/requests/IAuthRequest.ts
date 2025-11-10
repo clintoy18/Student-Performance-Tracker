@@ -4,7 +4,7 @@ export interface ILoginRequest {
 }
 
 export interface IRegisterRequest {
-    userId: string;
+    userId?: string;
     firstName: string;
     middleName: string;
     lastName: string;

@@ -59,7 +59,16 @@ namespace ASI.Basecode.Services.Services
             {
                 var digit4 = $"{rand.Next(0, 9999):D4}";
                 var digit3 = $"{rand.Next(0, 999):D3}";
-                id = string.IsNullOrEmpty(prefix) ? $"{year}-{digit4}-{digit3}" : $"{prefix}-{digit4}-{digit3}";
+
+                if(string.IsNullOrEmpty(prefix))
+                {
+                    id = $"{year}-{digit4}-{digit3}";
+                }
+                else
+                {
+                    id = $"{prefix}-{year}-{digit4}-{digit3}";
+                }
+
 
             } while (_repository.IsIDExists<T>(id, idPropertyName)); 
 

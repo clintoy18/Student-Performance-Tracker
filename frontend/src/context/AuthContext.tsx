@@ -49,17 +49,22 @@ export const AuthProvider = ({ children }) => {
 
   const handleRegister = async (credentials: IRegisterRequest) => {
     try {
-      await registerStudent(credentials)
-      const loginCredentials: ILoginRequest = {
-        userId: credentials.userId,
-        password: credentials.password
+      // handles registration and returns generated userId
+      const data = await registerStudent(credentials);
+
+      const { userId } = data;
+      return userId;
+
+    } catch (error: any) {
+      console.error("Failed to register user:", error);
+      // If backend returned an error message
+      if (error.response?.data?.message) {
+        throw new Error(error.response.data.message);
       }
-      await handleLogin(loginCredentials)
-    } catch (error) {
-      console.error("Failed to register user: ", error)
-      throw error;
+      throw new Error("Registration failed");
     }
-  }
+  };
+
 
   const handleLogout = () => {
     logoutUser();

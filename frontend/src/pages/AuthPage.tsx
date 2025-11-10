@@ -33,15 +33,23 @@ const AuthPage: React.FC = () => {
   const handleRegisterSubmit = async (credentials: IRegisterRequest) => {
     setIsRegistering(true);
     setRegisterError(null);
+
     try {
-      await handleRegister(credentials);
-      navigate("/login");
-    } catch (err) {
-      setRegisterError("Registration failed");
+      const generatedUserId = await handleRegister(credentials);
+
+      // Show the generated userId to the user
+      alert(`Registration successful! Your User ID is: ${generatedUserId}.
+      Please keep this ID for logging in.`);
+      setAuthAction("signIn");
+
+    } catch (err: any) {
+      console.error(err);
+      setRegisterError(err?.message || "Registration failed");
     } finally {
       setIsRegistering(false);
     }
   };
+
 
   return (
     <div className="min-h-screen bg-white flex items-center justify-center p-4">
