@@ -3,6 +3,7 @@ using System;
 public class GradeFeedbackViewModel
 {
     public int Id { get; set; }
+    public string StudentFeedback { get; set; }
     public string Feedback { get; set; }
     public string StudentCourseId { get; set; }
     public DateTime CreatedTime { get; set; } = DateTime.UtcNow;

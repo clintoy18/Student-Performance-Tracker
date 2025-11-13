@@ -4,11 +4,13 @@ using ASI.Basecode.Services.Interfaces;
 using ASI.Basecode.Services.Manager;
 using ASI.Basecode.Services.ServiceModels;
 using AutoMapper;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Data.Entity;
 using System.IO;
 using System.Linq;
+using System.Text.Json;
 using System.Threading.Tasks;
 using static ASI.Basecode.Resources.Constants.Enums;
 
@@ -20,14 +22,17 @@ namespace ASI.Basecode.Services.Services
         private readonly IStudentCourseRepository _studentCourseRepository;
         private readonly IMapper _mapper;
 
+        private readonly ILogger _logger;
         public GradeFeedbackService(
             IGradeFeedbackRepository repository,
             IStudentCourseRepository studentCourseRepository,
-            IMapper mapper)
+            IMapper mapper,
+            ILogger<GradeFeedbackService> logger)
         {
             _mapper = mapper;
             _studentCourseRepository = studentCourseRepository;
             _repository = repository;
+            _logger = logger;
         }
 
         public void CreateGradeFeedbackForStudent(GradeFeedbackCreateForStudentModel model)
@@ -38,16 +43,22 @@ namespace ASI.Basecode.Services.Services
                 throw new ArgumentNullException("Student does not have a related course to be feedbacked on.");
             }
 
-            var currentGradeFeedback = _repository.GetGradeFeedback(studentCourse.Course.UserId, studentCourse.CourseCode);
+            
+
+            var currentGradeFeedback = _repository.GetGradeFeedbackByStudentId(model.StudentUserId, model.CourseCode);
 
             if (currentGradeFeedback == null)
             {
                 throw new ArgumentNullException("Student does not yet have a grade feedback.");
             }
 
+
             currentGradeFeedback.StudentFeedback = model.StudentFeedback;
             currentGradeFeedback.UpdatedTime = DateTime.UtcNow;
 
+            EventId Default = new(0, "General");
+                _logger.LogInformation(Default, "Current GradeFeedback: {FeedbackJson}",
+    JsonSerializer.Serialize(studentCourse));
             _repository.UpdateGradeFeedback(currentGradeFeedback);
         }
 
@@ -107,6 +118,9 @@ namespace ASI.Basecode.Services.Services
             }
 
             var gradeFeedback = _repository.GetGradeFeedbackByStudentId(studentUserId, courseCode);
+            EventId Default = new(0, "General");
+                _logger.LogInformation(Default, "Feedback received: {FeedbackJson}",
+    JsonSerializer.Serialize(gradeFeedback));
             return _mapper.Map<GradeFeedbackViewModel>(gradeFeedback);
         }
 
@@ -152,6 +166,17 @@ namespace ASI.Basecode.Services.Services
             return gradeFeedback != null;
         }
 
+        public bool CheckTeacherFeedbackExists(string studentUserId, string courseCode)
+        {
+            var gradeFeedback = _repository.GetGradeFeedbackByStudentId(studentUserId, courseCode);
+            return gradeFeedback.Feedback != null;
+        }
+
+        public bool CheckStudentFeedbackExists(string studentUserId, string courseCode)
+        {
+            var gradeFeedback = _repository.GetGradeFeedbackByStudentId(studentUserId, courseCode);
+            return gradeFeedback.StudentFeedback != null;
+        }
     }
 
 }

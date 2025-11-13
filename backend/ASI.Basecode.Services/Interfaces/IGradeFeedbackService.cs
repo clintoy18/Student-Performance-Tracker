@@ -21,5 +21,7 @@ namespace ASI.Basecode.Services.Interfaces
         public GradeFeedbackViewModel GetGradeFeedbackById(int id);
 
         public bool CheckGradeFeedbackExists(string studentUserId, string courseCode);
+        public bool CheckTeacherFeedbackExists(string studentUserId, string courseCode);
+        public bool CheckStudentFeedbackExists(string studentUserId, string courseCode);
     }
 }

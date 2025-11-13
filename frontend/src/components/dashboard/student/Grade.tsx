@@ -1,6 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { getCoursesByStudent } from "@services/StudentCourseService";
 import { MessageSquare, Send } from "lucide-react";
+import { createStudentFeedback } from "@services/StudentService";
+import type { IStudentFeedbackRequest } from "@interfaces/requests/IStudentFeedbackRequest";
+import { checkStudentFeedbackExists } from "@services/StudentService";
+import { checkFeedbackExists } from "@services/GradeFeedbackService";
 
 // Feedback Modal Component
 const FeedbackModal = ({ 
@@ -145,7 +149,15 @@ export const Grade = ({ studentUserId }: { studentUserId?: string }) => {
     setLoading(true);
     try {
       const data = await getCoursesByStudent(studentUserId);
-      setGrades(data);
+      const feedbackedData = await Promise.all(
+        data.map(async (grade) => ({
+          ...grade,
+          hasStudentFeedback: await checkStudentFeedbackExists(studentUserId, grade.courseCode),
+          hasTeacherFeedback: await checkFeedbackExists(studentUserId, grade.courseCode),
+        }))
+      )
+
+      setGrades(feedbackedData);
     } catch (err) {
       console.error("Failed to load grades:", err);
     } finally {
@@ -179,8 +191,15 @@ export const Grade = ({ studentUserId }: { studentUserId?: string }) => {
       studentUserId: studentUserId
     });
 
-    // Simulating API call - REMOVE THIS and use actual API call
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    // // Simulating API call - REMOVE THIS and use actual API call
+    // await new Promise(resolve => setTimeout(resolve, 1000));
+
+    const studentFeedback: IStudentFeedbackRequest = {
+      studentFeedback: feedbackText,
+      courseStudentUserId: studentUserId,
+      courseCode: selectedCourse.courseCode 
+    }
+    await createStudentFeedback(studentFeedback)
 
     // Refresh grades after submission
     await fetchGrades();
@@ -197,8 +216,10 @@ export const Grade = ({ studentUserId }: { studentUserId?: string }) => {
           <div className="space-y-2">
             {grades.map((grade: any) => {
               // Check if student has provided feedback
-              const hasFeedback = grade.hasFeedback || grade.feedbackSubmitted || grade.feedback;
-              const showGrade = hasFeedback && (grade.grade !== null && grade.grade !== undefined);
+              const hasStudentFeedback = grade.hasStudentFeedback || false
+              const hasTeacherFeedback = grade.hasTeacherFeedback || false
+              console.log(grade.courseCode, grade.hasStudentFeedback)
+              const showGrade = hasStudentFeedback && (grade.grade !== null && grade.grade !== undefined);
 
               return (
                 <div
@@ -210,17 +231,22 @@ export const Grade = ({ studentUserId }: { studentUserId?: string }) => {
                       <h3 className="font-medium text-sm text-gray-900">
                         {grade.courseCode ?? "Course code not available"}
                       </h3>
-                      {!hasFeedback && (
+                      {!hasTeacherFeedback ? (
+                        <p className="text-xs text-gray-500 mt-1">
+                        There is no grade yet for this course
+                      </p>
+                      ) : !hasStudentFeedback ? (
                         <p className="text-xs text-gray-500 mt-1">
                           Submit feedback to view your grade
                         </p>
-                      )}
+                      ) : ( <></> )}
                     </div>
                     <div className="flex items-center gap-2">
-                      {!hasFeedback && (
+                      {!hasStudentFeedback && (
                         <button
                           onClick={() => handleOpenFeedbackModal(grade)}
-                          className="flex items-center gap-1 text-blue-600 border border-blue-300 px-2 py-1 rounded text-xs hover:bg-blue-50 transition-colors"
+                          className={`${!hasTeacherFeedback && 'btn-disabled'} flex items-center gap-1 text-blue-600 border border-blue-300 px-2 py-1 rounded text-xs hover:bg-blue-50 transition-colors`}
+                          disabled={!hasTeacherFeedback}
                           title="Submit Feedback"
                         >
                           <MessageSquare size={12} />
@@ -241,7 +267,7 @@ export const Grade = ({ studentUserId }: { studentUserId?: string }) => {
                         >
                           {grade.grade}
                         </span>
-                      ) : hasFeedback ? (
+                      ) : hasStudentFeedback ? (
                         <span className="text-xs font-medium px-2 py-1 rounded-sm border text-gray-500 border-gray-200 bg-gray-50">
                           Pending
                         </span>

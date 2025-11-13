@@ -36,6 +36,7 @@ namespace ASI.Basecode.WebApp
                     .ForMember(dest => dest.TeacherUserId, opt => opt.MapFrom(src => src.UserId))
                     .ForMember(dest => dest.CourseCode, opt => opt.MapFrom(src => src.StudentCourse.CourseCode))
                     .ForMember(dest => dest.CourseName, opt => opt.MapFrom(src => src.StudentCourse.Course.CourseName))
+                    .ForMember(dest => dest.StudentFeedback, opt => opt.MapFrom(src => src.StudentFeedback))
                     .ForMember(dest => dest.TeacherName, opt => opt.MapFrom(src =>
                         $"{src.User.FirstName} {(string.IsNullOrEmpty(src.User.MiddleName) ? "" : src.User.MiddleName + " ")}{src.User.LastName}"));
                 CreateMap<CourseViewModel, Course>();

@@ -16,7 +16,7 @@ export const getCourseDetails = async (courseCode: string): Promise<ICourse> => 
 };
 
 // Get all courses a student is enrolled in
-export const getCoursesByStudent = async (studentUserId: string): Promise<IStudentCourseListRequest[]> => {
+export const getCoursesByStudent = async (studentUserId: string) => {
   const response = await studentCourse.get(`/student/${studentUserId}`);
   return response.data;
 };

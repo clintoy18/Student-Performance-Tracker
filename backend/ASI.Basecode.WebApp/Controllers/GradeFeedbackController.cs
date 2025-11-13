@@ -13,6 +13,7 @@ using ASI.Basecode.Resources.Constants;
 
 using System.Linq;
 using Microsoft.AspNetCore.Http;
+using System.Text.Json;
 
 namespace ASI.Basecode.WebApp.Controllers
 {
@@ -40,7 +41,7 @@ namespace ASI.Basecode.WebApp.Controllers
             _logger = logger;
         }
 
-        
+
         /// <summary>
         /// Creates grade feedback for a student course (student route)
         /// </summary>
@@ -56,6 +57,7 @@ namespace ASI.Basecode.WebApp.Controllers
         /// <response code="500">Internal server error</response>
         [HttpPost("student/create")]
         [Authorize(Roles = "Student")]
+        // [AllowAnonymous]
         public IActionResult CreateStudentFeedback([FromBody] GradeFeedbackForStudentCreateRequestModel request)
         {
             if (!ModelState.IsValid)
@@ -65,19 +67,6 @@ namespace ASI.Basecode.WebApp.Controllers
 
             try
             {
-                // Get current user from JWT token
-                var currentUserId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-                if (string.IsNullOrEmpty(currentUserId))
-                {
-                    return Unauthorized(new { message = "Authentication required." });
-                }
-
-                // Validate current user is Student
-                var currentUserRole = _rbacService.GetUserRole(currentUserId);
-                if (currentUserRole != UserRoles.Student)
-                {
-                    return Unauthorized(new { message = "Only students can access this route." });
-                }
 
                 // Validate if StudentCourseId really is a student
                 var studentRole = _rbacService.GetUserRole(request.CourseStudentUserId);
@@ -328,6 +317,7 @@ namespace ASI.Basecode.WebApp.Controllers
         /// <response code="500">Internal server error</response>
         [HttpGet("student/{studentUserId}/course/{courseCode}")]
         [Authorize(Roles = "Student,Teacher")]
+        // [AllowAnonymous]
         [ProducesResponseType(typeof(GradeFeedbackViewModel), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -337,12 +327,11 @@ namespace ASI.Basecode.WebApp.Controllers
             try
             {
                 var currentUserId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-                if (string.IsNullOrEmpty(currentUserId))
-                {
-                    return Unauthorized(new { message = "Authentication required." });
-                }
 
                 var feedback = _gradeFeedbackService.GetGradeFeedbackForStudent(studentUserId, courseCode);
+    //             EventId Default = new(0, "General");
+    //             _logger.LogInformation(Default, "Feedback received: {FeedbackJson}",
+    // JsonSerializer.Serialize(feedback));
                 return Ok(feedback);
             }
             catch (ArgumentException ex)
@@ -445,7 +434,7 @@ namespace ASI.Basecode.WebApp.Controllers
         /// Checks if grade feedback exists for a student in a course
         /// </summary>
         /// <remarks>
-        /// **Authorization:** Teacher
+        /// **Authorization:** Authenticated
         /// </remarks>
         /// <param name="studentUserId">Student user ID</param>
         /// <param name="courseCode">Course code</param>
@@ -454,11 +443,11 @@ namespace ASI.Basecode.WebApp.Controllers
         /// <response code="401">Unauthorized</response>
         /// <response code="500">Internal server error</response>
         [HttpGet("exists/student/{studentUserId}/course/{courseCode}")]
-        [Authorize(Roles = "Teacher")]
+        [Authorize]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public IActionResult CheckFeedbackExists(string studentUserId, string courseCode)
+        public IActionResult CheckTeacherFeedbackExists(string studentUserId, string courseCode)
         {
             try
             {
@@ -468,7 +457,13 @@ namespace ASI.Basecode.WebApp.Controllers
                     return Unauthorized(new { message = "Authentication required." });
                 }
 
-                var exists = _gradeFeedbackService.CheckGradeFeedbackExists(studentUserId, courseCode);
+                var gradeFeedbackExists = _gradeFeedbackService.CheckGradeFeedbackExists(studentUserId, courseCode);
+                if (!gradeFeedbackExists)
+                {
+                    return Ok(new { exists = false });
+                }
+
+                var exists = _gradeFeedbackService.CheckTeacherFeedbackExists(studentUserId, courseCode);
                 return Ok(new { exists });
             }
             catch (Exception ex)
@@ -478,6 +473,48 @@ namespace ASI.Basecode.WebApp.Controllers
             }
         }
 
-        // Need to create route: Get Gradefeedback by coursecode (for teacher)
+        /// <summary>
+        /// Checks if grade feedback exists for a student in a course (student route)
+        /// </summary>
+        /// <remarks>
+        /// **Authorization:** Authenticated
+        /// </remarks>
+        /// <param name="studentUserId">Student user ID</param>
+        /// <param name="courseCode">Course code</param>
+        /// <returns>Boolean indicating if feedback exists</returns>
+        /// <response code="200">Check completed successfully</response>
+        /// <response code="401">Unauthorized</response>
+        /// <response code="500">Internal server error</response>
+        [HttpGet("student/exists/student/{studentUserId}/course/{courseCode}")]
+        [Authorize]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public IActionResult CheckStudentFeedbackExists(string studentUserId, string courseCode)
+        {
+            try
+            {
+                var currentUserId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (string.IsNullOrEmpty(currentUserId))
+                {
+                    return Unauthorized(new { message = "Authentication required." });
+                }
+
+                var gradeFeedbackExists = _gradeFeedbackService.CheckGradeFeedbackExists(studentUserId, courseCode);
+                if (!gradeFeedbackExists)
+                {
+                    return Ok(new { exists = false });
+                }
+
+                var exists = _gradeFeedbackService.CheckStudentFeedbackExists(studentUserId, courseCode);
+
+                return Ok(new { exists });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Internal server error occurred while checking grade feedback existence.");
+                return StatusCode(500, new { message = "An internal server error has occurred." });
+            }
+        }
     }
 }

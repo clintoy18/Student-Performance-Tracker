@@ -1,5 +1,5 @@
 import type { IStudentFeedbackRequest } from "@interfaces/requests/IStudentFeedbackRequest"
-import { feedback, studentCourse } from "lib/api"
+import { course, feedback, studentCourse } from "../lib/api"
 
 export const fetchCoursesOfStudent = async(studentUserId: string) => {
     const response = await studentCourse.get(`student/${studentUserId}`)
@@ -7,8 +7,11 @@ export const fetchCoursesOfStudent = async(studentUserId: string) => {
 }
 
 export const createStudentFeedback = async(request: IStudentFeedbackRequest) => {
-    const response = await feedback.put(`student/create`,
-        { request }
-    )
+    const response = await feedback.post(`student/create`, request)
     return response.data
+}
+
+export const checkStudentFeedbackExists = async(studentUserId: string, courseCode: string) => {
+    const response = await feedback.get(`student/exists/student/${studentUserId}/course/${courseCode}`, { studentUserId, courseCode })
+    return response.data.exists
 }
