@@ -2,6 +2,99 @@ import { useState, useEffect } from 'react'
 import { getStudentsInCourse, updateStudentGrade, getTeacherCourses } from '@services/TeacherService'
 import { createFeedbackAsTeacher, updateFeedbackAsTeacher, getFeedbackForStudent, checkFeedbackExists } from '@services/GradeFeedbackService'
 import type { IStudentCourseListRequest, IGradeFeedback, ICourseData } from '@interfaces'
+import Modal from '../../common/modal/Modal' // Your existing Modal component
+
+// View Student Feedback Modal Component
+const ViewStudentFeedbackModal = ({ 
+  isOpen, 
+  onClose, 
+  studentName,
+  courseCode,
+  feedback
+}: { 
+  isOpen: boolean; 
+  onClose: () => void; 
+  studentName: string;
+  courseCode: string;
+  feedback: string;
+}) => {
+  return (
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      title="Student Feedback"
+    >
+      <div className="space-y-4">
+        {/* Student and Course Info */}
+        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <div className="flex items-center gap-2 text-blue-800 mb-1">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
+                <span className="font-medium">{studentName}</span>
+              </div>
+              <div className="flex items-center gap-2 text-blue-600 text-sm">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                </svg>
+                <span>{courseCode}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Student Feedback Section */}
+        <div className="border border-gray-200 rounded-lg overflow-hidden">
+          <div className="bg-green-50 px-4 py-3 border-b border-green-200">
+            <div className="flex items-center gap-2 text-green-700">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+              </svg>
+              <span className="text-sm font-medium">Student's Feedback</span>
+            </div>
+          </div>
+          
+          <div className="p-4 bg-white">
+            {feedback ? (
+              <div className="space-y-3">
+                <div className="prose prose-sm max-w-none">
+                  <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">
+                    {feedback}
+                  </p>
+                </div>
+                <div className="flex items-center gap-2 text-xs text-gray-500 pt-2 border-t border-gray-100">
+                  <svg className="w-3 h-3 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  <span>This feedback was submitted by the student for this course</span>
+                </div>
+              </div>
+            ) : (
+              <div className="text-center py-6 text-gray-500">
+                <svg className="w-8 h-8 mx-auto mb-2 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+                </svg>
+                <p className="text-sm">No feedback provided by the student yet.</p>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Action Button */}
+        <div className="flex justify-end pt-2">
+          <button
+            onClick={onClose}
+            className="px-4 py-2 bg-gray-900 text-white rounded-lg text-sm font-medium hover:bg-gray-800 transition-colors"
+          >
+            Close
+          </button>
+        </div>
+      </div>
+    </Modal>
+  );
+};
 
 export const ManageStudents = () => {
   const [courses, setCourses] = useState<ICourseData[]>([])
@@ -11,8 +104,10 @@ export const ManageStudents = () => {
   const [gradeInput, setGradeInput] = useState<string>('')
   const [feedbackInput, setFeedbackInput] = useState<string>('')
   const [currentFeedback, setCurrentFeedback] = useState<IGradeFeedback | null>(null)
+  const [studentFeedback, setStudentFeedback] = useState<string>('')
   const [loading, setLoading] = useState(false)
   const [feedbackLoading, setFeedbackLoading] = useState(false)
+  const [isViewStudentFeedbackModalOpen, setIsViewStudentFeedbackModalOpen] = useState(false)
 
   // Fetch teacher courses
   useEffect(() => {
@@ -50,6 +145,7 @@ export const ManageStudents = () => {
   useEffect(() => {
     if (selectedStudent && selectedCourse) {
       fetchFeedback()
+      fetchStudentFeedback()
     }
   }, [selectedStudent, selectedCourse])
 
@@ -91,6 +187,30 @@ export const ManageStudents = () => {
       // On error, clear the state
       setCurrentFeedback(null)
       setFeedbackInput('')
+    }
+  }
+
+  const fetchStudentFeedback = async () => {
+    if (!selectedStudent || !selectedCourse) return
+
+    try {
+      // You'll need to create this service function to get student feedback
+      // For now, I'll simulate it - replace this with your actual API call
+      const studentFeedbackData = await getStudentFeedback(selectedStudent, selectedCourse)
+      setStudentFeedback(studentFeedbackData?.feedback || '')
+    } catch (error) {
+      console.error('Error fetching student feedback:', error)
+      setStudentFeedback('')
+    }
+  }
+
+  // Mock function - replace with your actual service
+  const getStudentFeedback = async (studentUserId: string, courseCode: string) => {
+    // This should be replaced with your actual API call
+    // Example: return await getStudentFeedbackForCourse(studentUserId, courseCode)
+    return {
+      feedback: "This is a sample of student feedback. In a real implementation, this would come from your backend service that retrieves student feedback for the course.",
+      submittedAt: new Date().toISOString()
     }
   }
 
@@ -149,6 +269,10 @@ export const ManageStudents = () => {
     }
   }
 
+  const handleViewStudentFeedback = () => {
+    setIsViewStudentFeedbackModalOpen(true)
+  }
+
   // Don't render until we have students data when a course is selected
   if (selectedCourse && !students) {
     return <div className="text-center text-slate-600">Loading students...</div>
@@ -202,6 +326,28 @@ export const ManageStudents = () => {
               <option value="">No students enrolled</option>
             )}
           </select>
+        </div>
+
+        {/* Student Feedback View */}
+        <div className="bg-white rounded-lg border border-slate-200 p-6 shadow-sm">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-2 h-6 bg-green-500 rounded-full"></div>
+            <h2 className="text-lg font-heading font-semibold text-slate-800">Student Feedback</h2>
+          </div>
+          <button
+            onClick={handleViewStudentFeedback}
+            disabled={!studentFeedback}
+            className="w-full flex items-center justify-center gap-2 bg-green-600 text-white px-4 py-3 rounded-lg font-medium hover:bg-green-700 transition-colors disabled:bg-slate-400 disabled:cursor-not-allowed"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+            </svg>
+            View Student Feedback
+          </button>
+          <p className="text-xs text-slate-500 mt-2 text-center">
+            {studentFeedback ? 'Click to view student feedback' : 'No student feedback available'}
+          </p>
         </div>
 
         {/* Grade Management */}
@@ -469,6 +615,15 @@ export const ManageStudents = () => {
           {students?.length || 0} student{students?.length !== 1 ? 's' : ''} enrolled in {courses.find(c => c.courseCode === selectedCourse)?.courseName}
         </p>
       </div>
+
+      {/* View Student Feedback Modal */}
+      <ViewStudentFeedbackModal
+        isOpen={isViewStudentFeedbackModalOpen}
+        onClose={() => setIsViewStudentFeedbackModalOpen(false)}
+        studentName={`${selectedStudentData?.firstName} ${selectedStudentData?.lastName}`}
+        courseCode={selectedCourse}
+        feedback={studentFeedback}
+      />
     </div>
   )
 }
