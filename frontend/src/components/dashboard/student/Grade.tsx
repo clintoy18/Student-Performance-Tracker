@@ -4,18 +4,18 @@ import { MessageSquare, Send, Eye, User, BookOpen, Star } from "lucide-react";
 import { createStudentFeedback } from "@services/StudentService";
 import type { IStudentFeedbackRequest } from "@interfaces/requests/IStudentFeedbackRequest";
 import { checkStudentFeedbackExists } from "@services/StudentService";
-import { checkFeedbackExists } from "@services/GradeFeedbackService";
+import { checkFeedbackExists , getFeedbackForStudent } from "@services/GradeFeedbackService";
 import Modal from "../../common/modal/Modal"; // Your existing Modal component
 
 // Submit Feedback Modal Component
-const SubmitFeedbackModal = ({ 
-  isOpen, 
-  onClose, 
-  courseCode, 
-  onSubmit 
-}: { 
-  isOpen: boolean; 
-  onClose: () => void; 
+const SubmitFeedbackModal = ({
+  isOpen,
+  onClose,
+  courseCode,
+  onSubmit,
+}: {
+  isOpen: boolean;
+  onClose: () => void;
   courseCode: string;
   onSubmit: (feedback: string) => Promise<void>;
 }) => {
@@ -25,7 +25,7 @@ const SubmitFeedbackModal = ({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!feedback.trim()) {
       setError("Please enter your feedback");
       return;
@@ -52,13 +52,10 @@ const SubmitFeedbackModal = ({
       onClose();
     }
   };
+  
 
   return (
-    <Modal
-      isOpen={isOpen}
-      onClose={handleClose}
-      title="Submit Course Feedback"
-    >
+    <Modal isOpen={isOpen} onClose={handleClose} title="Submit Course Feedback">
       <div className="space-y-4">
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
           <div className="flex items-center gap-2 text-blue-800">
@@ -69,8 +66,8 @@ const SubmitFeedbackModal = ({
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label 
-              htmlFor="feedback" 
+            <label
+              htmlFor="feedback"
               className="block text-sm font-medium text-gray-700 mb-2"
             >
               Your Feedback
@@ -85,7 +82,8 @@ const SubmitFeedbackModal = ({
               disabled={submitting}
             />
             <p className="text-xs text-gray-500 mt-1">
-              Your feedback helps improve the course experience for future students
+              Your feedback helps improve the course experience for future
+              students
             </p>
           </div>
 
@@ -129,25 +127,21 @@ const SubmitFeedbackModal = ({
 };
 
 // View Teacher Feedback Modal Component
-const ViewTeacherFeedbackModal = ({ 
-  isOpen, 
-  onClose, 
+const ViewTeacherFeedbackModal = ({
+  isOpen,
+  onClose,
   courseCode,
   grade,
-  feedback
-}: { 
-  isOpen: boolean; 
-  onClose: () => void; 
+  feedback,
+}: {
+  isOpen: boolean;
+  onClose: () => void;
   courseCode: string;
   grade?: number;
   feedback: string;
 }) => {
   return (
-    <Modal
-      isOpen={isOpen}
-      onClose={onClose}
-      title="Teacher Feedback"
-    >
+    <Modal isOpen={isOpen} onClose={onClose} title="Teacher Feedback">
       <div className="space-y-4">
         {/* Course Info */}
         <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-4">
@@ -157,12 +151,17 @@ const ViewTeacherFeedbackModal = ({
               <span className="font-medium">{courseCode}</span>
             </div>
             {grade !== undefined && grade !== null && (
-              <div className={`px-3 py-1 rounded-full text-sm font-bold ${
-                grade >= 90 ? "bg-green-100 text-green-800" :
-                grade >= 80 ? "bg-blue-100 text-blue-800" :
-                grade >= 70 ? "bg-yellow-100 text-yellow-800" :
-                "bg-red-100 text-red-800"
-              }`}>
+              <div
+                className={`px-3 py-1 rounded-full text-sm font-bold ${
+                  grade >= 90
+                    ? "bg-green-100 text-green-800"
+                    : grade >= 80
+                    ? "bg-blue-100 text-blue-800"
+                    : grade >= 70
+                    ? "bg-yellow-100 text-yellow-800"
+                    : "bg-red-100 text-red-800"
+                }`}
+              >
                 {grade}%
               </div>
             )}
@@ -177,7 +176,7 @@ const ViewTeacherFeedbackModal = ({
               <span className="text-sm font-medium">Instructor's Feedback</span>
             </div>
           </div>
-          
+
           <div className="p-4 bg-white">
             {feedback ? (
               <div className="space-y-3">
@@ -188,13 +187,21 @@ const ViewTeacherFeedbackModal = ({
                 </div>
                 <div className="flex items-center gap-2 text-xs text-gray-500 pt-2 border-t border-gray-100">
                   <Star size={12} className="text-yellow-500" />
-                  <span>This feedback is provided after you submitted your course evaluation</span>
+                  <span>
+                    This feedback is provided after you submitted your course
+                    evaluation
+                  </span>
                 </div>
               </div>
             ) : (
               <div className="text-center py-6 text-gray-500">
-                <MessageSquare size={24} className="mx-auto mb-2 text-gray-300" />
-                <p className="text-sm">No feedback provided by the instructor yet.</p>
+                <MessageSquare
+                  size={24}
+                  className="mx-auto mb-2 text-gray-300"
+                />
+                <p className="text-sm">
+                  No feedback provided by the instructor yet.
+                </p>
               </div>
             )}
           </div>
@@ -217,21 +224,28 @@ const ViewTeacherFeedbackModal = ({
 export const Grade = ({ studentUserId }: { studentUserId?: string }) => {
   const [grades, setGrades] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [isSubmitFeedbackModalOpen, setIsSubmitFeedbackModalOpen] = useState(false);
+  const [isSubmitFeedbackModalOpen, setIsSubmitFeedbackModalOpen] =
+    useState(false);
   const [isViewFeedbackModalOpen, setIsViewFeedbackModalOpen] = useState(false);
   const [selectedCourse, setSelectedCourse] = useState<any>(null);
 
-  const fetchGrades = async () => {
-    setLoading(true);
-    try {
-      const data = await getCoursesByStudent(studentUserId);
-      const feedbackedData = await Promise.all(
-        data.map(async (grade) => ({
+      const fetchGrades = async () => {
+        setLoading(true);
+        try {
+          const data = await getCoursesByStudent(studentUserId);
+        
+          const feedbackedData = await Promise.all(
+      data.map(async (grade) => {
+        const teacherFeedback = await getFeedbackForStudent(studentUserId, grade.courseCode);
+        return {
           ...grade,
           hasStudentFeedback: await checkStudentFeedbackExists(studentUserId, grade.courseCode),
-          hasTeacherFeedback: await checkFeedbackExists(studentUserId, grade.courseCode),
-        }))
-      )
+          hasTeacherFeedback: !!teacherFeedback?.feedback,
+          feedback: teacherFeedback?.feedback || "",
+        };
+      })
+    );
+
       setGrades(feedbackedData);
     } catch (err) {
       console.error("Failed to load grades:", err);
@@ -255,16 +269,25 @@ export const Grade = ({ studentUserId }: { studentUserId?: string }) => {
   };
 
   const handleSubmitFeedback = async (feedbackText: string) => {
-    const studentFeedback: IStudentFeedbackRequest = {
+    if (!selectedCourse) return;
+
+    const payload: IStudentFeedbackRequest = {
       studentFeedback: feedbackText,
-      courseStudentUserId: studentUserId,
-      courseCode: selectedCourse.courseCode 
+      courseStudentUserId: studentUserId!,
+      courseCode: selectedCourse.courseCode,
+    };
+
+    try {
+      await createStudentFeedback(payload); // call API
+      await fetchGrades(); // refresh grades & feedback info
+    } catch (err: any) {
+      console.error("Failed to submit feedback:", err);
+      throw new Error(err?.message || "Failed to submit feedback");
     }
-    await createStudentFeedback(studentFeedback);
-    await fetchGrades();
   };
 
-  if (loading) return <p className="text-sm text-gray-500">Loading grades...</p>;
+  if (loading)
+    return <p className="text-sm text-gray-500">Loading grades...</p>;
 
   return (
     <>
@@ -276,8 +299,12 @@ export const Grade = ({ studentUserId }: { studentUserId?: string }) => {
             {grades.map((grade: any) => {
               const hasStudentFeedback = grade.hasStudentFeedback || false;
               const hasTeacherFeedback = grade.hasTeacherFeedback || false;
-              const showGrade = hasStudentFeedback && (grade.grade !== null && grade.grade !== undefined);
-              const hasTeacherFeedbackContent = hasTeacherFeedback && grade.feedback;
+              const showGrade =
+                hasStudentFeedback &&
+                grade.grade !== null &&
+                grade.grade !== undefined;
+              const hasTeacherFeedbackContent =
+                hasTeacherFeedback && grade.feedback;
 
               return (
                 <div
@@ -289,7 +316,7 @@ export const Grade = ({ studentUserId }: { studentUserId?: string }) => {
                       <h3 className="font-semibold text-gray-900 text-sm mb-1">
                         {grade.courseCode ?? "Course code not available"}
                       </h3>
-                      
+
                       {/* Status messages */}
                       {!hasTeacherFeedback ? (
                         <p className="text-xs text-gray-500">
@@ -309,7 +336,7 @@ export const Grade = ({ studentUserId }: { studentUserId?: string }) => {
                         </p>
                       )}
                     </div>
-                    
+
                     <div className="flex items-center gap-2 flex-shrink-0">
                       {/* Submit Feedback Button - Show when teacher feedback exists but student hasn't submitted */}
                       {!hasStudentFeedback && hasTeacherFeedback && (
@@ -334,7 +361,7 @@ export const Grade = ({ studentUserId }: { studentUserId?: string }) => {
                           <span>View Feedback</span>
                         </button>
                       )}
-                      
+
                       {/* Grade Display */}
                       {showGrade ? (
                         <span
@@ -373,7 +400,7 @@ export const Grade = ({ studentUserId }: { studentUserId?: string }) => {
       </div>
 
       {/* Submit Feedback Modal */}
-      <SubmitFeedbackModal
+        <SubmitFeedbackModal
         isOpen={isSubmitFeedbackModalOpen}
         onClose={() => setIsSubmitFeedbackModalOpen(false)}
         courseCode={selectedCourse?.courseCode || ""}

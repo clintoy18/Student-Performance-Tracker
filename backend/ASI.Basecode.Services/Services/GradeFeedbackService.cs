@@ -1,18 +1,14 @@
 using ASI.Basecode.Data.Interfaces;
 using ASI.Basecode.Data.Models;
 using ASI.Basecode.Services.Interfaces;
-using ASI.Basecode.Services.Manager;
 using ASI.Basecode.Services.ServiceModels;
 using AutoMapper;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Data.Entity;
-using System.IO;
 using System.Linq;
 using System.Text.Json;
-using System.Threading.Tasks;
-using static ASI.Basecode.Resources.Constants.Enums;
 
 namespace ASI.Basecode.Services.Services
 {
@@ -21,8 +17,8 @@ namespace ASI.Basecode.Services.Services
         private readonly IGradeFeedbackRepository _repository;
         private readonly IStudentCourseRepository _studentCourseRepository;
         private readonly IMapper _mapper;
+        private readonly ILogger<GradeFeedbackService> _logger;
 
-        private readonly ILogger _logger;
         public GradeFeedbackService(
             IGradeFeedbackRepository repository,
             IStudentCourseRepository studentCourseRepository,
@@ -35,65 +31,63 @@ namespace ASI.Basecode.Services.Services
             _logger = logger;
         }
 
+        // Create or update student feedback
         public void CreateGradeFeedbackForStudent(GradeFeedbackCreateForStudentModel model)
         {
             var studentCourse = _studentCourseRepository.GetStudentCourse(model.StudentUserId, model.CourseCode);
             if (studentCourse == null)
-            {
                 throw new ArgumentNullException("Student does not have a related course to be feedbacked on.");
-            }
 
-            
+            var gradeFeedback = _repository.GetGradeFeedbackByStudentId(model.StudentUserId, model.CourseCode);
+            if (gradeFeedback == null)
+                throw new ArgumentNullException("Student does not yet have a grade feedback from teacher.");
 
-            var currentGradeFeedback = _repository.GetGradeFeedbackByStudentId(model.StudentUserId, model.CourseCode);
+            gradeFeedback.StudentFeedback = model.StudentFeedback;
+            gradeFeedback.UpdatedTime = DateTime.UtcNow;
 
-            if (currentGradeFeedback == null)
-            {
-                throw new ArgumentNullException("Student does not yet have a grade feedback.");
-            }
-
-
-            currentGradeFeedback.StudentFeedback = model.StudentFeedback;
-            currentGradeFeedback.UpdatedTime = DateTime.UtcNow;
-
-            EventId Default = new(0, "General");
-                _logger.LogInformation(Default, "Current GradeFeedback: {FeedbackJson}",
-    JsonSerializer.Serialize(studentCourse));
-            _repository.UpdateGradeFeedback(currentGradeFeedback);
+            _logger.LogInformation("Updating Student Feedback: {FeedbackJson}", JsonSerializer.Serialize(gradeFeedback));
+            _repository.UpdateGradeFeedback(gradeFeedback);
         }
 
+        // Create or update teacher feedback
         public void CreateGradeFeedbackForTeacher(GradeFeedbackCreateForTeacherModel model)
         {
             var studentCourse = _studentCourseRepository.GetStudentCourse(model.CourseStudentUserId, model.CourseCode);
             if (studentCourse == null)
-            {
                 throw new ArgumentNullException("Student does not have a related course to be feedbacked on.");
-            }
 
-            // Check if student has a grade assigned before allowing feedback
             if (studentCourse.Grade == null)
+                throw new InvalidOperationException("Cannot create feedback for a student without an assigned grade.");
+
+            var existingFeedback = _repository.GetGradeFeedbackByStudentId(model.CourseStudentUserId, model.CourseCode);
+
+            if (existingFeedback != null)
             {
-                throw new InvalidOperationException("Cannot create feedback for a student without an assigned grade. Please assign a grade first.");
+                existingFeedback.Feedback = model.Feedback;
+                existingFeedback.UpdatedTime = DateTime.UtcNow;
+                _repository.UpdateGradeFeedback(existingFeedback);
+                _logger.LogInformation("Updated Teacher Feedback: {FeedbackJson}", JsonSerializer.Serialize(existingFeedback));
             }
-
-            var dto = new GradeFeedbackForTeacherDto
+            else
             {
-                Feedback = model.Feedback,
-                StudentCourseId = studentCourse.StudentCourseId,
-                UserId = model.TeacherUserId
-            };
-
-            var gradeFeedbackEntity = _mapper.Map<GradeFeedback>(dto);
-            _repository.AddGradeFeedback(gradeFeedbackEntity);
+                var dto = new GradeFeedbackForTeacherDto
+                {
+                    Feedback = model.Feedback,
+                    StudentCourseId = studentCourse.StudentCourseId,
+                    UserId = model.TeacherUserId
+                };
+                var gradeFeedbackEntity = _mapper.Map<GradeFeedback>(dto);
+                _repository.AddGradeFeedback(gradeFeedbackEntity);
+                _logger.LogInformation("Created Teacher Feedback: {FeedbackJson}", JsonSerializer.Serialize(gradeFeedbackEntity));
+            }
         }
 
         public void UpdateGradeFeedback(int feedbackId, string feedback)
         {
             var gradeFeedback = _repository.GetGradeFeedback(feedbackId);
             if (gradeFeedback == null)
-            {
                 throw new ArgumentNullException("Grade feedback does not exist");
-            }
+
             gradeFeedback.Feedback = feedback;
             gradeFeedback.UpdatedTime = DateTime.UtcNow;
             _repository.UpdateGradeFeedback(gradeFeedback);
@@ -108,75 +102,53 @@ namespace ASI.Basecode.Services.Services
             _repository.DeleteGradeFeedbackById(feedbackId);
         }
 
+        // Get both teacher and student feedback for a specific student and course
         public GradeFeedbackViewModel GetGradeFeedbackForStudent(string studentUserId, string courseCode)
         {
-
             var studentCourse = _studentCourseRepository.GetStudentCourse(studentUserId, courseCode);
             if (studentCourse == null)
-            {
                 throw new ArgumentNullException("Student does not have a related course to be feedbacked on.");
-            }
 
             var gradeFeedback = _repository.GetGradeFeedbackByStudentId(studentUserId, courseCode);
-            EventId Default = new(0, "General");
-                _logger.LogInformation(Default, "Feedback received: {FeedbackJson}",
-    JsonSerializer.Serialize(gradeFeedback));
+            _logger.LogInformation("Retrieved Feedback: {FeedbackJson}", JsonSerializer.Serialize(gradeFeedback));
+
+            // Use AutoMapper to handle mapping with null checks
             return _mapper.Map<GradeFeedbackViewModel>(gradeFeedback);
         }
 
+        // Get all feedback records
         public List<GradeFeedbackViewModel> GetAllGradeFeedbacks()
         {
-            return _repository.GetGradeFeedbacks()
+            // Include User, StudentCourse, and the related Course
+            var feedbacks = _repository.GetGradeFeedbacks()
                 .Include(gf => gf.User)
-                .Include(gf => gf.StudentCourse)
-                .Select(gf => new
-                {
-                    GradeFeedback = gf,
-                    StudentCourse = gf.StudentCourse,
-                    Course = gf.StudentCourse != null ? gf.StudentCourse.Course : null
-                })
-                .AsEnumerable()
-                .Select(gf => gf.GradeFeedback)
-                .Select(gf => new GradeFeedbackViewModel
-                {
-                    Id = gf.Id,
-                    Feedback = gf.Feedback,
-                    StudentCourseId = gf.StudentCourseId,
-                    CreatedTime = gf.CreatedTime,
-                    UpdatedTime = gf.UpdatedTime,
-                    TeacherUserId = gf.UserId,
-                    TeacherName = gf.User != null ? $"{gf.User.FirstName} {gf.User.LastName}" : "",
-                    CourseCode = gf.StudentCourse != null ? gf.StudentCourse.CourseCode : "",
-                    CourseName = gf.StudentCourse?.Course != null ? gf.StudentCourse.Course.CourseName : ""
-                })
+                .Include(gf => gf.StudentCourse.Course) // ensure Course is included
                 .ToList();
+
+            return _mapper.Map<List<GradeFeedbackViewModel>>(feedbacks);
         }
 
-        // Get feedback by ID
         public GradeFeedbackViewModel GetGradeFeedbackById(int id)
         {
             var gradeFeedback = _repository.GetGradeFeedback(id);
             return _mapper.Map<GradeFeedbackViewModel>(gradeFeedback);
         }
 
-        // Check if grade feedback exists for a student in a course
         public bool CheckGradeFeedbackExists(string studentUserId, string courseCode)
         {
-            var gradeFeedback = _repository.GetGradeFeedbackByStudentId(studentUserId, courseCode);
-            return gradeFeedback != null;
+            return _repository.GetGradeFeedbackByStudentId(studentUserId, courseCode) != null;
         }
 
         public bool CheckTeacherFeedbackExists(string studentUserId, string courseCode)
         {
-            var gradeFeedback = _repository.GetGradeFeedbackByStudentId(studentUserId, courseCode);
-            return gradeFeedback.Feedback != null;
+            var feedback = _repository.GetGradeFeedbackByStudentId(studentUserId, courseCode);
+            return feedback?.Feedback != null;
         }
 
         public bool CheckStudentFeedbackExists(string studentUserId, string courseCode)
         {
-            var gradeFeedback = _repository.GetGradeFeedbackByStudentId(studentUserId, courseCode);
-            return gradeFeedback.StudentFeedback != null;
+            var feedback = _repository.GetGradeFeedbackByStudentId(studentUserId, courseCode);
+            return feedback?.StudentFeedback != null;
         }
     }
-
 }
