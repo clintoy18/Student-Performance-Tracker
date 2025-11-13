@@ -152,12 +152,12 @@ namespace ASI.Basecode.WebApp.Controllers
                     return Unauthorized(new { message = "Authentication required." });
                 }
 
-                // Validate current user is Teacher
-                var currentUserRole = _rbacService.GetUserRole(currentUserId);
-                if (currentUserRole != UserRoles.Teacher)
-                {
-                    return Unauthorized(new { message = "Only teachers can create grade feedback." });
-                }
+                // Validate current user is Teacher ( REDUNDANT SINCE WE ARE ALREADY USING AUTHORIZE(TEACHER) )
+                //var currentUserRole = _rbacService.GetUserRole(currentUserId);
+                //if (currentUserRole != UserRoles.Teacher)
+                //{
+                //    return Unauthorized(new { message = "Only teachers can create grade feedback." });
+                //}
 
                 // Validate if StudentCourseId really is a student
                 var studentRole = _rbacService.GetUserRole(request.CourseStudentUserId);
