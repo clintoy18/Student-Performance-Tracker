@@ -83,25 +83,29 @@ namespace ASI.Basecode.Services.Services
             // Check if this is the first user
             bool isFirstUser = !_repository.GetUsers().Any();
 
-            //auto generate user-id
-            string generatedUserId = GenerateIDNumber<User>("UserId", "STU");
+            // Choose prefix based on whether it's the first user
+            string prefix = isFirstUser ? "ADMIN" : "STU";
+
+            // Auto-generate user-id
+            string generatedUserId = GenerateIDNumber<User>("UserId", prefix);
 
             if (!_repository.UserExists(generatedUserId))
             {
                 var user = new User();
                 _mapper.Map(model, user);
-                    
-                //assign the id
+
+                // Assign the generated ID
                 user.UserId = generatedUserId;
 
-                // Assign Admin role if first user, otherwise default (e.g., Student)
+                // Assign role: Admin if first user, otherwise Student
                 user.Role = isFirstUser ? UserRoles.Admin : UserRoles.Student;
 
+                // Hash the password
                 user.HashedPassword = PasswordManager.EncryptPassword(model.Password);
+
                 _repository.AddUser(user);
 
                 return generatedUserId;
-
             }
             else
             {
