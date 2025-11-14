@@ -63,3 +63,12 @@ export const assignTeacherToCourse = async (courseId: number, teacherId: string)
   });
   return response.data;
 };
+
+export const exportDashboardPDF = async (role: string) => {
+  const response = await admin.get(
+    "/pdf/dashboard-summary",{
+      params: { role },           
+      responseType: "blob" } 
+  );
+  return response.data;
+};
