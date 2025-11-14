@@ -1,19 +1,20 @@
 import React, { useState } from "react";
-import { X } from "lucide-react";
+import { X, Book } from "lucide-react";
 import { createNewUserAdmin } from "@services";
 import type { IUser } from "@interfaces";
+import SelectField from "components/common/SelectedField";
 
-interface CreateTeacherModalProps {
+interface CreateUserModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess: () => void;
 }
 
-export default function CreateTeacherModal({
+export default function CreateUserModal({
   isOpen,
   onClose,
   onSuccess,
-}: CreateTeacherModalProps) {
+}: CreateUserModalProps) {
   const [formData, setFormData] = useState({
     userId: "",
     firstName: "",
@@ -22,11 +23,13 @@ export default function CreateTeacherModal({
     program: "",
     password: "",
     confirmPassword: "",
+    role: "Teacher", // default role
   });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [formErrors, setFormErrors] = useState<Partial<IUser>>({})
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value,
@@ -58,16 +61,16 @@ export default function CreateTeacherModal({
     setLoading(true);
 
     try {
-      const newUser: IUser & { Password: string, ConfirmPassword: string } = {
+      const newUser: IUser & { Password: string; ConfirmPassword: string } = {
         UserId: formData.userId,
         FirstName: formData.firstName,
         MiddleName: formData.middleName,
         LastName: formData.lastName,
         Program: formData.program,
-        Role: "Teacher",
+        Role: formData.role, // dynamic role
         CreatedTime: new Date().toISOString(),
         Password: formData.password,
-        ConfirmPassword: formData.confirmPassword
+        ConfirmPassword: formData.confirmPassword,
       };
 
       await createNewUserAdmin(newUser);
@@ -81,12 +84,13 @@ export default function CreateTeacherModal({
         program: "",
         password: "",
         confirmPassword: "",
+        role: "Teacher",
       });
 
       onSuccess();
       onClose();
     } catch (err: any) {
-      setError(err.response?.data?.message || "Failed to create teacher");
+      setError(err.response?.data?.message || "Failed to create user");
     } finally {
       setLoading(false);
     }
@@ -100,7 +104,7 @@ export default function CreateTeacherModal({
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b">
           <h2 className="text-xl font-semibold text-gray-900">
-            Create New Teacher
+            Create New User
           </h2>
           <button
             onClick={onClose}
@@ -133,86 +137,90 @@ export default function CreateTeacherModal({
             />
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              First Name <span className="text-red-500">*</span>
-            </label>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <input
               type="text"
               name="firstName"
               value={formData.firstName}
               onChange={handleChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-400 focus:border-transparent"
+              placeholder="First Name"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg"
               required
             />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Middle Name
-            </label>
             <input
               type="text"
               name="middleName"
               value={formData.middleName}
               onChange={handleChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-400 focus:border-transparent"
+              placeholder="Middle Name"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg"
             />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Last Name <span className="text-red-500">*</span>
-            </label>
             <input
               type="text"
               name="lastName"
               value={formData.lastName}
               onChange={handleChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-400 focus:border-transparent"
+              placeholder="Last Name"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg"
               required
             />
           </div>
-
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Program <span className="text-red-500">*</span>
+              Role <span className="text-red-500">*</span>
             </label>
-            <input
-              type="text"
-              name="program"
-              value={formData.program}
+            <select
+              name="role"
+              value={formData.role}
               onChange={handleChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-400 focus:border-transparent"
-              placeholder="e.g., Computer Science"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg"
               required
-            />
+            >
+              <option value="Teacher">Teacher</option>
+              <option value="Student">Student</option>
+            </select>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Password <span className="text-red-500">*</span>
-            </label>
+
+ <div>
+           {/* Program Field: only show if role is Student */}
+            {formData.role === "Student" && (
+              <div>
+                <SelectField
+                  id="program"
+                  label="Program"
+                  value={formData.program}
+                  onChange={handleChange}
+                  required
+                  icon={<Book size={16} className="text-gray-500" />}
+                  error={formErrors.Program}
+                  options={[
+                    { value: "BSIT", label: "BSIT" },
+                    { value: "BSCS", label: "BSCS" },
+                    { value: "BSEd", label: "BSEd" },
+                    { value: "BSBA", label: "BSBA" },
+                  ]}
+                />
+              </div>
+            )}
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <input
               type="password"
               name="password"
               value={formData.password}
               onChange={handleChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-400 focus:border-transparent"
+              placeholder="Password"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg"
               required
             />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Confirm Password <span className="text-red-500">*</span>
-            </label>
             <input
               type="password"
               name="confirmPassword"
               value={formData.confirmPassword}
               onChange={handleChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-400 focus:border-transparent"
+              placeholder="Confirm Password"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg"
               required
             />
           </div>
@@ -232,7 +240,7 @@ export default function CreateTeacherModal({
               className="flex-1 px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors disabled:opacity-50"
               disabled={loading}
             >
-              {loading ? "Creating..." : "Create Teacher"}
+              {loading ? "Creating..." : "Create User"}
             </button>
           </div>
         </form>

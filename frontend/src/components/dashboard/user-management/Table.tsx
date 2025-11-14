@@ -293,7 +293,7 @@ export default function UserTable() {
           className="flex items-center justify-center gap-2 bg-gray-900 text-white px-4 py-2 rounded-lg hover:bg-gray-800 transition-colors w-full sm:w-auto"
         >
           <Plus size={16} />
-          <span>Create Teacher</span>
+          <span>Create User</span>
         </button>
       </div>
 
