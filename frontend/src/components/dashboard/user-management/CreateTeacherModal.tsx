@@ -27,7 +27,7 @@ export default function CreateUserModal({
   });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const [formErrors, setFormErrors] = useState<Partial<IUser>>({})
+  const [formErrors] = useState<Partial<IUser>>({})
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setFormData({
