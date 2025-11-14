@@ -481,7 +481,22 @@ namespace ASI.Basecode.WebApp.Controllers
                     
                 };
 
-                var pdfBytes = _pdfService.GenerateDashboardSummaryReport(dashboardStats, userLists, parsedRole);
+                var courses = _courseService.GetAllCourses()
+                    .Select(c => new CourseViewModel
+                    {
+                        Id = c.Id,
+                        CourseCode = c.CourseCode,
+                        CourseName = c.CourseName,
+                        CourseDescription = c.CourseDescription
+                    })
+                    .ToList();
+
+                var pdfBytes = _pdfService.GenerateDashboardSummaryReport(
+                    dashboardStats,
+                    userLists,
+                    courses,
+                    parsedRole
+                );
 
                 string fileName = string.IsNullOrWhiteSpace(role)
                     ? "dashboard_summary_report.pdf"
