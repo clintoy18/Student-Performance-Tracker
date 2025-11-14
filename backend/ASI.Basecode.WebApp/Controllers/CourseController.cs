@@ -57,7 +57,10 @@ namespace ASI.Basecode.WebApp.Controllers
 
                 var coursesDto = courses.Select(c =>
                 {
-                    var teacher = _userService.FetchUser(c.UserId);
+                    // Allow null UserId
+                    var teacher = c.UserId != null
+                        ? _userService.FetchUser(c.UserId)
+                        : null;
                     return new CourseListViewModel
                     {
                         Id = c.Id,
