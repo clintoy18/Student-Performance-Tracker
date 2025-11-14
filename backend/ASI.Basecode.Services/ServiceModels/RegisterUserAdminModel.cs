@@ -33,7 +33,6 @@ namespace ASI.Basecode.Services.ServiceModels
         [Compare("Password", ErrorMessage = "Password and Confirmation Password must match.")]
         public string ConfirmPassword { get; set; }
 
-        [Required(ErrorMessage = "Program is required.")]
         [StringLength(100, ErrorMessage = "This field must not exceed 50 characters.")]
         public string Program { get; set; }
 

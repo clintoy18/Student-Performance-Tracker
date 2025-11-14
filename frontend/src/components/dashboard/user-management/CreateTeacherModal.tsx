@@ -46,8 +46,9 @@ export default function CreateUserModal({
       !formData.userId ||
       !formData.firstName ||
       !formData.lastName ||
-      !formData.program ||
-      !formData.password
+      !formData.password||
+      (formData.role === "Student" && !formData.program) // only required for students
+
     ) {
       setError("Please fill in all required fields");
       return;
