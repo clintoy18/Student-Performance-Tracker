@@ -1,134 +1,66 @@
-﻿using System;
-using System.Collections.Generic;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata;
+﻿using Microsoft.EntityFrameworkCore;
 using ASI.Basecode.Data.Models;
-using static ASI.Basecode.Resources.Constants.Enums;
-using System.Linq;
 
 namespace ASI.Basecode.Data
 {
     public partial class AsiBasecodeDBContext : DbContext
     {
-        //public AsiBasecodeDBContext()
-        //{
-        //}
-
         public AsiBasecodeDBContext(DbContextOptions<AsiBasecodeDBContext> options)
             : base(options)
         {
         }
 
-        public virtual DbSet<User> Users { get; set; }
-        public virtual DbSet<Course> Courses { get; set; }
-        public virtual DbSet<StudentCourse> StudentCourses { get; set; }
-        public virtual DbSet<GradeFeedback> GradeFeedbacks { get; set; }
+        public virtual DbSet<User> Users { get; set; } = null!;
+        public virtual DbSet<Course> Courses { get; set; } = null!;
+        public virtual DbSet<StudentCourse> StudentCourses { get; set; } = null!;
+        public virtual DbSet<GradeFeedback> GradeFeedbacks { get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            // ALIN: Use Fluent API to add constraints to model
-            // User model
+            // Users
             modelBuilder.Entity<User>(entity =>
             {
-                entity.HasIndex(e => e.UserId)
-                    .IsUnique();
+                entity.HasIndex(u => u.UserId).IsUnique();
 
-                entity.Property(e => e.UserId)
-                    .IsRequired()
-                    .HasMaxLength(50);
-
-                entity.Property(e => e.FirstName)
-                    .IsRequired()
-                    .HasMaxLength(100);
-
-                entity.Property(e => e.MiddleName)
-                    .HasMaxLength(100);
-
-                entity.Property(e => e.LastName)
-                    .IsRequired()
-                    .HasMaxLength(100);
-
-                entity.Property(e => e.Program)
-                    .HasMaxLength(100);
-
-                entity.Property(e => e.HashedPassword)
-                    .IsRequired();
-
-                // entity.Property(e => e.CreatedTime)
-                //     .HasColumnType("datetime")
-                //     .HasDefaultValueSql("GETDATE()");   // Only for SQL Server, adds default datetime as current datetime
-
-                entity.Property(e => e.CreatedTime)
-                    .IsRequired(); // Will have to validate application layer
-
-
-                entity.Property(e => e.Role)
-                    .IsRequired()
-                    .HasDefaultValue(UserRoles.Student)  // Defaults to Student
-                    .HasConversion<string>();   // Stores role as string instead of int
+                entity.Property(u => u.UserId).IsRequired().HasMaxLength(50);
+                entity.Property(u => u.FirstName).IsRequired().HasMaxLength(50);
+                entity.Property(u => u.MiddleName).HasMaxLength(50);
+                entity.Property(u => u.LastName).IsRequired().HasMaxLength(50);
+                entity.Property(u => u.Program).HasMaxLength(50);
+                entity.Property(u => u.HashedPassword).IsRequired();
+                entity.Property(u => u.CreatedTime).IsRequired();
+                entity.Property(u => u.Role).IsRequired();
             });
 
-            // Course model
+            // Courses
             modelBuilder.Entity<Course>(entity =>
             {
-                entity.HasIndex(e => e.CourseCode)
-                    .IsUnique();
+                entity.HasIndex(c => c.CourseCode).IsUnique();
 
-                entity.Property(e => e.CourseCode)
-                    .IsRequired()
-                    .HasMaxLength(50);
+                entity.Property(c => c.CourseCode).IsRequired().HasMaxLength(50);
+                entity.Property(c => c.CourseName).IsRequired().HasMaxLength(100);
+                entity.Property(c => c.CourseDescription).HasMaxLength(1000);
+                entity.Property(c => c.UserId).HasMaxLength(50).IsRequired(false);
+                entity.Property(c => c.CreatedAt).IsRequired();
 
-                entity.Property(e => e.CourseName)
-                    .IsRequired()
-                    .HasMaxLength(255);
-
-                // entity.Property(e => e.Year)
-                //         .IsRequired();
-
-                entity.Property(e => e.CourseDescription)
-                    .HasMaxLength(1000);
-
-                entity.Property(e => e.CreatedAt)
-                    .IsRequired();
-
-                entity.Property(e => e.UserId)
-                    .IsRequired(false)
-                    .HasMaxLength(50);
-
-                // Relationship: Course has one Teacher (User)
                 entity.HasOne(c => c.User)
                     .WithMany()
                     .HasForeignKey(c => c.UserId)
                     .HasPrincipalKey(u => u.UserId)
-                    .OnDelete(DeleteBehavior.SetNull); // Set Null
+                    .OnDelete(DeleteBehavior.SetNull);
             });
 
-            // StudentCourse configuration (many-to-many junction table)
+            // StudentCourse
             modelBuilder.Entity<StudentCourse>(entity =>
             {
-                entity.HasIndex(sc => sc.StudentCourseId)
-                    .IsUnique();
+                entity.HasIndex(sc => sc.StudentCourseId).IsUnique();
 
-                entity.Property(e => e.StudentCourseId)
-                    .IsRequired()
-                    .HasMaxLength(50);
+                entity.Property(sc => sc.StudentCourseId).IsRequired().HasMaxLength(50);
+                entity.Property(sc => sc.UserId).IsRequired().HasMaxLength(50);
+                entity.Property(sc => sc.CourseCode).IsRequired().HasMaxLength(50);
+                entity.Property(sc => sc.Grade).IsRequired(false);
+                entity.Property(sc => sc.CreatedTime).IsRequired();
 
-                entity.Property(e => e.CreatedTime)
-                    .IsRequired();
-
-                entity.Property(e => e.UserId)
-                    .IsRequired()
-                    .HasMaxLength(50)
-                    .IsUnicode(false);
-
-                entity.Property(e => e.CourseCode)
-                    .IsRequired()
-                    .HasMaxLength(50);
-
-                entity.Property(e => e.Grade)
-                    .IsRequired(false);
-
-                // Relationships
                 entity.HasOne(sc => sc.User)
                     .WithMany()
                     .HasForeignKey(sc => sc.UserId)
@@ -142,40 +74,26 @@ namespace ASI.Basecode.Data
                     .OnDelete(DeleteBehavior.Cascade);
             });
 
-            // GradeFeedback configuration
+            // GradeFeedback
             modelBuilder.Entity<GradeFeedback>(entity =>
             {
-                entity.Property(e => e.Feedback)
-                    .HasMaxLength(1000);
+                entity.Property(gf => gf.Feedback).HasMaxLength(1000);
+                entity.Property(gf => gf.StudentFeedback).HasMaxLength(1000);
+                entity.Property(gf => gf.UserId).HasMaxLength(50).IsRequired(false);
+                entity.Property(gf => gf.StudentCourseId).HasMaxLength(50).IsRequired(false);
+                entity.Property(gf => gf.CreatedTime).IsRequired();
+                entity.Property(gf => gf.UpdatedTime).IsRequired();
 
-                entity.Property(e => e.StudentFeedback)
-                    .HasMaxLength(1000);
-
-                entity.Property(e => e.CreatedTime)
-                    .IsRequired();
-
-                entity.Property(e => e.UpdatedTime)
-                    .IsRequired();
-
-                entity.Property(e => e.UserId)
-                    .IsRequired(false)
-                    .HasMaxLength(50);
-
-                entity.Property(e => e.StudentCourseId)
-                    .IsRequired(false)
-                    .HasMaxLength(50);
-
-                // Relationships
                 entity.HasOne(gf => gf.User)
                     .WithMany()
                     .HasForeignKey(gf => gf.UserId)
                     .HasPrincipalKey(u => u.UserId)
-                    .OnDelete(DeleteBehavior.SetNull);
+                    .OnDelete(DeleteBehavior.Restrict);
 
                 entity.HasOne(gf => gf.StudentCourse)
                     .WithMany()
                     .HasForeignKey(gf => gf.StudentCourseId)
-                    .HasPrincipalKey(u => u.StudentCourseId)
+                    .HasPrincipalKey(sc => sc.StudentCourseId)
                     .OnDelete(DeleteBehavior.SetNull);
             });
 
