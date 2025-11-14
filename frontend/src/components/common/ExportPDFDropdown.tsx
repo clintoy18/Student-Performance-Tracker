@@ -7,7 +7,7 @@ interface ExportPDFDropdownProps {
 }
 
 const ExportPDFDropdown: React.FC<ExportPDFDropdownProps> = ({ roles }) => {
-  const [selectedRole, setSelectedRole] = useState<string | null>(roles[0] || null);
+  const [selectedRole, setSelectedRole] = useState<string | null>(null)
   const [isOpen, setIsOpen] = useState(false);
 
   const getRoleColor = (role: string | null) => {
