@@ -192,21 +192,24 @@ export default function UpdateUserModal({
               required
             />
           </div>
-          <SelectField
-            id="program"
-            label="Program"
-            value={formData.program}
-            onChange={handleChange}   // same function as before
-            required
-            icon={<Book size={16} className="text-gray-500"/>}
-            error={formErrors.program} // optional: display validation error
-            options={[
-              { value: "BSIT", label: "BSIT" },
-              { value: "BSCS", label: "BSCS" },
-              { value: "BSEd", label: "BSEd" },
-              { value: "BSBA", label: "BSBA" },
-            ]}
-          />
+         {/* Program: only editable if role is Student */}
+            {user.Role === "Student" && (
+              <SelectField
+                id="program"
+                label="Program"
+                value={formData.program}
+                onChange={handleChange} // same function
+                required
+                icon={<Book size={16} className="text-gray-500"/>}
+                error={formErrors.program} // optional
+                options={[
+                  { value: "BSIT", label: "BSIT" },
+                  { value: "BSCS", label: "BSCS" },
+                  { value: "BSEd", label: "BSEd" },
+                  { value: "BSBA", label: "BSBA" },
+                ]}
+              />
+            )}
           <div className="pt-2 border-t">
             <p className="text-sm text-gray-600 mb-3">
               Leave password fields empty to keep current password
