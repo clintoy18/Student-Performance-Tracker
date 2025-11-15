@@ -28,6 +28,7 @@ namespace ASI.Basecode.WebApp.Controllers
         private readonly IUserService _userService;
         private readonly ICourseService _courseService;
         private readonly IJwtService _jwtService;
+        private readonly IStudentCourseService _studentCourseService;
         private readonly IPdfService _pdfService;
         private readonly ILogger<AdminController> _logger;
         private readonly IMapper _mapper;
@@ -36,12 +37,15 @@ namespace ASI.Basecode.WebApp.Controllers
             IUserService userService,
             ICourseService courseService,
             IPdfService pdfService,
+            IStudentCourseService studentCourseService,
+            ILogger<AdminController> logger)
             ILogger<AdminController> logger,
             IMapper mapper
         )
         {
             _jwtService = jwtService;
             _userService = userService;
+            _studentCourseService = studentCourseService;
             _courseService = courseService;
             _pdfService = pdfService;
             _logger = logger;
@@ -495,6 +499,30 @@ namespace ASI.Basecode.WebApp.Controllers
             }
         }
 
+        // GET: api/admin/pdf/grades-per-course
+        [HttpGet("pdf/grades-per-course")]
+        [Authorize(Roles = "Admin")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public IActionResult GetGradesPerCoursePdf()
+        {
+            try
+            {
+                // Fetch data
+                var grades = _studentCourseService.GetGradesPerCourse();
+
+                // Generate PDF
+                var pdfBytes = _pdfService.GenerateGradesPerCoursePdf(grades);
+
+                // Return file
+                return File(pdfBytes, "application/pdf", "GradesPerCourseReport.pdf");
+            }
+            catch (Exception ex)
+            {
+                // Optional: log the exception
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
     }
 
 }

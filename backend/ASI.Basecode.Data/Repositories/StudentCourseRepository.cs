@@ -72,5 +72,13 @@ namespace ASI.Basecode.Data.Repositories
             GetDbSet<StudentCourse>().Remove(studentCourse);
             UnitOfWork.SaveChanges();
         }
+
+        public IQueryable<StudentCourse> GetAllStudentCoursesWithUsersAndCourses()
+        {
+            return GetDbSet<StudentCourse>()
+                .Include(sc => sc.Course)
+                .Include(sc => sc.User);
+        }
+
     }
 }

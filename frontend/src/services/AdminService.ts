@@ -72,3 +72,10 @@ export const exportDashboardPDF = async (role: string) => {
   );
   return response.data;
 };
+
+export const exportGradesPerCoursePDF = async () => {
+  const response = await admin.get("/pdf/grades-per-course", {
+    responseType: "blob",
+  });
+  return response.data;
+};
