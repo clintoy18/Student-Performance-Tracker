@@ -45,6 +45,10 @@ namespace ASI.Basecode.WebApp
                     .ForMember(dest => dest.CreatedTime, opt => opt.Ignore())
                     .ForMember(dest => dest.UpdatedTime, opt => opt.Ignore())
                     .ForMember(dest => dest.StudentFeedback, opt => opt.Ignore());
+
+
+                // map for users
+                CreateMap<User, UserViewAdminModel>();
             }
         }
     }

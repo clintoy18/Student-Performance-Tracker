@@ -5,6 +5,7 @@ using ASI.Basecode.Services.Interfaces;
 using ASI.Basecode.Services.Manager;
 using ASI.Basecode.Services.ServiceModels;
 using AutoMapper;
+using AutoMapper.QueryableExtensions;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -153,17 +154,10 @@ namespace ASI.Basecode.Services.Services
         // Add this method to your UserService class
         public List<UserViewAdminModel> GetAllUsers()
         {
-            var users = _repository.GetUsers();
-            return users.Select(u => new UserViewAdminModel
-            {
-                UserId = u.UserId,
-                FirstName = u.FirstName,
-                MiddleName = u.MiddleName,
-                LastName = u.LastName,
-                Program = u.Program,
-                Role = u.Role,
-                CreatedTime = u.CreatedTime
-            }).ToList();
+            var usersQuery = _repository.GetUsers(); // IQueryable<User>
+            return usersQuery
+                .ProjectTo<UserViewAdminModel>(_mapper.ConfigurationProvider)
+                .ToList();
         }
 
         public bool UserExists(string userId)

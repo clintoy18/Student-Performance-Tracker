@@ -294,7 +294,8 @@ namespace ASI.Basecode.WebApp.Controllers
         /// <response code="200">Users retrieved successfully</response>
         /// <response code="500">Internal server error</response>
         [HttpGet("user")]
-        [Authorize(Roles = "Admin")]
+        //[Authorize(Roles = "Admin")]
+        [AllowAnonymous]
         [ProducesResponseType(typeof(IEnumerable<UserViewAdminModel>), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public IActionResult GetAllUsers()
@@ -421,8 +422,7 @@ namespace ASI.Basecode.WebApp.Controllers
         //3.teachers = teachers
         //4.admin = admin)
         [HttpGet("pdf/dashboard-summary")]
-        //[Authorize(Roles = "Admin")]
-        [AllowAnonymous]
+        [Authorize(Roles = "Admin")]
         [ProducesResponseType(typeof(FileContentResult), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
