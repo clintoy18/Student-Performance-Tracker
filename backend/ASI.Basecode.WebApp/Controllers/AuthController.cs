@@ -16,6 +16,7 @@ using static ASI.Basecode.Resources.Constants.Enums;
 using Microsoft.Extensions.Logging;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
+using AutoMapper;
 
 namespace ASI.Basecode.WebApp.Controllers
 {
@@ -27,17 +28,20 @@ namespace ASI.Basecode.WebApp.Controllers
         private readonly IJwtService _jwtService;
         private readonly ILogger<AuthController> _logger;
         private readonly IRbacService _rbacService;
+        private readonly IMapper _mapper;
         public AuthController(
             IJwtService jwtService,
             IUserService userService,
             ILogger<AuthController> logger,
-            IRbacService rbacService
+            IRbacService rbacService,
+            IMapper mapper
         )
         {
             _jwtService = jwtService;
             _userService = userService;
             _logger = logger;
             _rbacService = rbacService;
+            _mapper = mapper;
         }
 
         /// <summary>
@@ -83,14 +87,9 @@ namespace ASI.Basecode.WebApp.Controllers
 
                 return Ok(new LoginResponse
                 {
-                    Message = "Login successful",
-                    Token = token,
-                    User = new UserDto
-                    {
-                        UserId = user.UserId,
-                        LastName = user.LastName,
-                        Role = user.Role.ToString()
-                    }
+                    message = "Login successful",
+                    token = token,
+                    user = _mapper.Map<UserDto>(user)
                 });
             }
             else
@@ -111,7 +110,7 @@ namespace ASI.Basecode.WebApp.Controllers
         /// <response code="400">UserId already exists or invalid input data.</response>
         /// <response code="500">Internal server error during registration.</response>
         [HttpPost("register")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(RegisterControllerViewModel), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public IActionResult Register([FromBody] RegisterUserViewModel request)
@@ -131,7 +130,7 @@ namespace ASI.Basecode.WebApp.Controllers
                 string generatedUserId = _userService.RegisterUser(request);
 
                 // Return the generated ID in the response
-                return Ok(new
+                return Ok(new RegisterControllerViewModel
                 {
                     userId = generatedUserId,       // <--- this is the generated ID
                     message = "User registered successfully."
@@ -162,7 +161,7 @@ namespace ASI.Basecode.WebApp.Controllers
         /// <response code="401">Missing, invalid, or expired token; or user not found.</response>
         [Authorize]
         [HttpGet("me")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(UserViewControllerModel), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         public IActionResult GetCurrentUser()
         {
@@ -196,15 +195,7 @@ namespace ASI.Basecode.WebApp.Controllers
                 return Unauthorized(new { message = "User not found." });
             }
 
-            var userInfo = new
-            {
-                user.UserId,
-                user.FirstName,
-                user.MiddleName,
-                user.LastName,
-                user.Program,
-                Role = user.Role.ToString()
-            };
+            var userInfo = _mapper.Map<UserViewControllerModel>(user);
 
             // Return user info (safe subset)
             return Ok(userInfo);
@@ -219,7 +210,7 @@ namespace ASI.Basecode.WebApp.Controllers
         /// </remarks>
         [Authorize]
         [HttpPut("me/update")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(RegisterUserAdminModel), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]

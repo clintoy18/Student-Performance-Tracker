@@ -143,7 +143,14 @@ export default function Subjects() {
 
   const handleUpdateCourse = async (data: Partial<ICourse>) => {
     try {
-      await updateCourse(data);
+      if (!selectedCourse)
+        throw new Error("No course selected for update")
+      
+      const updatePayload = {
+        ...data,
+        TeacherUserId: selectedCourse.TeacherUserId
+      }
+      await updateCourse(updatePayload);
       handleModalSuccess();
       setIsEditModalOpen(false);
       setSelectedCourse(null);
