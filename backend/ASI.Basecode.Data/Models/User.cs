@@ -1,4 +1,6 @@
-﻿using System;
+﻿#nullable enable
+
+using System;
 using static ASI.Basecode.Resources.Constants.Enums;
 
 namespace ASI.Basecode.Data.Models

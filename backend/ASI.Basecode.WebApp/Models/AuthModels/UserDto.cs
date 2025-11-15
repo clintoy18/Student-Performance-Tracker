@@ -5,9 +5,9 @@ namespace ASI.Basecode.WebApp.Models
 {
     public class UserDto
     {
-        public string UserId { get; set; }
-        public string LastName { get; set; }
-        public string Role { get; set; }
+        public string userId { get; set; }
+        public string lastName { get; set; }
+        public string role { get; set; }
 
     }
 }

@@ -43,6 +43,7 @@ export default function UpdateUserModal({
         confirmPassword: "",
       });
     }
+
   }, [user]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -90,6 +91,7 @@ export default function UpdateUserModal({
       // Only include password if it's been changed
       if (formData.password) {
         updateData.Password = formData.password;
+        updateData.ConfirmPassword = formData.confirmPassword;
       }
 
       await updateUserAdmin(updateData);

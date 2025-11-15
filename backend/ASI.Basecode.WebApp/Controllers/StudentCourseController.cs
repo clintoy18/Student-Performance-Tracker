@@ -12,6 +12,7 @@ using System.Linq;
 using ASI.Basecode.Resources.Constants;
 using ASI.Basecode.Data.Interfaces;
 using Microsoft.AspNetCore.Http;
+using AutoMapper;
 namespace ASI.Basecode.WebApp.Controllers
 {
     [ApiController]
@@ -25,6 +26,7 @@ namespace ASI.Basecode.WebApp.Controllers
         private readonly IRbacService _rbacService;
         private readonly ICourseService _courseService;
         private readonly ILogger<StudentCourseController> _logger;
+        private readonly IMapper _mapper;
 
         public StudentCourseController(
             IStudentCourseService studentCourseService,
@@ -33,7 +35,9 @@ namespace ASI.Basecode.WebApp.Controllers
             IUserService userService,
             IRbacService rbacService,
             ICourseService courseService,
-            ILogger<StudentCourseController> logger)
+            ILogger<StudentCourseController> logger,
+            IMapper mapper
+        )
         {
             _studentCourseService = studentCourseService;
             _studentCourseRepository = studentCourseRepository;
@@ -42,6 +46,7 @@ namespace ASI.Basecode.WebApp.Controllers
             _rbacService = rbacService;
             _courseService = courseService;
             _logger = logger;
+            _mapper = mapper;
         }
 
         /// <summary>
@@ -58,11 +63,11 @@ namespace ASI.Basecode.WebApp.Controllers
         /// <response code="500">Internal server error</response>
         [HttpPost("enroll")]
         [Authorize(Roles = "Admin")]
-        [ProducesResponseType(StatusCodes.Status201Created)]
+        [ProducesResponseType(typeof(StudentCourseCreateModel), StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public IActionResult EnrollStudentAdmin([FromBody] StudentCourseCreateAdminRequest request)
+        public IActionResult EnrollStudentAdmin([FromBody] StudentCourseCreateRequest request)
         {
             if (!ModelState.IsValid)
             {
@@ -89,11 +94,7 @@ namespace ASI.Basecode.WebApp.Controllers
                     return NotFound(new { message = "Student does not exist." });
                 }
 
-                var newStudentCourse = new StudentCourseCreateModel
-                {
-                    StudentUserId = request.StudentUserId,
-                    CourseCode = request.CourseCode
-                };
+                var newStudentCourse = _mapper.Map<StudentCourseCreateModel>(request);
 
                 _studentCourseService.CreateStudentCourse(newStudentCourse);
 

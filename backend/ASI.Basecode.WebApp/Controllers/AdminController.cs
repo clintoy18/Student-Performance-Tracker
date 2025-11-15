@@ -17,6 +17,7 @@ using System.Security.Claims;
 using System.Threading.Tasks;
 using static ASI.Basecode.Resources.Constants.Enums;
 using Microsoft.AspNetCore.Http;
+using AutoMapper;
 
 namespace ASI.Basecode.WebApp.Controllers
 {
@@ -30,14 +31,17 @@ namespace ASI.Basecode.WebApp.Controllers
         private readonly IStudentCourseService _studentCourseService;
         private readonly IPdfService _pdfService;
         private readonly ILogger<AdminController> _logger;
-
+        private readonly IMapper _mapper;
         public AdminController(
             IJwtService jwtService,
             IUserService userService,
             ICourseService courseService,
             IPdfService pdfService,
             IStudentCourseService studentCourseService,
-        ILogger<AdminController> logger)
+            ILogger<AdminController> logger)
+            ILogger<AdminController> logger,
+            IMapper mapper
+        )
         {
             _jwtService = jwtService;
             _userService = userService;
@@ -45,6 +49,7 @@ namespace ASI.Basecode.WebApp.Controllers
             _courseService = courseService;
             _pdfService = pdfService;
             _logger = logger;
+            _mapper = mapper;
         }
 
         /// <summary>
@@ -60,7 +65,7 @@ namespace ASI.Basecode.WebApp.Controllers
         /// <response code="500">Internal server error</response>
         [HttpPost("user/create/")]
         [Authorize(Roles = "Admin")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(UserViewAdminModel), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public IActionResult CreateUser([FromBody] RegisterUserAdminModel request)
@@ -72,18 +77,9 @@ namespace ASI.Basecode.WebApp.Controllers
 
             try
             {
-                var userViewModel = new RegisterUserAdminModel
-                {
-                    UserId = request.UserId,
-                    FirstName = request.FirstName,
-                    MiddleName = request.MiddleName,
-                    LastName = request.LastName,
-                    Password = request.Password,
-                    Program = request.Program,
-                    Role = request.Role
-                };
+                var newUser = _mapper.Map<RegisterUserAdminModel>(request);
 
-                _userService.RegisterUserAdmin(userViewModel);
+                _userService.RegisterUserAdmin(newUser);
 
                 return Ok(new { message = "User registered successfully." });
             }
@@ -113,7 +109,7 @@ namespace ASI.Basecode.WebApp.Controllers
         /// <response code="500">Internal server error</response>
         [HttpPut("user/update/{userId}")]
         [Authorize(Roles = "Admin")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(RegisterUserAdminModel), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
@@ -131,18 +127,9 @@ namespace ASI.Basecode.WebApp.Controllers
 
             try
             {
-                var userViewModel = new RegisterUserAdminModel
-                {
-                    UserId = request.UserId,
-                    FirstName = request.FirstName,
-                    MiddleName = request.MiddleName,
-                    LastName = request.LastName,
-                    Password = request.Password, // Can be null/empty to preserve current password
-                    Program = request.Program,
-                    Role = request.Role
-                };
+                var updatedUser = _mapper.Map<RegisterUserAdminModel>(request);
 
-                _userService.UpdateUserAdmin(userViewModel);
+                _userService.UpdateUserAdmin(updatedUser);
 
                 return Ok(new { message = "User updated successfully." });
             }
@@ -226,25 +213,14 @@ namespace ASI.Basecode.WebApp.Controllers
 
             try
             {
-                var user = _userService.FetchUser(userId);
+                var user = _mapper.Map<UserViewAdminModel>(_userService.FetchUser(userId));
 
                 if (user == null)
                 {
                     return NotFound(new { message = "User not found." });
                 }
 
-                var userModel = new UserViewAdminModel
-                {
-                    UserId = user.UserId,
-                    FirstName = user.FirstName,
-                    MiddleName = user.MiddleName,
-                    LastName = user.LastName,
-                    Program = user.Program,
-                    Role = user.Role
-                    // Note: Password fields are not returned for security
-                };
-
-                return Ok(userModel);
+                return Ok(user);
             }
             catch (InvalidDataException ex)
             {
@@ -367,6 +343,7 @@ namespace ASI.Basecode.WebApp.Controllers
                 var userStats = _userService.GetUserStatistics();
                 var courseCount = _courseService.GetCourseCount();
 
+                // Dili ma automap :/
                 var dashboardStats = new DashboardStatsViewModel
                 {
                     UserStats = userStats,
@@ -430,7 +407,7 @@ namespace ASI.Basecode.WebApp.Controllers
         //4.admin = admin)
         [HttpGet("pdf/dashboard-summary")]
         [Authorize(Roles = "Admin")]
-        [ProducesResponseType(typeof(FileContentResult), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public IActionResult GenerateDashboardSummaryPdf(string? role = null)
