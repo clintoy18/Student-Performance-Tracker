@@ -46,12 +46,16 @@ namespace ASI.Basecode.WebApp
                     .ForMember(dest => dest.StudentFeedback, opt => opt.MapFrom(src => src.StudentFeedback))
                     .ForMember(dest => dest.TeacherName, opt => opt.MapFrom(src =>
                         $"{src.User.FirstName} {(string.IsNullOrEmpty(src.User.MiddleName) ? "" : src.User.MiddleName + " ")}{src.User.LastName}"));
+                CreateMap<GradeFeedbackForStudentCreateRequestModel, GradeFeedbackCreateForStudentModel>()
+                    .ForMember(dest => dest.StudentUserId, opt => opt.MapFrom(src => src.CourseStudentUserId));
                 CreateMap<CourseViewModel, Course>();
                 CreateMap<GradeFeedbackForTeacherDto, GradeFeedback>()
                     .ForMember(dest => dest.Id, opt => opt.Ignore())
                     .ForMember(dest => dest.CreatedTime, opt => opt.Ignore())
                     .ForMember(dest => dest.UpdatedTime, opt => opt.Ignore())
                     .ForMember(dest => dest.StudentFeedback, opt => opt.Ignore());
+                CreateMap<StudentCourseCreateRequest, StudentCourseCreateModel>()
+                    .ForMember(dest => dest.Grade, opt => opt.Ignore());
                 CreateMap<User, UserDto>()
                     .ForMember(dest => dest.role, opt => opt.MapFrom(src => src.Role.ToString()));
                 CreateMap<User, UserViewControllerModel>()
