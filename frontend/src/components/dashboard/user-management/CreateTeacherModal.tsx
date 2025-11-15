@@ -27,9 +27,11 @@ export default function CreateUserModal({
   });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const [formErrors] = useState<Partial<IUser>>({})
+  const [formErrors] = useState<Partial<IUser>>({});
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value,
@@ -46,9 +48,8 @@ export default function CreateUserModal({
       !formData.userId ||
       !formData.firstName ||
       !formData.lastName ||
-      !formData.password||
+      !formData.password ||
       (formData.role === "Student" && !formData.program) // only required for students
-
     ) {
       setError("Please fill in all required fields");
       return;
@@ -137,35 +138,55 @@ export default function CreateUserModal({
               required
             />
           </div>
+          <div className="grid grid-cols-1 gap-4">
+            {/* First Name */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                First Name <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                name="firstName"
+                value={formData.firstName}
+                onChange={handleChange}
+                placeholder="First Name"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                required
+              />
+            </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <input
-              type="text"
-              name="firstName"
-              value={formData.firstName}
-              onChange={handleChange}
-              placeholder="First Name"
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-              required
-            />
-            <input
-              type="text"
-              name="middleName"
-              value={formData.middleName}
-              onChange={handleChange}
-              placeholder="Middle Name"
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-            />
-            <input
-              type="text"
-              name="lastName"
-              value={formData.lastName}
-              onChange={handleChange}
-              placeholder="Last Name"
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-              required
-            />
+            {/* Middle Name */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Middle Name
+              </label>
+              <input
+                type="text"
+                name="middleName"
+                value={formData.middleName}
+                onChange={handleChange}
+                placeholder="Middle Name"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+              />
+            </div>
+
+            {/* Last Name */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Last Name <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                name="lastName"
+                value={formData.lastName}
+                onChange={handleChange}
+                placeholder="Last Name"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                required
+              />
+            </div>
           </div>
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Role <span className="text-red-500">*</span>
@@ -181,10 +202,8 @@ export default function CreateUserModal({
               <option value="Student">Student</option>
             </select>
           </div>
-
-
- <div>
-           {/* Program Field: only show if role is Student */}
+          <div>
+            {/* Program Field: only show if role is Student */}
             {formData.role === "Student" && (
               <div>
                 <SelectField
