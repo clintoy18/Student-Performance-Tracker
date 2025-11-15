@@ -33,9 +33,9 @@ namespace ASI.Basecode.Services.ServiceModels
         [StringLength(50, ErrorMessage = "Confirm password must not exceed 50 characters.")]
         [Compare("Password", ErrorMessage = "Password and Confirmation Password must match.")]
         public string ConfirmPassword { get; set; }
+        //nullable so we can create teacher without program
+        public string? Program { get; set; }
+        public UserRoles Role { get; set; }
 
-        [Required(ErrorMessage = "Program is required.")]
-        [StringLength(100, ErrorMessage = "This field must not exceed 50 characters.")]
-        public string Program { get; set; }
     }
 }

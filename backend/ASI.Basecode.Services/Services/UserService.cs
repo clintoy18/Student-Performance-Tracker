@@ -81,13 +81,28 @@ namespace ASI.Basecode.Services.Services
         {
             ArgumentNullException.ThrowIfNull(model);
 
-            // Check if this is the first user
+            // First user is always Admin
             bool isFirstUser = !_repository.GetUsers().Any();
 
-            // Choose prefix based on whether it's the first user
-            string prefix = isFirstUser ? "ADMIN" : "STU";
+            UserRoles role;
+            string prefix;
 
-            // Auto-generate user-id
+            if (isFirstUser)
+            {
+                role = UserRoles.Admin;
+                prefix = "ADM";
+            }
+            else
+            {
+                role = model.Role;
+                prefix = role switch
+                {
+                    UserRoles.Teacher => "TCH",
+                    UserRoles.Student => "STU",
+                    _ => throw new ArgumentException("Invalid role")
+                };
+            }
+
             string generatedUserId = GenerateIDNumber<User>("UserId", prefix);
 
             if (!_repository.UserExists(generatedUserId))
@@ -95,13 +110,8 @@ namespace ASI.Basecode.Services.Services
                 var user = new User();
                 _mapper.Map(model, user);
 
-                // Assign the generated ID
                 user.UserId = generatedUserId;
-
-                // Assign role: Admin if first user, otherwise Student
-                user.Role = isFirstUser ? UserRoles.Admin : UserRoles.Student;
-
-                // Hash the password
+                user.Role = role;
                 user.HashedPassword = PasswordManager.EncryptPassword(model.Password);
 
                 _repository.AddUser(user);

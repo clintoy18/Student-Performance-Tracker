@@ -67,32 +67,38 @@ namespace ASI.Basecode.WebApp.Controllers
         [ProducesResponseType(typeof(UserViewAdminModel), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public IActionResult CreateUser([FromBody] RegisterUserAdminModel request)
+        public IActionResult CreateUser([FromBody] RegisterUserViewModel request)
         {
             if (!ModelState.IsValid)
             {
-                return BadRequest(new { message = "Invalid request format.", errors = ModelState.Values.SelectMany(v => v.Errors) });
+                return BadRequest(new
+                {
+                    message = "Invalid request format.",
+                    errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage)
+                });
             }
 
             try
             {
-                var newUser = _mapper.Map<RegisterUserAdminModel>(request);
+                // Call the service — this returns the generated UserId
+                string generatedUserId = _userService.RegisterUser(request);
 
-                _userService.RegisterUserAdmin(newUser);
-
-                return Ok(new { message = "User registered successfully." });
+                // Return the generated ID in the response
+                return Ok(new RegisterControllerViewModel
+                {
+                    userId = generatedUserId,      
+                    message = "User created successfully."
+                });
             }
             catch (InvalidDataException ex)
             {
                 return BadRequest(new { message = ex.Message });
             }
-            catch (Exception ex)
+            catch
             {
-                _logger.LogError(ex, "Internal server error occurred while creating user.");
                 return StatusCode(500, new { message = "An internal server error has occurred." });
             }
         }
-
         /// <summary>
         /// Updates an existing user's information
         /// </summary>
