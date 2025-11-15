@@ -5,6 +5,8 @@ import { createStudentFeedback } from "@services/StudentService";
 import type { IStudentFeedbackRequest } from "@interfaces/requests/IStudentFeedbackRequest";
 import { checkStudentFeedbackExists } from "@services/StudentService";
 import { checkFeedbackExists , getFeedbackForStudent } from "@services/GradeFeedbackService";
+import { InlineSpinner } from "../../../components/common/LoadingSpinnerPage";
+
 import Modal from "../../common/modal/Modal"; // Your existing Modal component
 
 // Submit Feedback Modal Component
@@ -63,7 +65,6 @@ const SubmitFeedbackModal = ({
             <span className="text-sm font-medium">Course: {courseCode}</span>
           </div>
         </div>
-
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label
@@ -286,26 +287,30 @@ export const Grade = ({ studentUserId }: { studentUserId?: string }) => {
     }
   };
 
-  if (loading)
-    return <p className="text-sm text-gray-500">Loading grades...</p>;
-
   return (
     <>
-      <div className="space-y-3">
-        {grades.length === 0 ? (
-          <p className="text-sm text-gray-500">No grades available yet.</p>
-        ) : (
+          <div className="space-y-3">
+          {/* ⬇️ Loading State */}
+          {loading ? (
+            <div className="w-full flex flex-col items-center justify-center py-32">
+              <InlineSpinner />
+              <span className="text-sm mt-4 text-gray-800">
+                Loading grades...
+              </span>
+            </div>
+          ): (
+             <>
+          {/* ⬇️ Render ONLY when not loading */}
+          {grades.length === 0 ? (
+            <p className="text-sm text-gray-500">
+              No grades available yet.
+            </p>
+          ) : (
           <div className="space-y-2">
-            {grades.map((grade: any) => {
-              const hasStudentFeedback = grade.hasStudentFeedback || false;
-              const hasTeacherFeedback = grade.hasTeacherFeedback || false;
-              const showGrade =
-                hasStudentFeedback &&
-                grade.grade !== null &&
-                grade.grade !== undefined;
-              const hasTeacherFeedbackContent =
-                hasTeacherFeedback && grade.feedback;
-
+              {grades.map((grade: any) => {
+                const hasStudentFeedback = grade.hasStudentFeedback || false;
+                const hasTeacherFeedback = grade.hasTeacherFeedback || false;
+                const showGrade =hasStudentFeedback &&grade.grade !== null && grade.grade !== undefined;
               return (
                 <div
                   key={grade.id}
@@ -396,7 +401,9 @@ export const Grade = ({ studentUserId }: { studentUserId?: string }) => {
               );
             })}
           </div>
-        )}
+             )}
+        </>
+      )}
       </div>
 
       {/* Submit Feedback Modal */}
