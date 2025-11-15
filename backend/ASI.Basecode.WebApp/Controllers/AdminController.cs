@@ -38,7 +38,6 @@ namespace ASI.Basecode.WebApp.Controllers
             ICourseService courseService,
             IPdfService pdfService,
             IStudentCourseService studentCourseService,
-            ILogger<AdminController> logger)
             ILogger<AdminController> logger,
             IMapper mapper
         )
