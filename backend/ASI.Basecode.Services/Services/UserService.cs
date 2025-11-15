@@ -168,16 +168,7 @@ namespace ASI.Basecode.Services.Services
         public List<UserViewAdminModel> GetRecentUsers(int count)
         {
             var users = _repository.GetRecentUsers(count);
-            return users.Select(u => new UserViewAdminModel
-            {
-                UserId = u.UserId,
-                FirstName = u.FirstName,
-                MiddleName = u.MiddleName,
-                LastName = u.LastName,
-                Program = u.Program,
-                Role = u.Role,
-                CreatedTime = u.CreatedTime
-            }).ToList();
+            return _mapper.Map<List<UserViewAdminModel>>(users);
         }
 
         public UserStatisticsViewModel GetUserStatistics()

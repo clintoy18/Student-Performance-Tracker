@@ -331,6 +331,10 @@ namespace ASI.Basecode.WebApp.Controllers
             try
             {
                 var users = _userService.GetRecentUsers(count);
+
+                if (users == null || !users.Any())
+                    return NotFound(new { message = "No users found." });
+
                 return Ok(users);
             }
             catch (Exception ex)
