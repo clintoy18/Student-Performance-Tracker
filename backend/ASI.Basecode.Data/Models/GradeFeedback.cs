@@ -1,5 +1,4 @@
 using System;
-using System.ComponentModel.DataAnnotations;
 
 namespace ASI.Basecode.Data.Models
 {
@@ -7,14 +6,11 @@ namespace ASI.Basecode.Data.Models
     {
         public int Id { get; set; }
 
-        public string? Feedback { get; set; }  // Teacher feedback
+        public string? Feedback { get; set; }
         public string? StudentFeedback { get; set; }
 
-        [StringLength(50)]
-        public string? StudentCourseId { get; set; }  // FK to StudentCourse
-
-        [StringLength(50)]
-        public string? UserId { get; set; }  // FK to Teacher (User)
+        public string? StudentCourseId { get; set; }
+        public string? UserId { get; set; }
 
         public DateTime CreatedTime { get; set; } = DateTime.UtcNow;
         public DateTime UpdatedTime { get; set; } = DateTime.UtcNow;
