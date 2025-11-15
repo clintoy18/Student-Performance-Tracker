@@ -93,74 +93,7 @@ namespace ASI.Basecode.Services.Services
             File.WriteAllBytes(filePath, pdfBytes);
         }
 
-        /// <summary>
-        /// Generates a full admin user report (real data from UserService)
-        /// </summary>
-        //     public byte[] GenerateUserReport(UserStatisticsViewModel stats, List<UserViewAdminModel> users)
-        //{
-        //    if (stats == null)
-        //        throw new ArgumentNullException(nameof(stats), "stats is null in GenerateUserReport");
-        //    if (users == null)
-        //        throw new ArgumentNullException(nameof(users), "users list is null in GenerateUserReport");
-        //    if (users.Any(u => u == null))
-        //        throw new ArgumentException("One or more users in the list are null", nameof(users));
-
-        //    using (var document = new PdfDocument())
-        //    {
-        //        PdfPage page = document.AddPage();
-        //        XGraphics gfx = XGraphics.FromPdfPage(page);
-
-        //        var titleFont = new XFont("Verdana", 18, XFontStyle.Bold);
-        //        var headerFont = new XFont("Verdana", 14, XFontStyle.Bold);
-        //        var textFont = new XFont("Verdana", 12, XFontStyle.Regular);
-
-        //        // Title
-        //        gfx.DrawString("User Summary Report", titleFont, XBrushes.Black,
-        //            new XRect(0, 40, page.Width, 40), XStringFormats.TopCenter);
-
-        //        double y = 100;
-        //        gfx.DrawString("📊 System Overview", headerFont, XBrushes.Black, new XPoint(40, y));
-        //        y += 25;
-        //        gfx.DrawString($"Total Users: {stats.TotalUsers}", textFont, XBrushes.Black, new XPoint(60, y)); y += 20;
-        //        gfx.DrawString($"Total Students: {stats.TotalStudents}", textFont, XBrushes.Black, new XPoint(60, y)); y += 20;
-        //        gfx.DrawString($"Total Teachers: {stats.TotalTeachers}", textFont, XBrushes.Black, new XPoint(60, y)); y += 20;
-        //        gfx.DrawString($"Total Admins: {stats.TotalAdmins}", textFont, XBrushes.Black, new XPoint(60, y)); y += 40;
-
-        //        gfx.DrawString("👥 User List", headerFont, XBrushes.Black, new XPoint(40, y));
-        //        y += 25;
-
-        //        // Table Header
-        //        gfx.DrawString("User ID", headerFont, XBrushes.Black, new XPoint(40, y));
-        //        gfx.DrawString("Name", headerFont, XBrushes.Black, new XPoint(140, y));
-        //        gfx.DrawString("Program", headerFont, XBrushes.Black, new XPoint(320, y));
-        //        gfx.DrawString("Role", headerFont, XBrushes.Black, new XPoint(460, y));
-        //        y += 20;
-
-        //        // Table Data
-        //        foreach (var user in users)
-        //        {
-        //            // SAFETY: Prevent null fields
-        //            var userId = user?.UserId ?? "-";
-        //            var firstName = user?.FirstName ?? "-";
-        //            var lastName = user?.LastName ?? "-";
-        //            var program = string.IsNullOrWhiteSpace(user?.Program) ? "-" : user.Program;
-        //            var role = user?.Role.ToString() ?? "-";
-
-        //            gfx.DrawString(userId, textFont, XBrushes.Black, new XPoint(40, y));
-        //            gfx.DrawString($"{firstName} {lastName}", textFont, XBrushes.Black, new XPoint(140, y));
-        //            gfx.DrawString(program, textFont, XBrushes.Black, new XPoint(320, y));
-        //            gfx.DrawString(role, textFont, XBrushes.Black, new XPoint(460, y));
-
-        //            y += 20;
-        //        }
-
-        //        using (var stream = new MemoryStream())
-        //        {
-        //            document.Save(stream, false);
-        //            return stream.ToArray();
-        //        }
-        //    }
-        //}
+        //generates summary of reports by roles or all
         public byte[] GenerateDashboardSummaryReport(
          DashboardStatsViewModel dashboardStats,
          List<UserViewAdminModel> users,
@@ -329,6 +262,107 @@ namespace ASI.Basecode.Services.Services
                 }
 
 
+                // --- Footer ---A
+                gfx.DrawLine(linePen, margin, page.Height - 50, page.Width - margin, page.Height - 50);
+                gfx.DrawString($"Generated on: {DateTime.Now:MMMM dd, yyyy h:mm tt}", footerFont, XBrushes.Gray,
+                    new XPoint(margin, page.Height - 35));
+                gfx.DrawString("Student Performance Tracker | All Rights Reserved", footerFont, XBrushes.Gray,
+                    new XPoint(margin, page.Height - 20));
+
+                using (var stream = new MemoryStream())
+                {
+                    document.Save(stream, false);
+                    return stream.ToArray();
+                }
+            }
+        }
+
+
+        //generates all the grades per courses 
+
+        public byte[] GenerateGradesPerCoursePdf(List<CourseGradesViewModel> coursesGrades, string title = "Grades Per Course Report")
+        {
+            if (coursesGrades == null) throw new ArgumentNullException(nameof(coursesGrades));
+
+            using (var document = new PdfDocument())
+            {
+                var page = document.AddPage();
+                var gfx = XGraphics.FromPdfPage(page);
+
+                // Layout
+                double margin = 40;
+                double y = 60;
+                double pageWidth = page.Width;
+                double contentWidth = pageWidth - (margin * 2);
+
+                // Fonts
+                var titleFont = new XFont("Helvetica", 20, XFontStyle.Bold);
+                var courseFont = new XFont("Helvetica", 14, XFontStyle.Bold);
+                var studentFont = new XFont("Helvetica", 11, XFontStyle.Regular);
+                var footerFont = new XFont("Helvetica", 9, XFontStyle.Italic);
+
+                // Colors
+                var primaryColor = XBrushes.DarkSlateBlue;
+                var altRowColor = new XSolidBrush(XColor.FromArgb(240, 240, 240));
+                var tableHeader = XBrushes.Gainsboro;
+                var linePen = new XPen(XColor.FromArgb(200, 200, 200), 0.6);
+
+                // --- Header ---
+                gfx.DrawRectangle(primaryColor, 0, 0, page.Width, 50);
+                gfx.DrawString(title, titleFont, XBrushes.White,
+                    new XRect(0, 10, page.Width, 40), XStringFormats.TopCenter);
+
+                y += 20;
+
+                foreach (var course in coursesGrades)
+                {
+                    // --- Course Title ---
+                    if (y > page.Height - 100)
+                    {
+                        page = document.AddPage();
+                        gfx = XGraphics.FromPdfPage(page);
+                        y = 60;
+                    }
+
+                    gfx.DrawString($"{course.CourseCode} - {course.CourseName}", courseFont, primaryColor, new XPoint(margin, y));
+                    y += 25;
+
+                    // Table header for students
+                    double colWidthId = 100;
+                    double colWidthName = 250;
+                    double colWidthGrade = 80;
+                    double rowHeight = 20;
+
+                    gfx.DrawRectangle(tableHeader, margin, y, contentWidth, rowHeight);
+                    gfx.DrawString("Student ID", studentFont, XBrushes.Black, new XPoint(margin + 5, y + 14));
+                    gfx.DrawString("Student Name", studentFont, XBrushes.Black, new XPoint(margin + colWidthId + 5, y + 14));
+                    gfx.DrawString("Grade", studentFont, XBrushes.Black, new XPoint(margin + colWidthId + colWidthName + 5, y + 14));
+                    y += rowHeight;
+
+                    int row = 0;
+                    foreach (var student in course.StudentGrades)
+                    {
+                        if (y > page.Height - 80)
+                        {
+                            page = document.AddPage();
+                            gfx = XGraphics.FromPdfPage(page);
+                            y = 60;
+                        }
+
+                        var bgColor = (row % 2 == 0) ? XBrushes.White : altRowColor;
+                        gfx.DrawRectangle(bgColor, margin, y, contentWidth, rowHeight);
+
+                        gfx.DrawString(student.StudentId ?? "-", studentFont, XBrushes.Black, new XPoint(margin + 5, y + 14));
+                        gfx.DrawString(student.StudentName ?? "-", studentFont, XBrushes.Black, new XPoint(margin + colWidthId + 5, y + 14));
+                        gfx.DrawString(student.Grade?.ToString("F2") ?? "-", studentFont, XBrushes.Black, new XPoint(margin + colWidthId + colWidthName + 5, y + 14));
+
+                        y += rowHeight;
+                        row++;
+                    }
+
+                    y += 30; // space before next course
+                }
+
                 // --- Footer ---
                 gfx.DrawLine(linePen, margin, page.Height - 50, page.Width - margin, page.Height - 50);
                 gfx.DrawString($"Generated on: {DateTime.Now:MMMM dd, yyyy h:mm tt}", footerFont, XBrushes.Gray,
@@ -344,7 +378,10 @@ namespace ASI.Basecode.Services.Services
             }
         }
 
+
     }
+
+
 
 
 }

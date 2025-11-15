@@ -107,5 +107,23 @@ namespace ASI.Basecode.Services.Services
                 Course = sc.Course
             }).ToList();
         }
+
+        public List<CourseGradesViewModel> GetGradesPerCourse()
+        {
+            var studentCourses = _repository.GetAllStudentCoursesWithUsersAndCourses().ToList();
+
+            var result = studentCourses
+                .GroupBy(sc => sc.Course.CourseCode)
+                .Select(g => new CourseGradesViewModel
+                {
+                    CourseCode = g.Key,
+                    CourseName = g.First().Course.CourseName,
+                    StudentGrades = _mapper.Map<List<StudentCourseGradeViewModel>>(g.OrderByDescending(sc => sc.Grade))
+                })
+                .ToList();
+
+            return result;
+        }
+
     }
 }

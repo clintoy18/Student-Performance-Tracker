@@ -27,6 +27,7 @@ namespace ASI.Basecode.WebApp.Controllers
         private readonly IUserService _userService;
         private readonly ICourseService _courseService;
         private readonly IJwtService _jwtService;
+        private readonly IStudentCourseService _studentCourseService;
         private readonly IPdfService _pdfService;
         private readonly ILogger<AdminController> _logger;
 
@@ -35,10 +36,12 @@ namespace ASI.Basecode.WebApp.Controllers
             IUserService userService,
             ICourseService courseService,
             IPdfService pdfService,
+            IStudentCourseService studentCourseService,
         ILogger<AdminController> logger)
         {
             _jwtService = jwtService;
             _userService = userService;
+            _studentCourseService = studentCourseService;
             _courseService = courseService;
             _pdfService = pdfService;
             _logger = logger;
@@ -519,6 +522,65 @@ namespace ASI.Basecode.WebApp.Controllers
             }
         }
 
+        //[HttpGet("per-course")]
+        //[AllowAnonymous]
+        //[ProducesResponseType(typeof(FileContentResult), StatusCodes.Status200OK)]
+        //[ProducesResponseType(StatusCodes.Status400BadRequest)]
+        //[ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        //[HttpGet("grades-report")]
+        //public IActionResult DownloadGradesReport()
+        //{
+        //    try
+        //    {
+        //        var pdfBytes = _pdfService.GenerateGradesReportPdf();
+        //        return File(pdfBytes, "application/pdf", "GradesReport.pdf");
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return StatusCode(500, new { message = "Cannot generate grades report", error = ex.Message });
+        //    }
+        //}
+        [HttpGet("grades")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public IActionResult GetGradesPerCourse()
+        {
+            try
+            {
+                var grades = _studentCourseService.GetGradesPerCourse();
+                return Ok(grades);
+            }
+            catch (Exception ex)
+            {
+                // Log exception if you have a logger
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
+
+
+        // GET: api/Reports/GradesPerCourse
+        [HttpGet("GradesPerCourse")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public IActionResult GetGradesPerCoursePdf()
+        {
+            try
+            {
+                // Fetch data
+                var grades = _studentCourseService.GetGradesPerCourse();
+
+                // Generate PDF
+                var pdfBytes = _pdfService.GenerateGradesPerCoursePdf(grades);
+
+                // Return file
+                return File(pdfBytes, "application/pdf", "GradesPerCourseReport.pdf");
+            }
+            catch (Exception ex)
+            {
+                // Optional: log the exception
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
     }
 
 }

@@ -1,7 +1,8 @@
-﻿using AutoMapper;
-using ASI.Basecode.Data.Models;
+﻿using ASI.Basecode.Data.Models;
 using ASI.Basecode.Services.ServiceModels;
+using AutoMapper;
 using Microsoft.Extensions.DependencyInjection;
+using System.Linq;
 
 namespace ASI.Basecode.WebApp
 {
@@ -49,6 +50,21 @@ namespace ASI.Basecode.WebApp
 
                 // map for users
                 CreateMap<User, UserViewAdminModel>();
+
+
+                // Map StudentCourse → StudentCourseGradeViewModel
+                CreateMap<StudentCourse, StudentCourseGradeViewModel>()
+                    .ForMember(dest => dest.StudentId, opt => opt.MapFrom(src => src.User.UserId))
+                    .ForMember(dest => dest.StudentName, opt => opt.MapFrom(src => $"{src.User.FirstName} {src.User.LastName}"))
+                    .ForMember(dest => dest.Grade, opt => opt.MapFrom(src => src.Grade));
+
+                // Map IGrouping<string, StudentCourse> → CourseGradesViewModel
+                CreateMap<IGrouping<string, StudentCourse>, CourseGradesViewModel>()
+                    .ForMember(dest => dest.CourseCode, opt => opt.MapFrom(src => src.Key))
+                    .ForMember(dest => dest.CourseName, opt => opt.MapFrom(src => src.First().Course.CourseName))
+                    .ForMember(dest => dest.StudentGrades, opt => opt.MapFrom(src => src));
+
+
             }
         }
     }
