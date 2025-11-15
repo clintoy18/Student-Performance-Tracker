@@ -167,8 +167,10 @@ namespace ASI.Basecode.Services.Services
 
         public List<UserViewAdminModel> GetRecentUsers(int count)
         {
-            var users = _repository.GetRecentUsers(count);
-            return _mapper.Map<List<UserViewAdminModel>>(users);
+            
+            return _repository.GetRecentUsers(count)
+                .ProjectTo<UserViewAdminModel>(_mapper.ConfigurationProvider) //allows selecting only the necesa
+                .ToList();
         }
 
         public UserStatisticsViewModel GetUserStatistics()
