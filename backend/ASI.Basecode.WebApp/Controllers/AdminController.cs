@@ -522,44 +522,9 @@ namespace ASI.Basecode.WebApp.Controllers
             }
         }
 
-        //[HttpGet("per-course")]
-        //[AllowAnonymous]
-        //[ProducesResponseType(typeof(FileContentResult), StatusCodes.Status200OK)]
-        //[ProducesResponseType(StatusCodes.Status400BadRequest)]
-        //[ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        //[HttpGet("grades-report")]
-        //public IActionResult DownloadGradesReport()
-        //{
-        //    try
-        //    {
-        //        var pdfBytes = _pdfService.GenerateGradesReportPdf();
-        //        return File(pdfBytes, "application/pdf", "GradesReport.pdf");
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        return StatusCode(500, new { message = "Cannot generate grades report", error = ex.Message });
-        //    }
-        //}
-        [HttpGet("grades")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public IActionResult GetGradesPerCourse()
-        {
-            try
-            {
-                var grades = _studentCourseService.GetGradesPerCourse();
-                return Ok(grades);
-            }
-            catch (Exception ex)
-            {
-                // Log exception if you have a logger
-                return StatusCode(500, $"Internal server error: {ex.Message}");
-            }
-        }
-
-
-        // GET: api/Reports/GradesPerCourse
-        [HttpGet("GradesPerCourse")]
+        // GET: api/admin/pdf/grades-per-course
+        [HttpGet("pdf/grades-per-course")]
+        [Authorize(Roles = "Admin")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public IActionResult GetGradesPerCoursePdf()
