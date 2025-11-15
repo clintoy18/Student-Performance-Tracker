@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo, useEffect, useRef } from "react";
 import {
   useReactTable,
   getCoreRowModel,
@@ -19,7 +19,9 @@ import {
   Users,
   UserPlus,
   BookOpen,
+  MoreVertical,
 } from "lucide-react";
+import { createPortal } from "react-dom";
 import Button from "../../common/Button";
 import Modal from "../../common/modal/Modal";
 import SubjectForm from "./subjects/SubjectForm";
@@ -31,11 +33,127 @@ import type { ICourse } from "@interfaces/models/ICourse";
 import { useAuth } from "../../../context/AuthContext";
 import { InlineSpinner } from "../../../components/common/LoadingSpinnerPage";
 import type { IUser } from "@interfaces";
+
 interface ICourseWithTeacherDetails extends ICourse {
   TeacherDetails: IUser
 }
 
 const columnHelper = createColumnHelper<ICourseWithTeacherDetails>();
+
+// Action Dropdown Component with Positioning
+const ActionDropdown = ({ 
+  course, 
+  onEdit,
+  onDelete,
+  onViewStudents,
+  onEnroll,
+  onAssignTeacher
+}: { 
+  course: ICourse; 
+  onEdit: () => void; 
+  onDelete: () => void;
+  onViewStudents: () => void;
+  onEnroll: () => void;
+  onAssignTeacher: () => void;
+}) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [position, setPosition] = useState({ top: 0, left: 0 });
+  const buttonRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (buttonRef.current && !buttonRef.current.contains(event.target as Node)) {
+        const dropdown = document.getElementById(`dropdown-${course.CourseCode}`);
+        if (dropdown && !dropdown.contains(event.target as Node)) {
+          setIsOpen(false);
+        }
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [course.CourseCode]);
+
+  const handleToggle = () => {
+    if (!isOpen && buttonRef.current) {
+      const rect = buttonRef.current.getBoundingClientRect();
+      setPosition({
+        top: rect.bottom + window.scrollY,
+        left: rect.right + window.scrollX - 192, // 192px = w-48 (12rem = 192px)
+      });
+    }
+    setIsOpen(!isOpen);
+  };
+
+  const handleAction = (action: () => void) => {
+    action();
+    setIsOpen(false);
+  };
+
+  return (
+    <>
+      <button
+        ref={buttonRef}
+        onClick={handleToggle}
+        className="p-2 rounded hover:bg-gray-100 transition-colors"
+        title="More actions"
+      >
+        <MoreVertical size={16} className="text-gray-600" />
+      </button>
+
+      {isOpen &&
+        createPortal(
+          <div
+            id={`dropdown-${course.CourseCode}`}
+            style={{
+              position: 'absolute',
+              top: `${position.top}px`,
+              left: `${position.left}px`,
+            }}
+            className="w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50"
+          >
+            <button
+              onClick={() => handleAction(onViewStudents)}
+              className="w-full flex items-center gap-2 px-4 py-2 text-sm text-purple-600 hover:bg-purple-50 transition-colors"
+            >
+              <Users size={14} />
+              <span>View Students</span>
+            </button>
+            <button
+              onClick={() => handleAction(onEnroll)}
+              className="w-full flex items-center gap-2 px-4 py-2 text-sm text-green-600 hover:bg-green-50 transition-colors"
+            >
+              <UserPlus size={14} />
+              <span>Enroll Student</span>
+            </button>
+            <button
+              onClick={() => handleAction(onAssignTeacher)}
+              className="w-full flex items-center gap-2 px-4 py-2 text-sm text-indigo-600 hover:bg-indigo-50 transition-colors"
+            >
+              <UserPlus size={14} />
+              <span>Assign Teacher</span>
+            </button>
+            <div className="border-t border-gray-200 my-1"></div>
+            <button
+              onClick={() => handleAction(onEdit)}
+              className="w-full flex items-center gap-2 px-4 py-2 text-sm text-blue-600 hover:bg-blue-50 transition-colors"
+            >
+              <Edit size={14} />
+              <span>Edit Course</span>
+            </button>
+            <button
+              onClick={() => handleAction(onDelete)}
+              className="w-full flex items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
+            >
+              <Trash2 size={14} />
+              <span>Delete Course</span>
+            </button>
+          </div>,
+          document.body
+        )}
+    </>
+  );
+};
 
 export default function Subjects() {
   const { user } = useAuth();
@@ -212,52 +330,14 @@ export default function Subjects() {
       cell: (info) => {
         const course = info.row.original;
         return (
-          <div className="flex gap-1 sm:gap-2 flex-wrap">
-            <button
-              onClick={() => handleOpenViewStudents(course)}
-              className="flex items-center gap-1 text-purple-600 border border-purple-300 px-2 py-1 rounded text-xs hover:bg-purple-50 transition-colors"
-              title="View Enrolled Students"
-            >
-              <Users size={12} />
-              <span className="hidden sm:inline">Students</span>
-            </button>
-
-            <button
-              onClick={() => handleOpenEnroll(course)}
-              className="flex items-center gap-1 text-green-600 border border-green-300 px-2 py-1 rounded text-xs hover:bg-green-50 transition-colors"
-              title="Enroll Student"
-            >
-              <UserPlus size={12} />
-              <span className="hidden sm:inline">Enroll</span>
-            </button>
-
-            <button
-              onClick={() => handleOpenAssignTeacher(course)}
-              className="flex items-center gap-1 text-indigo-600 border border-indigo-300 px-2 py-1 rounded text-xs hover:bg-indigo-50 transition-colors"
-              title="Assign Teacher"
-            >
-              <UserPlus size={12} />
-              <span className="hidden sm:inline">Assign</span>
-            </button>
-
-            <button
-              onClick={() => handleOpenEdit(course)}
-              className="flex items-center gap-1 text-blue-600 border border-blue-300 px-2 py-1 rounded text-xs hover:bg-blue-50 transition-colors"
-              title="Edit Course"
-            >
-              <Edit size={12} />
-              <span className="hidden sm:inline">Edit</span>
-            </button>
-
-            <button
-              onClick={() => handleOpenDelete(course)}
-              className="flex items-center gap-1 text-red-600 border border-red-300 px-2 py-1 rounded text-xs hover:bg-red-50 transition-colors"
-              title="Delete Course"
-            >
-              <Trash2 size={12} />
-              <span className="hidden sm:inline">Delete</span>
-            </button>
-          </div>
+          <ActionDropdown
+            course={course}
+            onEdit={() => handleOpenEdit(course)}
+            onDelete={() => handleOpenDelete(course)}
+            onViewStudents={() => handleOpenViewStudents(course)}
+            onEnroll={() => handleOpenEnroll(course)}
+            onAssignTeacher={() => handleOpenAssignTeacher(course)}
+          />
         );
       },
     },
@@ -330,7 +410,7 @@ export default function Subjects() {
           <tbody>
             {loading ? (
               <tr>
-                <td colSpan={4}>
+                <td colSpan={5}>
                   <div className="flex flex-col py-32 items-center">
                     <InlineSpinner />
                     <span className="text-sm py-4 text-gray-800">Loading courses...</span>
@@ -349,7 +429,7 @@ export default function Subjects() {
               ))
             ) : (
               <tr>
-                <td colSpan={4} className="text-center py-8 text-gray-500">
+                <td colSpan={5} className="text-center py-8 text-gray-500">
                   <BookOpen className="w-12 h-12 mx-auto text-gray-300 mb-3" />
                   <p className="text-sm">No courses found.</p>
                   <p className="text-xs mt-1">Add your first course to get started</p>
