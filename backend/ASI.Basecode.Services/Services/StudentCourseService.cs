@@ -133,7 +133,7 @@ namespace ASI.Basecode.Services.Services
 
             if (!studentCourses.Any())
             {
-                throw new ArgumentException("No students enrolled in this course.");
+                throw new ArgumentException("No students enrolled in this course ." );
             }
 
             var courseGrades = new CourseGradesViewModel
