@@ -548,6 +548,7 @@ namespace ASI.Basecode.WebApp.Controllers
 
                 // Return and download file
                 return File(pdfBytes, "application/pdf", "CourseGradeSummary.pdf");
+
             }
             catch (Exception ex)
             {

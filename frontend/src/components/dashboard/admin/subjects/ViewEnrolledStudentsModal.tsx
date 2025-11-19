@@ -41,18 +41,26 @@ export default function ViewEnrolledStudentsModal({
     null
   );
 
-  const handleExportGradesPerCourse = async () => {
+  const handleExportGradesPerCourse = async (courseCode: string) => {
+    console.log("Exporting grades for course code:", courseCode);
+
     try {
-      const blob = await exportGradesPerCoursePDF();
+      const blob = await exportGradesPerCoursePDF(courseCode);
+      console.log("Export response blob:", blob);
       const url = window.URL.createObjectURL(new Blob([blob]));
       const link = document.createElement("a");
       link.href = url;
-      link.setAttribute("download", `grades-per-course.pdf`);
+      link.setAttribute("download", `grades-${courseCode}.pdf`);
       document.body.appendChild(link);
       link.click();
       link.remove();
+      window.URL.revokeObjectURL(url);
+      console.log("Clicked Export for:", course.CourseCode);
+
     } catch (error) {
       console.error("Error exporting grades per course PDF:", error);
+      console.log("Clicked Export for:", course.CourseCode);
+
     }
   };
 
@@ -75,6 +83,8 @@ export default function ViewEnrolledStudentsModal({
       const rawData = await getStudentsByCourse(course.CourseCode);
 
       console.log(rawData);
+      console.log("Sending course code to backend:", course.CourseCode);
+
       const parsedData: IStudentCourse[] = rawData.map((studentCourse) => ({
         StudentCourseId: studentCourse.studentCourseId,
         StudentUserId: studentCourse.studentUserId,
@@ -162,13 +172,15 @@ export default function ViewEnrolledStudentsModal({
 
           {/* Right Section */}
           <div className="flex items-center gap-3">
-            <button
-              onClick={exportGradesPerCoursePDF}
-              className="flex items-center gap-2 px-4 py-2 rounded-lg border border-red-600 bg-red-50 text-red-700 font-medium shadow-sm hover:bg-red-100 hover:text-red-800 focus:outline-none focus:ring-2 focus:ring-red-300 focus:ring-offset-1 transition-colors"
-            >
-              <FileText className="w-5 h-5" />
-              <span>Export Grades</span>
-            </button>
+            {course && (
+              <button
+                onClick={() => handleExportGradesPerCourse(course.CourseCode)}
+                className="flex items-center gap-2 px-4 py-2 rounded-lg border border-red-600 bg-red-50 text-red-700 font-medium shadow-sm hover:bg-red-100 hover:text-red-800 focus:outline-none focus:ring-2 focus:ring-red-300 focus:ring-offset-1 transition-colors"
+              >
+                <FileText className="w-5 h-5" />
+                <span>Export Grades</span>
+              </button>
+            )}
 
             <button
               onClick={onClose}
