@@ -15,5 +15,8 @@ public interface IPdfService
 
     byte[] GenerateCourseGradeSummary(List<CourseGradesViewModel> coursesGrades, string title = "Grades Summary Report");
 
+    public byte[] GenerateGradesByCourse(CourseGradesViewModel courseGrades, string title = "Student Grades Report");
+
+
 
 }

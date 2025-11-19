@@ -21,5 +21,7 @@ namespace ASI.Basecode.Data.Interfaces
         public void DeleteStudentCourseByStudentCourseId(string studentCourseId);
 
         public IQueryable<StudentCourse> GetAllStudentCoursesWithUsersAndCourses();
+        public IQueryable<StudentCourse> GetStudentCoursesGradesByCourseCode(string courseCode);
+
     }
 }

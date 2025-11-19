@@ -80,5 +80,17 @@ namespace ASI.Basecode.Data.Repositories
                 .Include(sc => sc.User);
         }
 
+        public IQueryable<StudentCourse> GetStudentCoursesGradesByCourseCode(string courseCode)
+        {
+            if (string.IsNullOrEmpty(courseCode))
+            {
+                throw new ArgumentNullException(nameof(courseCode));
+            }
+            return GetDbSet<StudentCourse>()
+                .Include(sc => sc.Course)
+                .Include(sc => sc.User)
+                .Where(sc => sc.CourseCode == courseCode);
+        }
+
     }
 }

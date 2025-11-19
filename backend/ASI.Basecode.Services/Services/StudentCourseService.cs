@@ -125,5 +125,28 @@ namespace ASI.Basecode.Services.Services
             return result;
         }
 
+        public CourseGradesViewModel? GetGradesByCourseCode(string courseCode)
+        {
+
+            var studentCourses = _repository.GetStudentCoursesByCourse(courseCode).ToList();
+
+
+            if (!studentCourses.Any())
+            {
+                throw new ArgumentException("No students enrolled in this course.");
+            }
+
+            var courseGrades = new CourseGradesViewModel
+            {
+                CourseCode = studentCourses.First().Course.CourseCode,
+                CourseName = studentCourses.First().Course.CourseName,
+                StudentGrades = _mapper.Map<List<StudentCourseGradeViewModel>>(studentCourses)
+            };
+            
+            return courseGrades;
+        }
+
+
+
     }
 }

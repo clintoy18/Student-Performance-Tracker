@@ -280,7 +280,7 @@ namespace ASI.Basecode.Services.Services
 
         //generates all the grades of each course 
 
-        public byte[] GenerateCourseGradeSummary(List<CourseGradesViewModel> coursesGrades, string title = "Grades Per Course Report")
+        public byte[] GenerateCourseGradeSummary(List<CourseGradesViewModel> coursesGrades, string title = "Grades Per Course Report Summary")
         {
             if (coursesGrades == null) throw new ArgumentNullException(nameof(coursesGrades));
 
@@ -378,6 +378,95 @@ namespace ASI.Basecode.Services.Services
             }
         }
 
+        public byte[] GenerateGradesByCourse(CourseGradesViewModel courseGrades , string title = "Student Grades Report")
+        {
+            if (courseGrades == null) throw new ArgumentNullException(nameof(courseGrades));
+
+            using (var document = new PdfDocument())
+            {
+                var page = document.AddPage();
+                var gfx = XGraphics.FromPdfPage(page);
+
+                // Layout
+                double margin = 40;
+                double y = 60;
+                double pageWidth = page.Width;
+                double contentWidth = pageWidth - (margin * 2);
+
+                // Fonts
+                var titleFont = new XFont("Helvetica", 20, XFontStyle.Bold);
+                var courseFont = new XFont("Helvetica", 14, XFontStyle.Bold);
+                var studentFont = new XFont("Helvetica", 11, XFontStyle.Regular);
+                var footerFont = new XFont("Helvetica", 9, XFontStyle.Italic);
+
+                // Colors
+                var primaryColor = XBrushes.DarkSlateBlue;
+                var altRowColor = new XSolidBrush(XColor.FromArgb(240, 240, 240));
+                var tableHeader = XBrushes.Gainsboro;
+                var linePen = new XPen(XColor.FromArgb(200, 200, 200), 0.6);
+
+                // --- Header ---
+                gfx.DrawRectangle(primaryColor, 0, 0, page.Width, 50);
+                gfx.DrawString(title, titleFont, XBrushes.White,
+                    new XRect(0, 10, page.Width, 40), XStringFormats.TopCenter);
+
+                y += 20;
+
+
+
+                gfx.DrawString($"{courseGrades.CourseCode} - {courseGrades.CourseName}", courseFont, primaryColor, new XPoint(margin, y));
+                y += 25;
+
+                // Table header for students
+                double colWidthId = 100;
+                double colWidthName = 250;
+                double colWidthGrade = 80;
+                double rowHeight = 20;
+
+                gfx.DrawRectangle(tableHeader, margin, y, contentWidth, rowHeight);
+                gfx.DrawString("Student ID", studentFont, XBrushes.Black, new XPoint(margin + 5, y + 14));
+                gfx.DrawString("Student Name", studentFont, XBrushes.Black, new XPoint(margin + colWidthId + 5, y + 14));
+                gfx.DrawString("Grade", studentFont, XBrushes.Black, new XPoint(margin + colWidthId + colWidthName + 5, y + 14));
+                y += rowHeight;
+
+                int row = 0;
+                foreach (var student in courseGrades.StudentGrades)
+                {
+                    if (y > page.Height - 80)
+                    {
+                        page = document.AddPage();
+                        gfx = XGraphics.FromPdfPage(page);
+                        y = 60;
+                    }
+
+                    var bgColor = (row % 2 == 0) ? XBrushes.White : altRowColor;
+                    gfx.DrawRectangle(bgColor, margin, y, contentWidth, rowHeight);
+
+                    gfx.DrawString(student.StudentId ?? "-", studentFont, XBrushes.Black, new XPoint(margin + 5, y + 14));
+                    gfx.DrawString(student.StudentName ?? "-", studentFont, XBrushes.Black, new XPoint(margin + colWidthId + 5, y + 14));
+                    gfx.DrawString(student.Grade?.ToString("F2") ?? "-", studentFont, XBrushes.Black, new XPoint(margin + colWidthId + colWidthName + 5, y + 14));
+
+                    y += rowHeight;
+                    row++;
+                }
+
+                y += 30; // space before next course
+
+
+                // --- Footer ---
+                gfx.DrawLine(linePen, margin, page.Height - 50, page.Width - margin, page.Height - 50);
+                gfx.DrawString($"Generated on: {DateTime.Now:MMMM dd, yyyy h:mm tt}", footerFont, XBrushes.Gray,
+                    new XPoint(margin, page.Height - 35));
+                gfx.DrawString("Student Performance Tracker | All Rights Reserved", footerFont, XBrushes.Gray,
+                    new XPoint(margin, page.Height - 20));
+
+                using (var stream = new MemoryStream())
+                {
+                    document.Save(stream, false);
+                    return stream.ToArray();
+                }
+            }
+        }
 
     }
 

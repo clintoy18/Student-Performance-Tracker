@@ -528,6 +528,34 @@ namespace ASI.Basecode.WebApp.Controllers
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
+
+
+           // GET: api/admin/pdf/grades-per-course
+        [HttpGet("pdf/grades-per-course")]
+        //[Authorize(Roles = "Admin")]
+        [AllowAnonymous]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public IActionResult GetCourseGradesByCourseCode(string courseCode)
+        {
+            try
+            {
+                // Fetch grades using the service
+                var grades = _studentCourseService.GetGradesByCourseCode(courseCode);
+
+                // Generate PDF using pdfService
+                var pdfBytes = _pdfService.GenerateGradesByCourse(grades);
+
+                // Return and download file
+                return File(pdfBytes, "application/pdf", "CourseGradeSummary.pdf");
+            }
+            catch (Exception ex)
+            {
+                // Optional: log the exception
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
     }
+
 
 }
