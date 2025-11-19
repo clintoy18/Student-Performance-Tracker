@@ -35,7 +35,7 @@ import {
   updateCourse,
   deleteCourseByCourseCode,
 } from "@services/CourseService";
-import { exportGradesPerCoursePDF } from "@services";
+import { exportCourseGradesSummaryPDF } from "@services";
 import type { ICourse } from "@interfaces/models/ICourse";
 import { useAuth } from "../../../context/AuthContext";
 import { InlineSpinner } from "../../../components/common/LoadingSpinnerPage";
@@ -227,7 +227,7 @@ export default function Subjects() {
   
     const handleExportGradesPerCourse = async () => {
       try {
-        const blob = await exportGradesPerCoursePDF();
+        const blob = await exportCourseGradesSummaryPDF();
         const url = window.URL.createObjectURL(new Blob([blob]));
         const link = document.createElement("a");
         link.href = url;

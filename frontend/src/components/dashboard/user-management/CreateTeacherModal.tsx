@@ -246,6 +246,7 @@ export default function CreateUserModal({
                 value={formData.program}
                 onChange={handleChange}
                 required
+                error={""}
                 icon={<Book size={16} className="text-gray-500" />}
                 options={[
                   { value: "BSIT", label: "BSIT" },

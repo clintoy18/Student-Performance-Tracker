@@ -1,9 +1,21 @@
 import React, { useState, useEffect } from "react";
-import { X, Users, Trash2, GraduationCap, UserCheck, Search } from "lucide-react";
-import { getStudentsByCourse, removeStudentFromCourse } from "@services/StudentCourseService";
+import {
+  X,
+  Users,
+  Trash2,
+  GraduationCap,
+  UserCheck,
+  Search,
+  FileText,
+} from "lucide-react";
+import {
+  getStudentsByCourse,
+  removeStudentFromCourse,
+} from "@services/StudentCourseService";
 import type { ICourse } from "@interfaces/models/ICourse";
 import type { IStudentCourse } from "@interfaces/models/IStudentCourse";
 import type { IUser } from "@interfaces";
+import { exportGradesPerCoursePDF } from "@services";
 
 interface ViewEnrolledStudentsModalProps {
   isOpen: boolean;
@@ -18,11 +30,31 @@ export default function ViewEnrolledStudentsModal({
   course,
   teacher,
 }: ViewEnrolledStudentsModalProps) {
-  const [enrolledStudents, setEnrolledStudents] = useState<IStudentCourse[]>([]);
+  const [enrolledStudents, setEnrolledStudents] = useState<IStudentCourse[]>(
+    []
+  );
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [removingStudentId, setRemovingStudentId] = useState<string | null>(null);
+
+  const [removingStudentId, setRemovingStudentId] = useState<string | null>(
+    null
+  );
+
+  const handleExportGradesPerCourse = async () => {
+    try {
+      const blob = await exportGradesPerCoursePDF();
+      const url = window.URL.createObjectURL(new Blob([blob]));
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", `grades-per-course.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    } catch (error) {
+      console.error("Error exporting grades per course PDF:", error);
+    }
+  };
 
   useEffect(() => {
     if (isOpen && course) {
@@ -42,7 +74,7 @@ export default function ViewEnrolledStudentsModal({
     try {
       const rawData = await getStudentsByCourse(course.CourseCode);
 
-      console.log(rawData)
+      console.log(rawData);
       const parsedData: IStudentCourse[] = rawData.map((studentCourse) => ({
         StudentCourseId: studentCourse.studentCourseId,
         StudentUserId: studentCourse.studentUserId,
@@ -108,6 +140,7 @@ export default function ViewEnrolledStudentsModal({
       <div className="bg-white rounded-lg max-w-3xl w-full max-h-[90vh] flex flex-col">
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b">
+          {/* Left Section */}
           <div>
             <h2 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
               <Users size={24} />
@@ -120,17 +153,31 @@ export default function ViewEnrolledStudentsModal({
               <div className="mt-2 flex items-center gap-2 text-sm text-gray-700">
                 <UserCheck size={16} className="text-green-500" />
                 <span>
-                  Teacher: {teacher.FirstName} {teacher.LastName} (ID: {teacher.UserId})
+                  Teacher: {teacher.FirstName} {teacher.LastName} (ID:{" "}
+                  {teacher.UserId})
                 </span>
               </div>
             )}
           </div>
-          <button
-            onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 transition-colors"
-          >
-            <X size={20} />
-          </button>
+
+          {/* Right Section */}
+          <div className="flex items-center gap-3">
+            <button
+              onClick={exportGradesPerCoursePDF}
+              className="flex items-center gap-2 px-4 py-2 rounded-lg border border-red-600 bg-red-50 text-red-700 font-medium shadow-sm hover:bg-red-100 hover:text-red-800 focus:outline-none focus:ring-2 focus:ring-red-300 focus:ring-offset-1 transition-colors"
+            >
+              <FileText className="w-5 h-5" />
+              <span>Export Grades</span>
+            </button>
+
+            <button
+              onClick={onClose}
+              className="p-2 rounded-full text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
+              aria-label="Close"
+            >
+              <X size={20} />
+            </button>
+          </div>
         </div>
 
         {/* Content */}
@@ -186,7 +233,9 @@ export default function ViewEnrolledStudentsModal({
                       className="p-4 border border-gray-200 rounded-lg hover:border-gray-300 transition-colors flex justify-between items-start"
                     >
                       <div className="flex-1 min-w-0">
-                        <h4 className="font-medium text-gray-900">{fullName}</h4>
+                        <h4 className="font-medium text-gray-900">
+                          {fullName}
+                        </h4>
                         <p className="text-sm text-gray-500 mt-1">
                           ID: {enrollment.StudentUserId}
                         </p>
@@ -195,23 +244,30 @@ export default function ViewEnrolledStudentsModal({
                             Program: {enrollment.Program}
                           </p>
                         )}
-                        {enrollment.Grade !== null && enrollment.Grade !== undefined && (
-                          <div className="mt-2">
-                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                              Grade: {enrollment.Grade}
-                            </span>
-                          </div>
-                        )}
+                        {enrollment.Grade !== null &&
+                          enrollment.Grade !== undefined && (
+                            <div className="mt-2">
+                              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                Grade: {enrollment.Grade}
+                              </span>
+                            </div>
+                          )}
                       </div>
                       <button
-                        onClick={() => handleRemoveStudent(enrollment.StudentUserId)}
-                        disabled={removingStudentId === enrollment.StudentUserId}
+                        onClick={() =>
+                          handleRemoveStudent(enrollment.StudentUserId)
+                        }
+                        disabled={
+                          removingStudentId === enrollment.StudentUserId
+                        }
                         className="flex items-center gap-1 text-red-600 border border-red-300 px-3 py-1.5 rounded text-sm hover:bg-red-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                         title="Remove Student"
                       >
                         <Trash2 size={14} />
                         <span className="hidden sm:inline">
-                          {removingStudentId === enrollment.StudentUserId ? "Removing..." : "Remove"}
+                          {removingStudentId === enrollment.StudentUserId
+                            ? "Removing..."
+                            : "Remove"}
                         </span>
                       </button>
                     </div>
@@ -226,7 +282,8 @@ export default function ViewEnrolledStudentsModal({
               {/* Student Count */}
               {enrolledStudents.length > 0 && (
                 <div className="mt-4 pt-4 border-t text-sm text-gray-600">
-                  Showing {filteredStudents.length} of {enrolledStudents.length} student
+                  Showing {filteredStudents.length} of {enrolledStudents.length}{" "}
+                  student
                   {enrolledStudents.length !== 1 ? "s" : ""}
                 </div>
               )}
