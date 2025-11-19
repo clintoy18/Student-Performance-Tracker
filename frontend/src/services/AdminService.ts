@@ -74,7 +74,7 @@ export const exportDashboardPDF = async (role: string) => {
 };
 
 export const exportCourseGradesSummaryPDF = async () => {
-  const response = await admin.get("/pdf/grades-per-course", {
+  const response = await admin.get("/pdf/course-grade-summary", {
     responseType: "blob",
   });
   return response.data;

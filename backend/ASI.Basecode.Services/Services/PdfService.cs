@@ -278,9 +278,9 @@ namespace ASI.Basecode.Services.Services
         }
 
 
-        //generates all the grades per courses 
+        //generates all the grades of each course 
 
-        public byte[] GenerateGradesPerCoursePdf(List<CourseGradesViewModel> coursesGrades, string title = "Grades Per Course Report")
+        public byte[] GenerateCourseGradeSummary(List<CourseGradesViewModel> coursesGrades, string title = "Grades Per Course Report")
         {
             if (coursesGrades == null) throw new ArgumentNullException(nameof(coursesGrades));
 

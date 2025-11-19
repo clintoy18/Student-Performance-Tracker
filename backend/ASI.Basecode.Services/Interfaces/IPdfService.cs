@@ -13,6 +13,7 @@ public interface IPdfService
         List<CourseViewModel> courses,
         UserRoles? roleFilter = null);
 
-    byte[] GenerateGradesPerCoursePdf(List<CourseGradesViewModel> coursesGrades, string title = "Grades Per Course Report");
+    byte[] GenerateCourseGradeSummary(List<CourseGradesViewModel> coursesGrades, string title = "Grades Summary Report");
+
 
 }

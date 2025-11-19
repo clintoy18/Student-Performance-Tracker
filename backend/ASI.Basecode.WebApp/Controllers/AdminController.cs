@@ -505,7 +505,7 @@ namespace ASI.Basecode.WebApp.Controllers
         }
 
         // GET: api/admin/pdf/grades-per-course
-        [HttpGet("pdf/grades-per-course")]
+        [HttpGet("pdf/course-grade-summary")]
         [Authorize(Roles = "Admin")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
@@ -513,13 +513,13 @@ namespace ASI.Basecode.WebApp.Controllers
         {
             try
             {
-                // Fetch data
+                // Fetch grades using the service
                 var grades = _studentCourseService.GetGradesPerCourse();
 
-                // Generate PDF
-                var pdfBytes = _pdfService.GenerateGradesPerCoursePdf(grades);
+                // Generate PDF using pdfService
+                var pdfBytes = _pdfService.GenerateCourseGradeSummary(grades);
 
-                // Return file
+                // Return and download file
                 return File(pdfBytes, "application/pdf", "GradesPerCourseReport.pdf");
             }
             catch (Exception ex)
