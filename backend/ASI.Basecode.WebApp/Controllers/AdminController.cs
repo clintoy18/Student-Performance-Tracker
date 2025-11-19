@@ -520,7 +520,7 @@ namespace ASI.Basecode.WebApp.Controllers
                 var pdfBytes = _pdfService.GenerateCourseGradeSummary(grades);
 
                 // Return and download file
-                return File(pdfBytes, "application/pdf", "GradesPerCourseReport.pdf");
+                return File(pdfBytes, "application/pdf", "CourseGradeSummary.pdf");
             }
             catch (Exception ex)
             {
