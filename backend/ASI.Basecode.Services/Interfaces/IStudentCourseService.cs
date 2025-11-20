@@ -16,5 +16,12 @@ namespace ASI.Basecode.Services.Interfaces
         public List<StudentCourse> GetStudentCoursesOfStudent(string userId);
 
         public List<StudentCourseViewModel> GetStudentCoursesOfCourse(string courseCode);
+        public List<CourseGradesViewModel> GetGradesPerCourse();
+
+        public CourseGradesViewModel? GetGradesByCourseCode(string courseCode);
+
+
+
+
     }
 }

@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import TextInputField from '../common/TextInputField';
 import Button from '../common/Button';
+import SelectField from '../common/SelectedField';
+import { Book } from 'lucide-react';
 import type { IRegisterRequest } from '@interfaces';
 
 const RegisterForm = ({
@@ -108,14 +110,20 @@ const RegisterForm = ({
         />
       </div>
 
-      <TextInputField
+      <SelectField
         id="program"
         label="Program"
         value={formData.program}
         onChange={handleInputChange}
-        placeholder="Your program"
         error={formErrors.program}
         required
+        icon={<Book size={16} className="text-gray-500"/>}
+        options={[
+        { value: "BSIT", label: "BSIT" },
+        { value: "BSCS", label: "BSCS" },
+        { value: "BSEd", label: "BSEd" },
+        { value: "BSBA", label: "BSBA" },
+      ]}
       />
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -139,6 +147,7 @@ const RegisterForm = ({
           error={formErrors.confirmPassword}
           required
         />
+        
       </div>
 
       {error && (

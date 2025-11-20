@@ -7,6 +7,9 @@ using Microsoft.AspNetCore.Authorization;
 using System;
 using System.Linq;
 using Microsoft.AspNetCore.Http;
+using AutoMapper;
+using ASI.Basecode.WebApp.Models;
+using System.Collections.Generic;
 
 namespace ASI.Basecode.WebApp.Controllers
 {
@@ -22,17 +25,21 @@ namespace ASI.Basecode.WebApp.Controllers
         private readonly IStudentCourseService _studentCourseService;
         private readonly IGradeFeedbackService _gradeFeedbackService;
         private readonly ILogger<TeacherController> _logger;
+        private readonly IMapper _mapper;
 
         public TeacherController(
             ICourseService courseService,
             IStudentCourseService studentCourseService,
             IGradeFeedbackService gradeFeedbackService,
-            ILogger<TeacherController> logger)
+            ILogger<TeacherController> logger,
+            IMapper mapper
+        )
         {
             _courseService = courseService;
             _studentCourseService = studentCourseService;
             _gradeFeedbackService = gradeFeedbackService;
             _logger = logger;
+            _mapper = mapper;
         }
 
         // -------------------------------
@@ -63,7 +70,7 @@ namespace ASI.Basecode.WebApp.Controllers
         /// </remarks>
         [HttpGet("my-courses")]
         [Authorize(Roles = "Teacher")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(IEnumerable<MyCoursesViewModel>), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public IActionResult GetMyCourses()
@@ -75,15 +82,15 @@ namespace ASI.Basecode.WebApp.Controllers
                     return Unauthorized(new { message = "Authentication required." });
 
                 var courses = _courseService.FetchCoursesByUser(currentUserId)
-                    .Select(c => new
+                    .Select(c => new MyCoursesViewModel
                     {
-                        c.Id,
-                        c.CourseCode,
-                        c.CourseName,
-                        c.CourseDescription,
-                        c.CreatedAt,
+                        id = c.Id,
+                        courseCode = c.CourseCode,
+                        courseName = c.CourseName,
+                        courseDescription = c.CourseDescription,
+                        createdAt = c.CreatedAt,
                         teacherUserId = c.UserId,
-                        StudentCount = GetStudentCount(c.CourseCode)
+                        studentCount = GetStudentCount(c.CourseCode)
                     })
                     .ToList();
 
@@ -104,7 +111,7 @@ namespace ASI.Basecode.WebApp.Controllers
         /// </remarks>
         [HttpGet("dashboard-stats")]
         [Authorize(Roles = "Teacher")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(TeacherDashboardStatsModel), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public IActionResult GetDashboardStats()
@@ -123,15 +130,15 @@ namespace ASI.Basecode.WebApp.Controllers
                     .Select(c => GetStudentCount(c.CourseCode))
                     .Sum();
 
-                var stats = new
+                var stats = new TeacherDashboardStatsModel
                 {
-                    TotalCourses = courseCount,
-                    TotalStudents = totalStudents,
-                    Courses = myCourses.Select(c => new
+                    totalCourses = courseCount,
+                    totalStudents = totalStudents,
+                    courses = myCourses.Select(c => new TeacherCourse
                     {
-                        c.CourseCode,
-                        c.CourseName,
-                        StudentCount = GetStudentCount(c.CourseCode)
+                        courseCode = c.CourseCode,
+                        courseName = c.CourseName,
+                        studentCount = GetStudentCount(c.CourseCode)
                     }).ToList()
                 };
 

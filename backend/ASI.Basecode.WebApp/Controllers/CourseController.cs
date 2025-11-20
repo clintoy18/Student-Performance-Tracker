@@ -12,6 +12,8 @@ using Microsoft.AspNetCore.Authorization;
 using static ASI.Basecode.Resources.Constants.Enums;
 using Microsoft.AspNetCore.Http;
 using System.Collections.Generic;
+using AutoMapper;
+using ASI.Basecode.WebApp.Models;
 
 namespace ASI.Basecode.WebApp.Controllers
 {
@@ -23,17 +25,21 @@ namespace ASI.Basecode.WebApp.Controllers
         private readonly ILogger<CourseController> _logger;
         private readonly IRbacService _rbacService;
         private readonly IUserService _userService;
+        private readonly IMapper _mapper;
 
         public CourseController(
             ICourseService courseService,
             IRbacService rbacService,
             IUserService userService,
-            ILogger<CourseController> logger)
+            ILogger<CourseController> logger,
+            IMapper mapper
+        )
         {
             _courseService = courseService;
             _rbacService = rbacService;
             _userService = userService;
             _logger = logger;
+            _mapper = mapper;
         }
 
         /// <summary>
@@ -54,10 +60,14 @@ namespace ASI.Basecode.WebApp.Controllers
             try
             {
                 var courses = _courseService.GetAllCourses();
-
+            
                 var coursesDto = courses.Select(c =>
                 {
-                    var teacher = _userService.FetchUser(c.UserId);
+                    // Allow null UserId
+                    var teacher = c.UserId != null
+                        ? _userService.FetchUser(c.UserId)
+                        : null;
+
                     return new CourseListViewModel
                     {
                         Id = c.Id,
@@ -92,7 +102,7 @@ namespace ASI.Basecode.WebApp.Controllers
         /// <response code="500">Internal server error</response>
         [HttpGet("{courseId:int}")]
         [Authorize(Roles = "Admin")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(CourseViewControllerModel), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
@@ -108,16 +118,8 @@ namespace ASI.Basecode.WebApp.Controllers
                 if (course == null)
                     return NotFound(new { message = "Course not found." });
 
-                return Ok(new
-                {
-                    course.Id,
-                    course.CourseCode,
-                    course.CourseName,
-                    course.CourseDescription,
-                    course.UserId,
-                    course.CreatedAt
-
-                });
+                var courseInfo = _mapper.Map<CourseViewControllerModel>(course);
+                return Ok(courseInfo);
             }
             catch (Exception ex)
             {
@@ -140,7 +142,7 @@ namespace ASI.Basecode.WebApp.Controllers
         /// <response code="500">Internal server error</response>
         [HttpGet("code/{courseCode}")]
         [Authorize(Roles = "Admin")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(CourseViewControllerModel), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
@@ -156,15 +158,9 @@ namespace ASI.Basecode.WebApp.Controllers
                 if (course == null)
                     return NotFound(new { message = "Course not found." });
 
-                return Ok(new
-                {
-                    course.Id,
-                    course.CourseCode,
-                    course.CourseName,
-                    course.CourseDescription,
-                    course.UserId,
-                    course.CreatedAt
-                });
+                var courseInfo = _mapper.Map<CourseViewControllerModel>(course);
+
+                return Ok(courseInfo);
             }
             catch (Exception ex)
             {

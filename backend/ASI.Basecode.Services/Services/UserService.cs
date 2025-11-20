@@ -5,6 +5,7 @@ using ASI.Basecode.Services.Interfaces;
 using ASI.Basecode.Services.Manager;
 using ASI.Basecode.Services.ServiceModels;
 using AutoMapper;
+using AutoMapper.QueryableExtensions;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -80,28 +81,42 @@ namespace ASI.Basecode.Services.Services
         {
             ArgumentNullException.ThrowIfNull(model);
 
-            // Check if this is the first user
+            // First user is always Admin
             bool isFirstUser = !_repository.GetUsers().Any();
 
-            //auto generate user-id
-            string generatedUserId = GenerateIDNumber<User>("UserId", "STU");
+            UserRoles role;
+            string prefix;
+
+            if (isFirstUser)
+            {
+                role = UserRoles.Admin;
+                prefix = "ADM";
+            }
+            else
+            {
+                role = model.Role;
+                prefix = role switch
+                {
+                    UserRoles.Teacher => "TCH",
+                    UserRoles.Student => "STU",
+                    _ => throw new ArgumentException("Invalid role")
+                };
+            }
+
+            string generatedUserId = GenerateIDNumber<User>("UserId", prefix);
 
             if (!_repository.UserExists(generatedUserId))
             {
                 var user = new User();
                 _mapper.Map(model, user);
-                    
-                //assign the id
+
                 user.UserId = generatedUserId;
-
-                // Assign Admin role if first user, otherwise default (e.g., Student)
-                user.Role = isFirstUser ? UserRoles.Admin : UserRoles.Student;
-
+                user.Role = role;
                 user.HashedPassword = PasswordManager.EncryptPassword(model.Password);
+
                 _repository.AddUser(user);
 
                 return generatedUserId;
-
             }
             else
             {
@@ -149,17 +164,10 @@ namespace ASI.Basecode.Services.Services
         // Add this method to your UserService class
         public List<UserViewAdminModel> GetAllUsers()
         {
-            var users = _repository.GetUsers();
-            return users.Select(u => new UserViewAdminModel
-            {
-                UserId = u.UserId,
-                FirstName = u.FirstName,
-                MiddleName = u.MiddleName,
-                LastName = u.LastName,
-                Program = u.Program,
-                Role = u.Role,
-                CreatedTime = u.CreatedTime
-            }).ToList();
+            var usersQuery = _repository.GetUsers(); // IQueryable<User>
+            return usersQuery
+                .ProjectTo<UserViewAdminModel>(_mapper.ConfigurationProvider)
+                .ToList();
         }
 
         public bool UserExists(string userId)
@@ -169,17 +177,10 @@ namespace ASI.Basecode.Services.Services
 
         public List<UserViewAdminModel> GetRecentUsers(int count)
         {
-            var users = _repository.GetRecentUsers(count);
-            return users.Select(u => new UserViewAdminModel
-            {
-                UserId = u.UserId,
-                FirstName = u.FirstName,
-                MiddleName = u.MiddleName,
-                LastName = u.LastName,
-                Program = u.Program,
-                Role = u.Role,
-                CreatedTime = u.CreatedTime
-            }).ToList();
+            
+            return _repository.GetRecentUsers(count)
+                .ProjectTo<UserViewAdminModel>(_mapper.ConfigurationProvider) //allows selecting only the necesa
+                .ToList();
         }
 
         public UserStatisticsViewModel GetUserStatistics()

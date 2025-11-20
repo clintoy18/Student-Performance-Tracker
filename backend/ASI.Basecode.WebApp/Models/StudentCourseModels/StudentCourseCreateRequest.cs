@@ -2,7 +2,7 @@ using System;
 using System.ComponentModel.DataAnnotations;
 using ASI.Basecode.Data.Models;
 
-public class StudentCourseCreateAdminRequest
+public class StudentCourseCreateRequest
 {
     [Required(ErrorMessage = "Student's UserID is required.")]
     public string StudentUserId { get; set; }

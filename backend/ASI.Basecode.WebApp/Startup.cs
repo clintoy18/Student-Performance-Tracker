@@ -82,12 +82,8 @@ namespace ASI.Basecode.WebApp
 
             // Register SQL database configuration context as services.
             services.AddDbContext<AsiBasecodeDBContext>(options =>
-                options
-                    .UseSqlite(
-                        Configuration.GetConnectionString("DefaultConnection")
-                    // b => b.MigrationsAssembly("ASI.Basecode.WebApp")
-                    )
-            );
+            options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
+
 
             // services.AddControllersWithViews();
             // services.AddRazorPages().AddRazorRuntimeCompilation();

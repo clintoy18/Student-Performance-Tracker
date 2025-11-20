@@ -14,6 +14,7 @@ using ASI.Basecode.Resources.Constants;
 using System.Linq;
 using Microsoft.AspNetCore.Http;
 using System.Text.Json;
+using AutoMapper;
 
 namespace ASI.Basecode.WebApp.Controllers
 {
@@ -26,19 +27,23 @@ namespace ASI.Basecode.WebApp.Controllers
         private readonly IRbacService _rbacService;
         private readonly ICourseService _courseService;
         private readonly ILogger<GradeFeedbackController> _logger;
+        private readonly IMapper _mapper;
 
         public GradeFeedbackController(
             IGradeFeedbackService gradeFeedbackService,
             IUserService userService,
             IRbacService rbacService,
             ICourseService courseService,
-            ILogger<GradeFeedbackController> logger)
+            ILogger<GradeFeedbackController> logger,
+            IMapper mapper
+        )
         {
             _gradeFeedbackService = gradeFeedbackService;
             _userService = userService;
             _rbacService = rbacService;
             _courseService = courseService;
             _logger = logger;
+            _mapper = mapper;
         }
 
 
@@ -57,6 +62,7 @@ namespace ASI.Basecode.WebApp.Controllers
         /// <response code="500">Internal server error</response>
         [HttpPost("student/create")]
         [Authorize(Roles = "Student")]
+        [ProducesResponseType(typeof(GradeFeedbackCreateForStudentModel), StatusCodes.Status200OK)]
         // [AllowAnonymous]
         public IActionResult CreateStudentFeedback([FromBody] GradeFeedbackForStudentCreateRequestModel request)
         {
@@ -82,12 +88,7 @@ namespace ASI.Basecode.WebApp.Controllers
                     return BadRequest(new { message = "Coursecode does not link to any existing courses." });
                 }
 
-                var newFeedback = new GradeFeedbackCreateForStudentModel
-                {
-                    StudentFeedback = request.StudentFeedback,
-                    StudentUserId = request.CourseStudentUserId,
-                    CourseCode = request.CourseCode
-                };
+                var newFeedback = _mapper.Map<GradeFeedbackCreateForStudentModel>(request);
 
                 _gradeFeedbackService.CreateGradeFeedbackForStudent(newFeedback);
 

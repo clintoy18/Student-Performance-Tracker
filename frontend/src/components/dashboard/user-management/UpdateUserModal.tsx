@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
-import { X } from "lucide-react";
+import { X,Book } from "lucide-react";
 import { updateUserAdmin } from "@services";
-import type { IUser } from "@interfaces";
+import type { IUser, IRegisterRequest } from "@interfaces";
+import SelectField from "components/common/SelectedField";
 
 interface UpdateUserModalProps {
   isOpen: boolean;
@@ -27,6 +28,8 @@ export default function UpdateUserModal({
   });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [formErrors, setFormErrors] = useState<Partial<IRegisterRequest>>({})
+  
 
   useEffect(() => {
     if (user) {
@@ -40,6 +43,7 @@ export default function UpdateUserModal({
         confirmPassword: "",
       });
     }
+
   }, [user]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -87,6 +91,7 @@ export default function UpdateUserModal({
       // Only include password if it's been changed
       if (formData.password) {
         updateData.Password = formData.password;
+        updateData.ConfirmPassword = formData.confirmPassword;
       }
 
       await updateUserAdmin(updateData);
@@ -189,21 +194,24 @@ export default function UpdateUserModal({
               required
             />
           </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Program <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="text"
-              name="program"
-              value={formData.program}
-              onChange={handleChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-400 focus:border-transparent"
-              required
-            />
-          </div>
-
+         {/* Program: only editable if role is Student */}
+            {user.Role === "Student" && (
+              <SelectField
+                id="program"
+                label="Program"
+                value={formData.program}
+                onChange={handleChange} // same function
+                required
+                icon={<Book size={16} className="text-gray-500"/>}
+                error={formErrors.program} // optional
+                options={[
+                  { value: "BSIT", label: "BSIT" },
+                  { value: "BSCS", label: "BSCS" },
+                  { value: "BSEd", label: "BSEd" },
+                  { value: "BSBA", label: "BSBA" },
+                ]}
+              />
+            )}
           <div className="pt-2 border-t">
             <p className="text-sm text-gray-600 mb-3">
               Leave password fields empty to keep current password

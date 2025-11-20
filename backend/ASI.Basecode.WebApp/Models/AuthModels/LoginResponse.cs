@@ -5,8 +5,8 @@ namespace ASI.Basecode.WebApp.Models
 {
     public class LoginResponse
     {
-        public string Message { get; set; }
-        public string Token { get; set; }
-        public UserDto User { get; set; }
+        public string message { get; set; }
+        public string token { get; set; }
+        public UserDto user { get; set; }
     }
 }
