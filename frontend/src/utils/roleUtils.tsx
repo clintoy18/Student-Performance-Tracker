@@ -25,7 +25,7 @@ export const ROLE_TO_NUMBER: Record<Role, number> = {
 export type UserId = string;
 
 export const studentTabs = (studentUserId?: string) => [
-  { label: "Overview", content: <Overview /> },
+  { label: "Overview", content: <Overview studentUserId={studentUserId} /> },
   { label: "Subjects", content: <StudentCourse studentUserId={studentUserId} /> },
   { label: "My Grades", content: <Grade studentUserId={studentUserId} /> },
   { label: "Profile", content: <Profile /> },

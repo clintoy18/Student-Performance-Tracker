@@ -5,9 +5,11 @@ import { User, FileText, Lock, Edit3, Save, X, Shield } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { updateSelf } from "@services";
 import { type IUser } from "@interfaces";
+import { useToast } from "../../context/ToastContext";
 
 const ProfileForm = () => {
   const { user } = useAuth();
+  const { success, error, info } = useToast();
 
   // Initialize form with individual name parts
   const [formData, setFormData] = useState({
@@ -31,7 +33,10 @@ const ProfileForm = () => {
     }));
   };
 
-  const handleEdit = () => setIsEditing(true);
+  const handleEdit = () => {
+    setIsEditing(true);
+    info("You can now edit your profile information");
+  };
 
   const handleCancel = () => {
     setFormData({
@@ -48,12 +53,16 @@ const ProfileForm = () => {
 
   const handleUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
+    
     if (formData.password && formData.password !== formData.confirmPassword) {
       setPasswordError("Passwords do not match.");
+      error("Passwords do not match. Please check and try again.");
       return;
     }
+    
     setPasswordError(null);
     setLoading(true);
+    
     try {
       const userData: IUser = {
         UserId: user.UserId,
@@ -64,14 +73,22 @@ const ProfileForm = () => {
         Program: user.Program,
         CreatedTime: user.CreatedTime
       };
+      
       await updateSelf(
         userData,
         formData.password || undefined,
         formData.confirmPassword || undefined
       );
+      
       setIsEditing(false);
-    } catch (error) {
-      console.error('User update error:', error);
+      success("Profile updated successfully!");
+      
+    } catch (err) {
+      console.error('User update error:', err);
+      const errorMessage = err instanceof Error 
+        ? err.message 
+        : "Failed to update profile. Please try again.";
+      error(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -215,19 +232,7 @@ const ProfileForm = () => {
                   />
                 </div>
                 
-                {passwordError && (
-                  <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded-lg">
-                    <p className="text-sm text-red-700 font-medium">{passwordError}</p>
-                  </div>
-                )}
-
-                {!passwordError && formData.password && (
-                  <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded-lg">
-                    <p className="text-sm text-green-700">
-                      Password meets security requirements
-                    </p>
-                  </div>
-                )}
+                {/* Removed duplicate error display - only toast will show */}
               </div>
             )}
 

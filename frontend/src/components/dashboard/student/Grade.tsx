@@ -4,10 +4,10 @@ import { MessageSquare, Send, Eye, User, BookOpen, Star } from "lucide-react";
 import { createStudentFeedback } from "@services/StudentService";
 import type { IStudentFeedbackRequest } from "@interfaces/requests/IStudentFeedbackRequest";
 import { checkStudentFeedbackExists } from "@services/StudentService";
-import { checkFeedbackExists , getFeedbackForStudent } from "@services/GradeFeedbackService";
+import { getFeedbackForStudent } from "@services/GradeFeedbackService";
 import { InlineSpinner } from "../../../components/common/LoadingSpinnerPage";
-
-import Modal from "../../common/modal/Modal"; // Your existing Modal component
+import Modal from "../../common/modal/Modal";
+import { useToast } from "../../../context/ToastContext";
 
 // Submit Feedback Modal Component
 const SubmitFeedbackModal = ({
@@ -23,25 +23,24 @@ const SubmitFeedbackModal = ({
 }) => {
   const [feedback, setFeedback] = useState("");
   const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState("");
+  const { error: showError } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!feedback.trim()) {
-      setError("Please enter your feedback");
+      showError("Please enter your feedback");
       return;
     }
 
     setSubmitting(true);
-    setError("");
 
     try {
       await onSubmit(feedback);
       setFeedback("");
       onClose();
     } catch (err: any) {
-      setError(err.message || "Failed to submit feedback");
+      showError(err.message || "Failed to submit feedback");
     } finally {
       setSubmitting(false);
     }
@@ -50,11 +49,9 @@ const SubmitFeedbackModal = ({
   const handleClose = () => {
     if (!submitting) {
       setFeedback("");
-      setError("");
       onClose();
     }
   };
-  
 
   return (
     <Modal isOpen={isOpen} onClose={handleClose} title="Submit Course Feedback">
@@ -88,12 +85,6 @@ const SubmitFeedbackModal = ({
             </p>
           </div>
 
-          {error && (
-            <div className="bg-red-50 text-red-700 p-3 rounded-lg text-sm">
-              {error}
-            </div>
-          )}
-
           <div className="flex gap-3 pt-2">
             <button
               type="button"
@@ -105,7 +96,7 @@ const SubmitFeedbackModal = ({
             </button>
             <button
               type="submit"
-              disabled={submitting}
+              disabled={submitting || !feedback.trim()}
               className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
               {submitting ? (
@@ -163,7 +154,7 @@ const ViewTeacherFeedbackModal = ({
                     : "bg-red-100 text-red-800"
                 }`}
               >
-                {grade}%
+                {grade}
               </div>
             )}
           </div>
@@ -229,27 +220,47 @@ export const Grade = ({ studentUserId }: { studentUserId?: string }) => {
     useState(false);
   const [isViewFeedbackModalOpen, setIsViewFeedbackModalOpen] = useState(false);
   const [selectedCourse, setSelectedCourse] = useState<any>(null);
+  const { success, error: showError } = useToast();
 
-      const fetchGrades = async () => {
-        setLoading(true);
-        try {
-          const data = await getCoursesByStudent(studentUserId);
-        
-          const feedbackedData = await Promise.all(
-      data.map(async (grade) => {
-        const teacherFeedback = await getFeedbackForStudent(studentUserId, grade.courseCode);
-        return {
-          ...grade,
-          hasStudentFeedback: await checkStudentFeedbackExists(studentUserId, grade.courseCode),
-          hasTeacherFeedback: !!teacherFeedback?.feedback,
-          feedback: teacherFeedback?.feedback || "",
-        };
-      })
-    );
+  const fetchGrades = async () => {
+    if (!studentUserId) {
+      showError("Student ID is required");
+      setLoading(false);
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const data = await getCoursesByStudent(studentUserId);
+      
+      const feedbackedData = await Promise.all(
+        data.map(async (grade) => {
+          try {
+            const teacherFeedback = await getFeedbackForStudent(studentUserId, grade.courseCode);
+            const hasStudentFeedback = await checkStudentFeedbackExists(studentUserId, grade.courseCode);
+            
+            return {
+              ...grade,
+              hasStudentFeedback,
+              hasTeacherFeedback: !!teacherFeedback?.feedback,
+              feedback: teacherFeedback?.feedback || "",
+            };
+          } catch (err) {
+            console.error(`Error fetching feedback for course ${grade.courseCode}:`, err);
+            return {
+              ...grade,
+              hasStudentFeedback: false,
+              hasTeacherFeedback: false,
+              feedback: "",
+            };
+          }
+        })
+      );
 
       setGrades(feedbackedData);
     } catch (err) {
       console.error("Failed to load grades:", err);
+      showError("Failed to load grades and feedback");
     } finally {
       setLoading(false);
     }
@@ -270,17 +281,21 @@ export const Grade = ({ studentUserId }: { studentUserId?: string }) => {
   };
 
   const handleSubmitFeedback = async (feedbackText: string) => {
-    if (!selectedCourse) return;
+    if (!selectedCourse || !studentUserId) {
+      showError("Unable to submit feedback - missing required information");
+      return;
+    }
 
     const payload: IStudentFeedbackRequest = {
       studentFeedback: feedbackText,
-      courseStudentUserId: studentUserId!,
+      courseStudentUserId: studentUserId,
       courseCode: selectedCourse.courseCode,
     };
 
     try {
-      await createStudentFeedback(payload); // call API
-      await fetchGrades(); // refresh grades & feedback info
+      await createStudentFeedback(payload);
+      success("Feedback submitted successfully!");
+      await fetchGrades();
     } catch (err: any) {
       console.error("Failed to submit feedback:", err);
       throw new Error(err?.message || "Failed to submit feedback");
@@ -289,125 +304,130 @@ export const Grade = ({ studentUserId }: { studentUserId?: string }) => {
 
   return (
     <>
-          <div className="space-y-3">
-          {/* ⬇️ Loading State */}
-          {loading ? (
-            <div className="w-full flex flex-col items-center justify-center py-32">
-              <InlineSpinner />
-              <span className="text-sm mt-4 text-gray-800">
-                Loading grades...
-              </span>
-            </div>
-          ): (
-             <>
-          {/* ⬇️ Render ONLY when not loading */}
-          {grades.length === 0 ? (
-            <p className="text-sm text-gray-500">
-              No grades available yet.
-            </p>
-          ) : (
-          <div className="space-y-2">
-              {grades.map((grade: any) => {
-                const hasStudentFeedback = grade.hasStudentFeedback || false;
-                const hasTeacherFeedback = grade.hasTeacherFeedback || false;
-                const showGrade =hasStudentFeedback &&grade.grade !== null && grade.grade !== undefined;
-              return (
-                <div
-                  key={grade.id}
-                  className="p-4 border border-gray-200 rounded-lg bg-white hover:shadow-sm transition-shadow"
-                >
-                  <div className="flex justify-between items-start gap-4">
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-semibold text-gray-900 text-sm mb-1">
-                        {grade.courseCode ?? "Course code not available"}
-                      </h3>
-
-                      {/* Status messages */}
-                      {!hasTeacherFeedback ? (
-                        <p className="text-xs text-gray-500">
-                          Awaiting grade and feedback from instructor
-                        </p>
-                      ) : !hasStudentFeedback ? (
-                        <p className="text-xs text-amber-600 font-medium">
-                          Submit your feedback to view grade
-                        </p>
-                      ) : showGrade ? (
-                        <p className="text-xs text-green-600 font-medium">
-                          Grade and feedback available
-                        </p>
-                      ) : (
-                        <p className="text-xs text-blue-600 font-medium">
-                          Feedback submitted - grade pending
-                        </p>
-                      )}
-                    </div>
-
-                    <div className="flex items-center gap-2 flex-shrink-0">
-                      {/* Submit Feedback Button - Show when teacher feedback exists but student hasn't submitted */}
-                      {!hasStudentFeedback && hasTeacherFeedback && (
-                        <button
-                          onClick={() => handleOpenSubmitFeedbackModal(grade)}
-                          className="flex items-center gap-1 text-blue-600 border border-blue-300 px-3 py-1.5 rounded-lg text-xs font-medium hover:bg-blue-50 transition-colors"
-                          title="Submit your course feedback"
-                        >
-                          <MessageSquare size={12} />
-                          <span>Give Feedback</span>
-                        </button>
-                      )}
-
-                      {/* View Teacher Feedback Button - Show when student has submitted feedback AND teacher feedback exists */}
-                      {hasStudentFeedback && hasTeacherFeedback && (
-                        <button
-                          onClick={() => handleOpenViewFeedbackModal(grade)}
-                          className="flex items-center gap-1 text-green-600 border border-green-300 px-3 py-1.5 rounded-lg text-xs font-medium hover:bg-green-50 transition-colors"
-                          title="View instructor feedback and grade"
-                        >
-                          <Eye size={12} />
-                          <span>View Feedback</span>
-                        </button>
-                      )}
-
-                      {/* Grade Display */}
-                      {showGrade ? (
-                        <span
-                          className={`text-sm font-bold px-3 py-1.5 rounded-lg border ${
-                            grade.grade >= 90
-                              ? "text-green-700 border-green-300 bg-green-50"
-                              : grade.grade >= 80
-                              ? "text-blue-700 border-blue-300 bg-blue-50"
-                              : grade.grade >= 70
-                              ? "text-yellow-700 border-yellow-300 bg-yellow-50"
-                              : "text-red-700 border-red-300 bg-red-50"
-                          }`}
-                        >
-                          {grade.grade}%
-                        </span>
-                      ) : hasStudentFeedback ? (
-                        <span className="text-sm font-medium px-3 py-1.5 rounded-lg border text-gray-500 border-gray-300 bg-gray-50">
-                          Grade Pending
-                        </span>
-                      ) : hasTeacherFeedback ? (
-                        <span className="text-sm font-medium px-3 py-1.5 rounded-lg border text-amber-600 border-amber-300 bg-amber-50">
-                          Feedback Required
-                        </span>
-                      ) : (
-                        <span className="text-sm font-medium px-3 py-1.5 rounded-lg border text-gray-400 border-gray-300 bg-gray-50">
-                          Awaiting Grade
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
+      <div className="space-y-3">
+        {loading ? (
+          <div className="w-full flex flex-col items-center justify-center py-32">
+            <InlineSpinner />
+            <span className="text-sm mt-4 text-gray-800">
+              Loading grades...
+            </span>
           </div>
-             )}
-        </>
-      )}
+        ) : (
+          <>
+            {grades.length === 0 ? (
+              <div className="text-center py-8">
+                <BookOpen size={48} className="mx-auto text-gray-300 mb-4" />
+                <p className="text-sm text-gray-500">
+                  No courses or grades available yet.
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {grades.map((grade: any) => {
+                  const hasStudentFeedback = grade.hasStudentFeedback || false;
+                  const hasTeacherFeedback = grade.hasTeacherFeedback || false;
+                  const showGrade = hasStudentFeedback && grade.grade !== null && grade.grade !== undefined;
+                  
+                  return (
+                    <div
+                      key={grade.id}
+                      className="p-4 border border-gray-200 rounded-lg bg-white hover:shadow-sm transition-shadow"
+                    >
+                      <div className="flex justify-between items-start gap-4">
+                        <div className="flex-1 min-w-0">
+                          <h3 className="font-semibold text-gray-900 text-sm mb-1">
+                            {grade.courseCode ?? "Course code not available"}
+                          </h3>
+                          <p className="text-xs text-gray-600 mb-2">
+                            {grade.courseName || "Course name not available"}
+                          </p>
+
+                          {/* Status messages */}
+                          {!hasTeacherFeedback ? (
+                            <p className="text-xs text-gray-500">
+                              Awaiting grade and feedback from instructor
+                            </p>
+                          ) : !hasStudentFeedback ? (
+                            <p className="text-xs text-amber-600 font-medium">
+                              Submit your feedback to view grade
+                            </p>
+                          ) : showGrade ? (
+                            <p className="text-xs text-green-600 font-medium">
+                              Grade and feedback available
+                            </p>
+                          ) : (
+                            <p className="text-xs text-blue-600 font-medium">
+                              Feedback submitted - grade pending
+                            </p>
+                          )}
+                        </div>
+
+                        <div className="flex items-center gap-2 flex-shrink-0">
+                          {/* Submit Feedback Button - Show when teacher feedback exists but student hasn't submitted */}
+                          {!hasStudentFeedback && hasTeacherFeedback && (
+                            <button
+                              onClick={() => handleOpenSubmitFeedbackModal(grade)}
+                              className="flex items-center gap-1 text-blue-600 border border-blue-300 px-3 py-1.5 rounded-lg text-xs font-medium hover:bg-blue-50 transition-colors"
+                              title="Submit your course feedback"
+                            >
+                              <MessageSquare size={12} />
+                              <span>Give Feedback</span>
+                            </button>
+                          )}
+
+                          {/* View Teacher Feedback Button - Show when student has submitted feedback AND teacher feedback exists */}
+                          {hasStudentFeedback && hasTeacherFeedback && (
+                            <button
+                              onClick={() => handleOpenViewFeedbackModal(grade)}
+                              className="flex items-center gap-1 text-green-600 border border-green-300 px-3 py-1.5 rounded-lg text-xs font-medium hover:bg-green-50 transition-colors"
+                              title="View instructor feedback and grade"
+                            >
+                              <Eye size={12} />
+                              <span>View Feedback</span>
+                            </button>
+                          )}
+
+                          {/* Grade Display */}
+                          {showGrade ? (
+                            <span
+                              className={`text-sm font-bold px-3 py-1.5 rounded-lg border ${
+                                grade.grade >= 90
+                                  ? "text-green-700 border-green-300 bg-green-50"
+                                  : grade.grade >= 80
+                                  ? "text-blue-700 border-blue-300 bg-blue-50"
+                                  : grade.grade >= 70
+                                  ? "text-yellow-700 border-yellow-300 bg-yellow-50"
+                                  : "text-red-700 border-red-300 bg-red-50"
+                              }`}
+                            >
+                              {grade.grade}
+                            </span>
+                          ) : hasStudentFeedback ? (
+                            <span className="text-sm font-medium px-3 py-1.5 rounded-lg border text-gray-500 border-gray-300 bg-gray-50">
+                              Grade Pending
+                            </span>
+                          ) : hasTeacherFeedback ? (
+                            <span className="text-sm font-medium px-3 py-1.5 rounded-lg border text-amber-600 border-amber-300 bg-amber-50">
+                              Feedback Required
+                            </span>
+                          ) : (
+                            <span className="text-sm font-medium px-3 py-1.5 rounded-lg border text-gray-400 border-gray-300 bg-gray-50">
+                              Awaiting Grade
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </>
+        )}
       </div>
 
       {/* Submit Feedback Modal */}
-        <SubmitFeedbackModal
+      <SubmitFeedbackModal
         isOpen={isSubmitFeedbackModalOpen}
         onClose={() => setIsSubmitFeedbackModalOpen(false)}
         courseCode={selectedCourse?.courseCode || ""}
@@ -420,7 +440,7 @@ export const Grade = ({ studentUserId }: { studentUserId?: string }) => {
         onClose={() => setIsViewFeedbackModalOpen(false)}
         courseCode={selectedCourse?.courseCode || ""}
         grade={selectedCourse?.grade}
-        feedback={selectedCourse?.feedback || "No feedback provided by the instructor yet."}
+        feedback={selectedCourse?.feedback || ""}
       />
     </>
   );

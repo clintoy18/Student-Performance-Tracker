@@ -15,13 +15,15 @@ import type {
   IGradeFeedback,
   ICourseData,
 } from "@interfaces";
-import Modal from "../../common/modal/Modal"; // Your existing Modal component
+import Modal from "../../common/modal/Modal";
+import { useToast } from "../../../context/ToastContext";
 
 interface ViewStudentFeedbackModalProps {
   isOpen: boolean;
   onClose: () => void;
-  feedbackData: IGradeFeedback; // Pass the full feedback object
+  feedbackData: IGradeFeedback;
 }
+
 const ViewStudentFeedbackModal = ({
   isOpen,
   onClose,
@@ -82,6 +84,7 @@ const ViewStudentFeedbackModal = ({
 export default ViewStudentFeedbackModal;
 
 export const ManageStudents = () => {
+  const { success, error } = useToast();
   const [courses, setCourses] = useState<ICourseData[]>([]);
   const [selectedCourse, setSelectedCourse] = useState<string>("");
   const [students, setStudents] = useState<IStudentCourseListRequest[]>([]);
@@ -98,12 +101,12 @@ export const ManageStudents = () => {
     useState(false);
   const [selectedFeedback, setSelectedFeedback] =
     useState<IGradeFeedback | null>(null);
+
   // Fetch teacher courses
   useEffect(() => {
     const fetchCourses = async () => {
       try {
         const data = await getTeacherCourses();
-        // Convert PascalCase to camelCase
         const coursesData: ICourseData[] = data.map((course) => ({
           id: course.id,
           courseCode: course.courseCode,
@@ -117,16 +120,19 @@ export const ManageStudents = () => {
         if (coursesData.length > 0) {
           setSelectedCourse(coursesData[0].courseCode);
         }
-      } catch (error) {
-        console.error("Error fetching courses:", error);
+      } catch (err) {
+        console.error("Error fetching courses:", err);
+        error("Failed to load courses");
       }
     };
     fetchCourses();
-  }, []);
+  }, [error]);
 
   // Fetch students when selected course changes
   useEffect(() => {
-    if (selectedCourse) fetchStudents(selectedCourse);
+    if (selectedCourse) {
+      fetchStudents(selectedCourse);
+    }
   }, [selectedCourse]);
 
   // Fetch feedback when selected student changes
@@ -148,8 +154,9 @@ export const ManageStudents = () => {
         setSelectedStudent("");
         setGradeInput("");
       }
-    } catch (error) {
-      console.error("Error fetching students:", error);
+    } catch (err) {
+      console.error("Error fetching students:", err);
+      error("Failed to load students");
     }
   };
 
@@ -157,11 +164,9 @@ export const ManageStudents = () => {
     if (!selectedStudent || !selectedCourse) return;
 
     try {
-      // First check if feedback exists
       const exists = await checkFeedbackExists(selectedStudent, selectedCourse);
 
       if (exists) {
-        // Only fetch if it exists
         const feedback = await getFeedbackForStudent(
           selectedStudent,
           selectedCourse
@@ -169,13 +174,11 @@ export const ManageStudents = () => {
         setCurrentFeedback(feedback);
         setFeedbackInput(feedback.feedback);
       } else {
-        // No feedback exists - clear the state
         setCurrentFeedback(null);
         setFeedbackInput("");
       }
-    } catch (error) {
-      console.error("Error checking/fetching feedback:", error);
-      // On error, clear the state
+    } catch (err) {
+      console.error("Error checking/fetching feedback:", err);
       setCurrentFeedback(null);
       setFeedbackInput("");
     }
@@ -185,20 +188,18 @@ export const ManageStudents = () => {
     if (!selectedStudent || !selectedCourse) return;
 
     try {
-      // Use the actual service function instead of the mock
       const studentFeedbackData: IGradeFeedback = await getFeedbackForStudent(
         selectedStudent,
         selectedCourse
       );
 
-      // Use the 'feedback' property (or 'studentFeedback' if that's what your API returns)
       setStudentFeedback(
         studentFeedbackData.feedback ||
           studentFeedbackData.studentFeedback ||
           ""
       );
-    } catch (error) {
-      console.error("Error fetching student feedback:", error);
+    } catch (err) {
+      console.error("Error fetching student feedback:", err);
       setStudentFeedback("");
     }
   };
@@ -210,18 +211,24 @@ export const ManageStudents = () => {
   const handleUpdateGrade = async () => {
     if (!selectedStudent || !gradeInput || !selectedCourse) return;
 
+    const gradeValue = parseFloat(gradeInput);
+    if (isNaN(gradeValue) || gradeValue < 0 || gradeValue > 100) {
+      error("Please enter a valid grade between 0 and 100");
+      return;
+    }
+
     setLoading(true);
     try {
       await updateStudentGrade({
         studentUserId: selectedStudent,
         courseCode: selectedCourse,
-        grade: parseFloat(gradeInput),
+        grade: gradeValue,
       });
-      alert("Grade updated successfully!");
+      success("Grade updated successfully!");
       await fetchStudents(selectedCourse);
-    } catch (error) {
-      console.error("Error updating grade:", error);
-      alert("Failed to update grade");
+    } catch (err) {
+      console.error("Error updating grade:", err);
+      error("Failed to update grade");
     } finally {
       setLoading(false);
     }
@@ -236,33 +243,45 @@ export const ManageStudents = () => {
   const handleSaveFeedback = async () => {
     if (!selectedStudent || !selectedCourse || !feedbackInput.trim()) return;
 
+    // Check if grade exists before allowing feedback
+    if (!selectedStudentData?.grade && selectedStudentData?.grade !== 0) {
+      error("Please assign a grade to this student before adding feedback");
+      return;
+    }
+
     setFeedbackLoading(true);
     try {
       if (currentFeedback) {
-        // Update existing feedback
         await updateFeedbackAsTeacher(currentFeedback.id, feedbackInput);
-        alert("Feedback updated successfully!");
+        success("Feedback updated successfully!");
       } else {
-        // Create new feedback
         await createFeedbackAsTeacher({
           feedback: feedbackInput,
           courseStudentUserId: selectedStudent,
           courseCode: selectedCourse,
         });
-        alert("Feedback created successfully!");
+        success("Feedback created successfully!");
       }
       await fetchFeedback();
-    } catch (error) {
-      console.error("Error saving feedback:", error);
-      alert("Failed to save feedback");
+    } catch (err) {
+      console.error("Error saving feedback:", err);
+      error("Failed to save feedback");
     } finally {
       setFeedbackLoading(false);
     }
   };
 
   const handleViewStudentFeedback = (feedback: IGradeFeedback) => {
-    setSelectedFeedback(feedback); // ← assign the feedback object
-    setIsViewStudentFeedbackModalOpen(true); // ← open modal
+    setSelectedFeedback(feedback);
+    setIsViewStudentFeedbackModalOpen(true);
+  };
+
+  const handleResetGrade = () => {
+    setGradeInput(selectedStudentData?.grade?.toString() || "");
+  };
+
+  const handleResetFeedback = () => {
+    setFeedbackInput(currentFeedback?.feedback || "");
   };
 
   // Don't render until we have students data when a course is selected
@@ -431,9 +450,7 @@ export const ManageStudents = () => {
                 </button>
 
                 <button
-                  onClick={() =>
-                    setGradeInput(selectedStudentData?.grade?.toString() || "")
-                  }
+                  onClick={handleResetGrade}
                   className="px-6 py-3 border border-slate-300 text-slate-700 rounded-lg font-medium hover:bg-slate-50 transition-colors"
                 >
                   Reset
@@ -622,9 +639,7 @@ export const ManageStudents = () => {
                 </button>
 
                 <button
-                  onClick={() =>
-                    setFeedbackInput(currentFeedback?.feedback || "")
-                  }
+                  onClick={handleResetFeedback}
                   className="px-6 py-3 border border-slate-300 text-slate-700 rounded-lg font-medium hover:bg-slate-50 transition-colors"
                 >
                   Reset
