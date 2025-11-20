@@ -1,13 +1,14 @@
 import React, { useState } from "react";
-import { X, Book } from "lucide-react";
+import { X, Book, Copy } from "lucide-react";
 import { createNewUserAdmin } from "@services";
 import type { IUser } from "@interfaces";
 import SelectField from "components/common/SelectedField";
+import { useToast } from "../../../context/ToastContext";
 
 interface CreateUserModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSuccess: (userId: string) => void; // called after modal close
+  onSuccess: (userId: string) => void;
 }
 
 export default function CreateUserModal({
@@ -15,6 +16,7 @@ export default function CreateUserModal({
   onClose,
   onSuccess,
 }: CreateUserModalProps) {
+  const { success, error: showError } = useToast();
   const [formData, setFormData] = useState({
     firstName: "",
     middleName: "",
@@ -22,29 +24,25 @@ export default function CreateUserModal({
     program: "",
     password: "",
     confirmPassword: "",
-    role: "Teacher", // default role
+    role: "Teacher",
   });
-
-  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const [generatedUserId, setGeneratedUserId] = useState(""); // store generated ID
-  const [showModal, setShowModal] = useState(false); // for success modal
+  const [generatedUserId, setGeneratedUserId] = useState("");
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
-    setError("");
   };
 
   const handleCopyUserId = () => {
     navigator.clipboard.writeText(generatedUserId);
-    alert("User ID copied to clipboard!");
+    success("User ID copied to clipboard!");
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError("");
 
     // Validation
     if (
@@ -53,19 +51,19 @@ export default function CreateUserModal({
       !formData.password ||
       (formData.role === "Student" && !formData.program)
     ) {
-      setError("Please fill in all required fields");
+      showError("Please fill in all required fields");
       return;
     }
 
     if (formData.password !== formData.confirmPassword) {
-      setError("Passwords do not match");
+      showError("Passwords do not match");
       return;
     }
 
     setLoading(true);
     try {
       const newUser: IUser & { Password: string; ConfirmPassword: string } = {
-        UserId: "", // generated on server
+        UserId: "",
         FirstName: formData.firstName,
         MiddleName: formData.middleName,
         LastName: formData.lastName,
@@ -78,19 +76,17 @@ export default function CreateUserModal({
 
       const response = await createNewUserAdmin(newUser);
 
-      // Handle response safely
       let userId = "";
       if (typeof response === "string") {
-        userId = response; // API returned a string directly
+        userId = response;
       } else if (typeof response === "object" && response !== null) {
-        // API returned an object { userId, message }
         userId = response.userId ?? "";
       }
 
       if (!userId) throw new Error("No User ID returned from server");
 
       setGeneratedUserId(userId);
-      setShowModal(true);
+      setShowSuccessModal(true);
 
       // Reset form
       setFormData({
@@ -103,199 +99,234 @@ export default function CreateUserModal({
         role: "Teacher",
       });
     } catch (err: any) {
-      setError(
-        err.response?.data?.message || err.message || "Failed to create user"
-      );
+      showError(err.response?.data?.message || err.message || "Failed to create user");
     } finally {
       setLoading(false);
     }
   };
 
-  // Close only the success modal, then trigger parent
-  const handleCloseModal = () => {
-    setShowModal(false);
-    onSuccess(generatedUserId); // now parent knows new user created
-    onClose(); // close main form modal
+  const handleCloseSuccessModal = () => {
+    setShowSuccessModal(false);
+    onSuccess(generatedUserId);
+    onClose();
   };
 
   if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      {showModal ? (
-        // SUCCESS MODAL
-        <div className="bg-white rounded-lg max-w-sm w-full p-6 space-y-4">
-          <div className="flex justify-between items-center">
-            <h3 className="text-lg font-semibold text-gray-900">
-              User Created!
-            </h3>
-            <button onClick={handleCloseModal}>
+      {showSuccessModal ? (
+        // SUCCESS MODAL - Matching ViewEnrolledStudentsModal design
+        <div className="bg-white rounded-lg max-w-sm w-full max-h-[90vh] flex flex-col">
+          {/* Header */}
+          <div className="flex items-center justify-between p-6 border-b">
+            <h3 className="text-xl font-semibold text-gray-900">User Created Successfully!</h3>
+            <button
+              onClick={handleCloseSuccessModal}
+              className="p-2 rounded-full text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
+              aria-label="Close"
+            >
               <X size={20} />
             </button>
           </div>
-          <p className="text-gray-600">
-            The user has been successfully created. Please save the generated
-            User ID.
-          </p>
-          <div className="flex items-center space-x-2">
-            <code className="flex-1 bg-gray-100 px-3 py-2 rounded text-sm font-mono break-all">
-              {generatedUserId}
-            </code>
-            <button
-              onClick={handleCopyUserId}
-              className="bg-gray-200 hover:bg-gray-300 px-3 py-2 rounded text-sm font-medium"
-            >
-              Copy
-            </button>
+
+          {/* Content */}
+          <div className="flex-1 overflow-hidden flex flex-col p-6">
+            <div className="flex flex-col items-center text-center mb-6">
+              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
+                <Book className="w-8 h-8 text-green-600" />
+              </div>
+              <p className="text-gray-600 mb-2">
+                The user has been successfully created.
+              </p>
+              <p className="text-sm text-gray-500">
+                Please save the generated User ID for future reference.
+              </p>
+            </div>
+
+            <div className="space-y-3">
+              <label className="block text-sm font-medium text-gray-700">
+                Generated User ID
+              </label>
+              <div className="flex gap-2">
+                <code className="flex-1 bg-gray-100 px-3 py-2 rounded-lg text-sm font-mono break-all border">
+                  {generatedUserId}
+                </code>
+                <button
+                  onClick={handleCopyUserId}
+                  className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors flex items-center gap-2 text-sm font-medium"
+                >
+                  <Copy size={16} />
+                  Copy
+                </button>
+              </div>
+            </div>
+
+            {/* Action Button */}
+            <div className="mt-6 pt-4 border-t">
+              <button
+                onClick={handleCloseSuccessModal}
+                className="w-full px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors font-medium"
+              >
+                Close
+              </button>
+            </div>
           </div>
-          <button
-            onClick={handleCloseModal}
-            className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 font-medium"
-          >
-            Close
-          </button>
         </div>
       ) : (
-        // FORM MODAL
-        <div className="bg-white rounded-lg max-w-md w-full max-h-[90vh] overflow-y-auto">
+        // FORM MODAL - Matching ViewEnrolledStudentsModal design
+        <div className="bg-white rounded-lg max-w-md w-full max-h-[90vh] flex flex-col">
           {/* Header */}
           <div className="flex items-center justify-between p-6 border-b">
-            <h2 className="text-xl font-semibold text-gray-900">
-              Create New User
-            </h2>
+            <h2 className="text-xl font-semibold text-gray-900">Create New User</h2>
             <button
               onClick={onClose}
-              className="text-gray-400 hover:text-gray-600 transition-colors"
+              className="p-2 rounded-full text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
+              aria-label="Close"
             >
               <X size={20} />
             </button>
           </div>
 
           {/* Form */}
-          <form onSubmit={handleSubmit} className="p-6 space-y-4">
-            {error && (
-              <div className="bg-red-50 text-red-700 p-3 rounded-lg text-sm">
-                {error}
+          <form onSubmit={handleSubmit} className="flex-1 overflow-hidden flex flex-col">
+            <div className="flex-1 overflow-y-auto p-6 space-y-4">
+              {/* Name fields */}
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    First Name <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    name="firstName"
+                    value={formData.firstName}
+                    onChange={handleChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-400 focus:border-transparent"
+                    required
+                    disabled={loading}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Middle Name
+                  </label>
+                  <input
+                    type="text"
+                    name="middleName"
+                    value={formData.middleName}
+                    onChange={handleChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-400 focus:border-transparent"
+                    disabled={loading}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Last Name <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    name="lastName"
+                    value={formData.lastName}
+                    onChange={handleChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-400 focus:border-transparent"
+                    required
+                    disabled={loading}
+                  />
+                </div>
               </div>
-            )}
 
-            {/* Name fields */}
-            <div className="grid grid-cols-1 gap-4">
+              {/* Role */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  First Name <span className="text-red-500">*</span>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Role <span className="text-red-500">*</span>
                 </label>
-                <input
-                  type="text"
-                  name="firstName"
-                  value={formData.firstName}
+                <select
+                  name="role"
+                  value={formData.role}
                   onChange={handleChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-400 focus:border-transparent"
                   required
-                />
+                  disabled={loading}
+                >
+                  <option value="Teacher">Teacher</option>
+                  <option value="Student">Student</option>
+                </select>
               </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Middle Name
-                </label>
-                <input
-                  type="text"
-                  name="middleName"
-                  value={formData.middleName}
+
+              {/* Program */}
+              {formData.role === "Student" && (
+                <SelectField
+                  id="program"
+                  label="Program"
+                  value={formData.program}
                   onChange={handleChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Last Name <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  name="lastName"
-                  value={formData.lastName}
-                  onChange={handleChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg"
                   required
+                  error=""
+                  icon={<Book size={16} className="text-gray-500" />}
+                  options={[
+                    { value: "BSIT", label: "BSIT" },
+                    { value: "BSCS", label: "BSCS" },
+                    { value: "BSEd", label: "BSEd" },
+                    { value: "BSBA", label: "BSBA" },
+                  ]}
                 />
+              )}
+
+              {/* Password */}
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Password <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="password"
+                    name="password"
+                    value={formData.password}
+                    onChange={handleChange}
+                    placeholder="Enter password"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-400 focus:border-transparent"
+                    required
+                    disabled={loading}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Confirm Password <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="password"
+                    name="confirmPassword"
+                    value={formData.confirmPassword}
+                    onChange={handleChange}
+                    placeholder="Confirm password"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-400 focus:border-transparent"
+                    required
+                    disabled={loading}
+                  />
+                </div>
               </div>
-            </div>
-
-            {/* Role */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Role <span className="text-red-500">*</span>
-              </label>
-              <select
-                name="role"
-                value={formData.role}
-                onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-                required
-              >
-                <option value="Teacher">Teacher</option>
-                <option value="Student">Student</option>
-              </select>
-            </div>
-
-            {/* Program */}
-            {formData.role === "Student" && (
-              <SelectField
-                id="program"
-                label="Program"
-                value={formData.program}
-                onChange={handleChange}
-                required
-                error={""}
-                icon={<Book size={16} className="text-gray-500" />}
-                options={[
-                  { value: "BSIT", label: "BSIT" },
-                  { value: "BSCS", label: "BSCS" },
-                  { value: "BSEd", label: "BSEd" },
-                  { value: "BSBA", label: "BSBA" },
-                ]}
-              />
-            )}
-
-            {/* Password */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <input
-                type="password"
-                name="password"
-                value={formData.password}
-                onChange={handleChange}
-                placeholder="Password"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-                required
-              />
-              <input
-                type="password"
-                name="confirmPassword"
-                value={formData.confirmPassword}
-                onChange={handleChange}
-                placeholder="Confirm Password"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-                required
-              />
             </div>
 
             {/* Actions */}
-            <div className="flex gap-3 pt-4">
-              <button
-                type="button"
-                onClick={onClose}
-                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
-                disabled={loading}
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                className="flex-1 px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors disabled:opacity-50"
-                disabled={loading}
-              >
-                {loading ? "Creating..." : "Create User"}
-              </button>
+            <div className="p-6 border-t">
+              <div className="flex gap-3">
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors disabled:opacity-50"
+                  disabled={loading}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors disabled:opacity-50"
+                  disabled={loading}
+                >
+                  {loading ? "Creating..." : "Create User"}
+                </button>
+              </div>
             </div>
           </form>
         </div>
