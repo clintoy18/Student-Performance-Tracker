@@ -1,3 +1,5 @@
+#nullable enable
+
 using System;
 
 namespace ASI.Basecode.Data.Models

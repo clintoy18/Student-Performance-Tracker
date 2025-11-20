@@ -79,10 +79,22 @@ namespace ASI.Basecode.WebApp
             this._services = services;
 
             services.AddMemoryCache();
+            /*
+            // Register SQL database configuration context as services.
+            services.AddDbContext<AsiBasecodeDBContext>(options =>
+                options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection"))
+            );
+            */
 
             // Register SQL database configuration context as services.
             services.AddDbContext<AsiBasecodeDBContext>(options =>
-            options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
+                options
+                    .UseSqlite(
+                        Configuration.GetConnectionString("DefaultConnection")
+                        
+                        // b => b.MigrationsAssembly("ASI.Basecode.WebApp")
+                    )
+            );
 
 
             // services.AddControllersWithViews();
