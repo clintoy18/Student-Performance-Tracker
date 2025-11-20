@@ -1,3 +1,5 @@
+#nullable enable
+
 using ASI.Basecode.Data.Interfaces;
 using ASI.Basecode.Data.Models;
 using ASI.Basecode.Services.Interfaces;
@@ -42,7 +44,19 @@ namespace ASI.Basecode.Services.Services
                 throw new ArgumentException("Student is already enrolled in this course.");
             }
             var user = _userRepository.GetUser(model.StudentUserId);
+
+            if (user == null)
+            {
+                throw new ArgumentNullException(Resources.Messages.Errors.UserNotExist);
+            }
+
             var course = _courseRepository.GetCourse(model.CourseCode);
+
+            if (course == null)
+            {
+                throw new ArgumentNullException(Resources.Messages.Errors.CourseNotExists);
+            }
+            
             var newStudentCourse = new StudentCourse
             {
                 UserId = model.StudentUserId,
@@ -80,7 +94,7 @@ namespace ASI.Basecode.Services.Services
             var studentCourse = _repository.GetStudentCourse(studentUserId, courseCode);
             if (studentCourse == null)
             {
-                throw new ArgumentNullException("Student course does not exist.");
+                throw new ArgumentNullException(Resources.Messages.Errors.StudentCourseNotExist);
             }
             _repository.DeleteStudentCourseByStudentCourseId(studentCourse.StudentCourseId);
         }

@@ -12,6 +12,7 @@ namespace ASI.Basecode.Data.Models
         public string CourseName { get; set; } = null!;
         public string? CourseDescription { get; set; }
         public string? UserId { get; set; }   // FK to teacher (nullable)
+        public bool IsDeleted { get; set; } = false;
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 

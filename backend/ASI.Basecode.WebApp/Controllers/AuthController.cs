@@ -242,10 +242,11 @@ namespace ASI.Basecode.WebApp.Controllers
             }
 
             var role = _rbacService.GetUserRole(userId);
+
             // ==============================================
 
-            // === Build RegisterUserViewModel with authenticated UserId ===
-            var updateModel = new RegisterUserAdminModel
+                // === Build RegisterUserViewModel with authenticated UserId ===
+                var updateModel = new RegisterUserAdminModel
             {
                 UserId = userId, // 🔒 Enforced from token — frontend cannot override
                 FirstName = request.FirstName,

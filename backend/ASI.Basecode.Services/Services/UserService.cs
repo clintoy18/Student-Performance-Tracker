@@ -1,4 +1,6 @@
-﻿using ASI.Basecode.Data.Interfaces;
+﻿#nullable enable
+
+using ASI.Basecode.Data.Interfaces;
 using ASI.Basecode.Data.Models;
 using ASI.Basecode.Data.Repositories;
 using ASI.Basecode.Services.Interfaces;
@@ -32,8 +34,11 @@ namespace ASI.Basecode.Services.Services
         public LoginResult AuthenticateUser(string userId, string password)
         {
             var passwordKey = PasswordManager.EncryptPassword(password);
-            var user = _repository.GetUsers().Where(x => x.UserId == userId &&
-                                                     x.HashedPassword == passwordKey).FirstOrDefault();
+            var user = _repository.GetUsers()
+                .Where(x =>
+                    x.UserId == userId &&
+                    x.HashedPassword == passwordKey)
+                .FirstOrDefault();
 
             return user != null ? LoginResult.Success : LoginResult.Failed;
         }
@@ -50,7 +55,12 @@ namespace ASI.Basecode.Services.Services
             }
         }
 
-        private string GenerateIDNumber<T>(string idPropertyName, string prefix = null) where T : class
+        public User? FetchUserEvenIfNull(string userId)
+        {
+            return _repository.GetUser(userId);
+        }
+
+        private string GenerateIDNumber<T>(string idPropertyName, string? prefix = null) where T : class
         {
             var rand = new Random();
             var year = DateTime.Now.Year.ToString(CultureInfo.InvariantCulture).Substring(2, 2);
@@ -61,7 +71,7 @@ namespace ASI.Basecode.Services.Services
                 var digit4 = $"{rand.Next(0, 9999):D4}";
                 var digit3 = $"{rand.Next(0, 999):D3}";
 
-                if(string.IsNullOrEmpty(prefix))
+                if (string.IsNullOrEmpty(prefix))
                 {
                     id = $"{year}-{digit4}-{digit3}";
                 }
@@ -71,7 +81,7 @@ namespace ASI.Basecode.Services.Services
                 }
 
 
-            } while (_repository.IsIDExists<T>(id, idPropertyName)); 
+            } while (_repository.IsIDExists<T>(id, idPropertyName));
 
             return id;
         }
@@ -155,7 +165,7 @@ namespace ASI.Basecode.Services.Services
         {
             if (!_repository.UserExists(userId))
             {
-                throw new InvalidDataException("User not found.");
+                throw new InvalidDataException(Resources.Messages.Errors.UserNotExist);
             }
 
             _repository.DeleteUserById(userId);

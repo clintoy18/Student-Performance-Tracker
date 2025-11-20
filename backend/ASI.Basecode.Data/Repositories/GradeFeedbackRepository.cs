@@ -16,21 +16,28 @@ namespace ASI.Basecode.Data.Repositories
 
         public IQueryable<GradeFeedback> GetGradeFeedbacks()
         {
-            return GetDbSet<GradeFeedback>();
+            return GetDbSet<GradeFeedback>()
+                .Where(gf => 
+                    !gf.IsDeleted);
         }
 
         public GradeFeedback GetGradeFeedback(int id)
         {
-            return GetDbSet<GradeFeedback>().FirstOrDefault(gf => gf.Id == id);
+            return GetDbSet<GradeFeedback>()
+                .FirstOrDefault(gf =>
+                    gf.Id == id &&
+                    !gf.IsDeleted);
         }
 
         public GradeFeedback GetGradeFeedback(string teacherId, string courseCode)
         {
             return GetDbSet<GradeFeedback>()
                 .Include(gf => gf.StudentCourse)
-                .FirstOrDefault(gf => gf.UserId == teacherId &&
-                                    gf.StudentCourse != null &&
-                                    gf.StudentCourse.CourseCode == courseCode);
+                .FirstOrDefault(gf =>
+                    gf.UserId == teacherId &&
+                    gf.StudentCourse != null &&
+                    gf.StudentCourse.CourseCode == courseCode &&
+                    !gf.IsDeleted && !gf.StudentCourse.IsDeleted);
         }
 
         public GradeFeedback GetGradeFeedbackByStudentId(string studentId, string courseCode)
@@ -39,14 +46,21 @@ namespace ASI.Basecode.Data.Repositories
                 .Include(gf => gf.StudentCourse)
                 .Include(gf => gf.StudentCourse.Course)
                 .Include(gf => gf.User)
-                .FirstOrDefault(gf => gf.StudentCourse != null &&
-                                    gf.StudentCourse.UserId == studentId &&
-                                    gf.StudentCourse.CourseCode == courseCode);   
+                .FirstOrDefault(gf =>
+                    gf.StudentCourse != null &&
+                    gf.StudentCourse.UserId == studentId &&
+                    gf.StudentCourse.CourseCode == courseCode &&
+                    !gf.IsDeleted &&
+                    !gf.StudentCourse.IsDeleted && 
+                    !gf.StudentCourse.Course.IsDeleted &&
+                    !gf.User.IsDeleted);   
         }
 
         public bool GradeFeedbackExists(int id)
         {
-            return GetDbSet<GradeFeedback>().Any(x => x.Id == id);
+            return GetDbSet<GradeFeedback>().Any(x =>
+                x.Id == id &&
+                !x.IsDeleted);
         }
 
         // Check if grade feedback of a student exists 
@@ -54,29 +68,30 @@ namespace ASI.Basecode.Data.Repositories
         {
             return GetDbSet<GradeFeedback>()
                 .Include(gf => gf.StudentCourse) // Explicitly include to ensure navigation works
-                .Any(x => x.UserId == teacherUserID &&
-                        x.StudentCourse != null &&
-                        x.StudentCourse.CourseCode == courseCode);
+                .Any(x =>
+                    x.UserId == teacherUserID &&
+                    x.StudentCourse != null &&
+                    x.StudentCourse.CourseCode == courseCode &&
+                    !x.IsDeleted && !x.StudentCourse.IsDeleted);
         }
 
         public void AddGradeFeedback(GradeFeedback gradeFeedback)
         {
-            ArgumentNullException.ThrowIfNull(gradeFeedback);
             GetDbSet<GradeFeedback>().Add(gradeFeedback);
             UnitOfWork.SaveChanges();
         }
 
         public void UpdateGradeFeedback(GradeFeedback gradeFeedback)
         {
-            ArgumentNullException.ThrowIfNull(gradeFeedback);
             GetDbSet<GradeFeedback>().Update(gradeFeedback);
             UnitOfWork.SaveChanges();
         }
 
         public void DeleteGradeFeedbackById(int id)
         {
-            var gradeFeedback = GetDbSet<GradeFeedback>().Find(id);
-            GetDbSet<GradeFeedback>().Remove(gradeFeedback);
+            GetDbSet<GradeFeedback>()
+                .Find(id)
+                .IsDeleted = true;
             UnitOfWork.SaveChanges();
         }
     }
