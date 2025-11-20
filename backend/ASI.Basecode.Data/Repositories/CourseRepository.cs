@@ -16,37 +16,49 @@ namespace ASI.Basecode.Data.Repositories
 
         public IQueryable<Course> GetCourses()
         {
-            return GetDbSet<Course>();
+            return GetDbSet<Course>()
+                .Where(c => !c.IsDeleted);
         }
 
         public Course GetCourse(string courseCode)
         {
-            return GetDbSet<Course>().FirstOrDefault(c => c.CourseCode == courseCode);
+            return GetDbSet<Course>()
+            .FirstOrDefault(c =>
+                c.CourseCode == courseCode &&
+                !c.IsDeleted);
         }
 
         public bool CourseExists(string courseCode)
         {
-            return GetDbSet<Course>().Any(x => x.CourseCode == courseCode);
+            return GetDbSet<Course>().Any(x =>
+                x.CourseCode == courseCode &&
+                !x.IsDeleted);
         }
 
         public void AddCourse(Course course)
         {
-            ArgumentNullException.ThrowIfNull(course);
             GetDbSet<Course>().Add(course);
             UnitOfWork.SaveChanges();
         }
 
         public void UpdateCourse(Course course)
         {
-            ArgumentNullException.ThrowIfNull(course);
             GetDbSet<Course>().Update(course);
             UnitOfWork.SaveChanges();
         }
 
         public void DeleteCourseByCourseCode(string courseCode)
         {
-            var course = GetDbSet<Course>().FirstOrDefault(c => c.CourseCode == courseCode);
-            GetDbSet<Course>().Remove(course);
+            GetDbSet<Course>()
+                .FirstOrDefault(c =>
+                    c.CourseCode == courseCode)
+                .IsDeleted = true;
+
+            GetDbSet<StudentCourse>()
+                .Where(sc => sc.CourseCode == courseCode)
+                .ExecuteUpdate(setters =>
+                    setters.SetProperty(sc => sc.IsDeleted, true));
+
             UnitOfWork.SaveChanges();
         }
     }

@@ -126,4 +126,13 @@
   <data name="UserNotExist" xml:space="preserve">
     <value>User does not exist!</value>
   </data>
+  <data name="CourseNotExist" xml:space="preserve">
+    <value>Course does not exist!</value>
+  </data>
+  <data name="StudentCourseNotExist" xml:space="preserve">
+    <value>Student Course does not exist!</value>
+  </data>
+  <data name="GradeFeedbackNotExist" xml:space="preserve">
+    <value>Grade Feedback does not exist!</value>
+  </data>
 </root>

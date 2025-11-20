@@ -236,15 +236,15 @@ export const Grade = ({ studentUserId }: { studentUserId?: string }) => {
           const data = await getCoursesByStudent(studentUserId);
         
           const feedbackedData = await Promise.all(
-      data.map(async (grade) => {
-        const teacherFeedback = await getFeedbackForStudent(studentUserId, grade.courseCode);
-        return {
-          ...grade,
-          hasStudentFeedback: await checkStudentFeedbackExists(studentUserId, grade.courseCode),
-          hasTeacherFeedback: !!teacherFeedback?.feedback,
-          feedback: teacherFeedback?.feedback || "",
-        };
-      })
+            data.map(async (grade) => {
+              const teacherFeedback = await getFeedbackForStudent(studentUserId, grade.courseCode);
+              return {
+                ...grade,
+                hasStudentFeedback: await checkStudentFeedbackExists(studentUserId, grade.courseCode),
+                hasTeacherFeedback: !!teacherFeedback?.feedback,
+                feedback: teacherFeedback?.feedback || "",
+              };
+          })
     );
 
       setGrades(feedbackedData);
