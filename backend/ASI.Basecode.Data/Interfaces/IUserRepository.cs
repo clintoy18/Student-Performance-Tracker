@@ -10,7 +10,6 @@ namespace ASI.Basecode.Data.Interfaces
     {
         IQueryable<User> GetUsers();
         User GetUser(string userId);
-        public User GetUserNoNullException(string userId);
 
         bool UserExists(string userId);
         void AddUser(User user);

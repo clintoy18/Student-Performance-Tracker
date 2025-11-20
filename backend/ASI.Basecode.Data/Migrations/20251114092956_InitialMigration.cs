@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace ASI.Basecode.Data.Migrations
 {
     /// <inheritdoc />
-    public partial class MigrateSQLite : Migration
+    public partial class InitialMigration : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -15,16 +15,16 @@ namespace ASI.Basecode.Data.Migrations
                 name: "Users",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "INTEGER", nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
-                    UserId = table.Column<string>(type: "TEXT", maxLength: 50, nullable: false),
-                    FirstName = table.Column<string>(type: "TEXT", maxLength: 50, nullable: false),
-                    MiddleName = table.Column<string>(type: "TEXT", maxLength: 50, nullable: true),
-                    LastName = table.Column<string>(type: "TEXT", maxLength: 50, nullable: false),
-                    HashedPassword = table.Column<string>(type: "TEXT", nullable: false),
-                    Program = table.Column<string>(type: "TEXT", maxLength: 50, nullable: true),
-                    CreatedTime = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    Role = table.Column<int>(type: "INTEGER", nullable: false)
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    UserId = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    FirstName = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    MiddleName = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
+                    LastName = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    HashedPassword = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Program = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
+                    CreatedTime = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    Role = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -36,13 +36,13 @@ namespace ASI.Basecode.Data.Migrations
                 name: "Courses",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "INTEGER", nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
-                    CourseCode = table.Column<string>(type: "TEXT", maxLength: 50, nullable: false),
-                    CourseName = table.Column<string>(type: "TEXT", maxLength: 100, nullable: false),
-                    CourseDescription = table.Column<string>(type: "TEXT", maxLength: 1000, nullable: true),
-                    UserId = table.Column<string>(type: "TEXT", maxLength: 50, nullable: true),
-                    CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: false)
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    CourseCode = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    CourseName = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    CourseDescription = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: true),
+                    UserId = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -60,13 +60,13 @@ namespace ASI.Basecode.Data.Migrations
                 name: "StudentCourses",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "INTEGER", nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
-                    StudentCourseId = table.Column<string>(type: "TEXT", maxLength: 50, nullable: false),
-                    UserId = table.Column<string>(type: "TEXT", maxLength: 50, nullable: false),
-                    CourseCode = table.Column<string>(type: "TEXT", maxLength: 50, nullable: false),
-                    Grade = table.Column<decimal>(type: "TEXT", nullable: true),
-                    CreatedTime = table.Column<DateTime>(type: "TEXT", nullable: false)
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    StudentCourseId = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    UserId = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    CourseCode = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    Grade = table.Column<decimal>(type: "decimal(18,2)", nullable: true),
+                    CreatedTime = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -90,14 +90,14 @@ namespace ASI.Basecode.Data.Migrations
                 name: "GradeFeedbacks",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "INTEGER", nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
-                    Feedback = table.Column<string>(type: "TEXT", maxLength: 1000, nullable: true),
-                    StudentFeedback = table.Column<string>(type: "TEXT", maxLength: 1000, nullable: true),
-                    StudentCourseId = table.Column<string>(type: "TEXT", maxLength: 50, nullable: true),
-                    UserId = table.Column<string>(type: "TEXT", maxLength: 50, nullable: true),
-                    CreatedTime = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    UpdatedTime = table.Column<DateTime>(type: "TEXT", nullable: false)
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Feedback = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: true),
+                    StudentFeedback = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: true),
+                    StudentCourseId = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
+                    UserId = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
+                    CreatedTime = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    UpdatedTime = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
                 constraints: table =>
                 {

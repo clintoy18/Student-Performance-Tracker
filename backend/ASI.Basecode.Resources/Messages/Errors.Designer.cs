@@ -97,5 +97,29 @@ namespace ASI.Basecode.Resources.Messages {
                 return ResourceManager.GetString("UserNotExist", resourceCulture);
             }
         }
+
+        public static string CourseNotExists
+        {
+            get
+            {
+                return ResourceManager.GetString("CourseNotExists", resourceCulture);
+            }
+        }
+
+        public static string StudentCourseNotExist
+        {
+            get
+            {
+                return ResourceManager.GetString("StudentCourseNotExist", resourceCulture);
+            }
+        }
+
+        public static string GradeFeedbackNotExist
+        {
+            get
+            {
+                return ResourceManager.GetString("GradeFeedbackNotExist", resourceCulture);
+            }
+        }
     }
 }

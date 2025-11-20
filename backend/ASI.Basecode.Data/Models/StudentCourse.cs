@@ -11,6 +11,8 @@ namespace ASI.Basecode.Data.Models
         public string CourseCode { get; set; } = null!;
 
         public decimal? Grade { get; set; }
+        public bool IsDeleted { get; set; } = false;
+
         public DateTime CreatedTime { get; set; } = DateTime.UtcNow;
 
         public User User { get; set; } = null!;

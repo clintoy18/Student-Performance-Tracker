@@ -16,6 +16,7 @@ import type { ICourse } from "@interfaces/models/ICourse";
 import type { IStudentCourse } from "@interfaces/models/IStudentCourse";
 import type { IUser } from "@interfaces";
 import { exportGradesPerCoursePDF } from "@services";
+import { useToast } from "../../../../context/ToastContext";
 
 interface ViewEnrolledStudentsModalProps {
   isOpen: boolean;
@@ -41,6 +42,8 @@ export default function ViewEnrolledStudentsModal({
     null
   );
 
+  const { error: showError } = useToast()
+
   const handleExportGradesPerCourse = async (courseCode: string) => {
     console.log("Exporting grades for course code:", courseCode);
 
@@ -60,7 +63,7 @@ export default function ViewEnrolledStudentsModal({
     } catch (error) {
       console.error("Error exporting grades per course PDF:", error);
       console.log("Clicked Export for:", course.CourseCode);
-
+      showError("Failed to create grade report. Maybe there are no enrolled students in this course?")
     }
   };
 
