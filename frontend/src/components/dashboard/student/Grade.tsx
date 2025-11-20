@@ -144,15 +144,14 @@ const ViewTeacherFeedbackModal = ({
             </div>
             {grade !== undefined && grade !== null && (
               <div
-                className={`px-3 py-1 rounded-full text-sm font-bold ${
-                  grade >= 90
-                    ? "bg-green-100 text-green-800"
-                    : grade >= 80
+                className={`px-3 py-1 rounded-full text-sm font-bold ${grade >= 90
+                  ? "bg-green-100 text-green-800"
+                  : grade >= 80
                     ? "bg-blue-100 text-blue-800"
                     : grade >= 70
-                    ? "bg-yellow-100 text-yellow-800"
-                    : "bg-red-100 text-red-800"
-                }`}
+                      ? "bg-yellow-100 text-yellow-800"
+                      : "bg-red-100 text-red-800"
+                  }`}
               >
                 {grade}
               </div>
@@ -232,32 +231,43 @@ export const Grade = ({ studentUserId }: { studentUserId?: string }) => {
     setLoading(true);
     try {
       const data = await getCoursesByStudent(studentUserId);
-      
-      const feedbackedData = await Promise.all(
-        data.map(async (grade) => {
-          try {
-            const teacherFeedback = await getFeedbackForStudent(studentUserId, grade.courseCode);
-            const hasStudentFeedback = await checkStudentFeedbackExists(studentUserId, grade.courseCode);
-            
-            return {
-              ...grade,
-              hasStudentFeedback,
-              hasTeacherFeedback: !!teacherFeedback?.feedback,
-              feedback: teacherFeedback?.feedback || "",
-            };
-          } catch (err) {
-            console.error(`Error fetching feedback for course ${grade.courseCode}:`, err);
-            return {
-              ...grade,
-              hasStudentFeedback: false,
-              hasTeacherFeedback: false,
-              feedback: "",
-            };
-          }
-        })
-      );
+      // const feedbackedData = await Promise.all(
+      //   data.map(async (grade) => {
+      //     const teacherFeedback = await getFeedbackForStudent(studentUserId, grade.courseCode);
+      //     console.log('grade feedback fetch', studentUserId, grade.courseCode)
+      //     return {
+      //       ...grade,
+      //       hasStudentFeedback: await checkStudentFeedbackExists(studentUserId, grade.courseCode),
+      //       hasTeacherFeedback: !!teacherFeedback?.feedback,
+      //       feedback: teacherFeedback?.feedback || "",
+      //     };
+      //   })
+      // );
 
-      setGrades(feedbackedData);
+      setGrades(data.map(grade => ({ ...grade })))
+
+      data.forEach(async (grade, index) => {
+        const teacherFeedback = await getFeedbackForStudent(studentUserId, grade.courseCode);
+        const hasStudentFeedback = await checkStudentFeedbackExists(studentUserId, grade.courseCode);
+
+        const updatedGrade = {
+          ...grade,
+          hasStudentFeedback,
+          hasTeacherFeedback: !!teacherFeedback?.feedback,
+          feedback: teacherFeedback?.feedback || "",
+          loading: false,
+          error: null,
+        };
+
+        setGrades(prev => {
+          const newGrades = [...prev]
+          newGrades[index] = updatedGrade
+          return newGrades
+        })
+      })
+
+
+      // setGrades(feedbackedData);
     } catch (err) {
       console.error("Failed to load grades:", err);
       showError("Failed to load grades and feedback");
@@ -327,7 +337,7 @@ export const Grade = ({ studentUserId }: { studentUserId?: string }) => {
                   const hasStudentFeedback = grade.hasStudentFeedback || false;
                   const hasTeacherFeedback = grade.hasTeacherFeedback || false;
                   const showGrade = hasStudentFeedback && grade.grade !== null && grade.grade !== undefined;
-                  
+
                   return (
                     <div
                       key={grade.id}
@@ -361,61 +371,78 @@ export const Grade = ({ studentUserId }: { studentUserId?: string }) => {
                             </p>
                           )}
                         </div>
+                        {/* Status messages */}
+                        {!hasTeacherFeedback ? (
+                          <p className="text-xs text-gray-500">
+                            Awaiting grade and feedback from instructor
+                          </p>
+                        ) : !hasStudentFeedback ? (
+                          <p className="text-xs text-amber-600 font-medium">
+                            Submit your feedback to view grade
+                          </p>
+                        ) : showGrade ? (
+                          <p className="text-xs text-green-600 font-medium">
+                            Grade and feedback available
+                          </p>
+                        ) : (
+                          <p className="text-xs text-blue-600 font-medium">
+                            Feedback submitted - grade pending
+                          </p>
+                        )}
+                      </div>
 
-                        <div className="flex items-center gap-2 flex-shrink-0">
-                          {/* Submit Feedback Button - Show when teacher feedback exists but student hasn't submitted */}
-                          {!hasStudentFeedback && hasTeacherFeedback && (
-                            <button
-                              onClick={() => handleOpenSubmitFeedbackModal(grade)}
-                              className="flex items-center gap-1 text-blue-600 border border-blue-300 px-3 py-1.5 rounded-lg text-xs font-medium hover:bg-blue-50 transition-colors"
-                              title="Submit your course feedback"
-                            >
-                              <MessageSquare size={12} />
-                              <span>Give Feedback</span>
-                            </button>
-                          )}
+                      <div className="flex items-center gap-2 flex-shrink-0">
+                        {/* Submit Feedback Button - Show when teacher feedback exists but student hasn't submitted */}
+                        {!hasStudentFeedback && hasTeacherFeedback && (
+                          <button
+                            onClick={() => handleOpenSubmitFeedbackModal(grade)}
+                            className="flex items-center gap-1 text-blue-600 border border-blue-300 px-3 py-1.5 rounded-lg text-xs font-medium hover:bg-blue-50 transition-colors"
+                            title="Submit your course feedback"
+                          >
+                            <MessageSquare size={12} />
+                            <span>Give Feedback</span>
+                          </button>
+                        )}
 
-                          {/* View Teacher Feedback Button - Show when student has submitted feedback AND teacher feedback exists */}
-                          {hasStudentFeedback && hasTeacherFeedback && (
-                            <button
-                              onClick={() => handleOpenViewFeedbackModal(grade)}
-                              className="flex items-center gap-1 text-green-600 border border-green-300 px-3 py-1.5 rounded-lg text-xs font-medium hover:bg-green-50 transition-colors"
-                              title="View instructor feedback and grade"
-                            >
-                              <Eye size={12} />
-                              <span>View Feedback</span>
-                            </button>
-                          )}
+                        {/* View Teacher Feedback Button - Show when student has submitted feedback AND teacher feedback exists */}
+                        {hasStudentFeedback && hasTeacherFeedback && (
+                          <button
+                            onClick={() => handleOpenViewFeedbackModal(grade)}
+                            className="flex items-center gap-1 text-green-600 border border-green-300 px-3 py-1.5 rounded-lg text-xs font-medium hover:bg-green-50 transition-colors"
+                            title="View instructor feedback and grade"
+                          >
+                            <Eye size={12} />
+                            <span>View Feedback</span>
+                          </button>
+                        )}
 
-                          {/* Grade Display */}
-                          {showGrade ? (
-                            <span
-                              className={`text-sm font-bold px-3 py-1.5 rounded-lg border ${
-                                grade.grade >= 90
-                                  ? "text-green-700 border-green-300 bg-green-50"
-                                  : grade.grade >= 80
+                        {/* Grade Display */}
+                        {showGrade ? (
+                          <span
+                            className={`text-sm font-bold px-3 py-1.5 rounded-lg border ${grade.grade >= 90
+                                ? "text-green-700 border-green-300 bg-green-50"
+                                : grade.grade >= 80
                                   ? "text-blue-700 border-blue-300 bg-blue-50"
                                   : grade.grade >= 70
-                                  ? "text-yellow-700 border-yellow-300 bg-yellow-50"
-                                  : "text-red-700 border-red-300 bg-red-50"
+                                    ? "text-yellow-700 border-yellow-300 bg-yellow-50"
+                                    : "text-red-700 border-red-300 bg-red-50"
                               }`}
-                            >
-                              {grade.grade}
-                            </span>
-                          ) : hasStudentFeedback ? (
-                            <span className="text-sm font-medium px-3 py-1.5 rounded-lg border text-gray-500 border-gray-300 bg-gray-50">
-                              Grade Pending
-                            </span>
-                          ) : hasTeacherFeedback ? (
-                            <span className="text-sm font-medium px-3 py-1.5 rounded-lg border text-amber-600 border-amber-300 bg-amber-50">
-                              Feedback Required
-                            </span>
-                          ) : (
-                            <span className="text-sm font-medium px-3 py-1.5 rounded-lg border text-gray-400 border-gray-300 bg-gray-50">
-                              Awaiting Grade
-                            </span>
-                          )}
-                        </div>
+                          >
+                            {grade.grade}
+                          </span>
+                        ) : hasStudentFeedback ? (
+                          <span className="text-xs font-medium px-3 py-1.5 rounded-lg border text-gray-500 border-gray-300 bg-gray-50">
+                            Grade Pending
+                          </span>
+                        ) : hasTeacherFeedback ? (
+                          <span className="text-xs font-medium px-3 py-1.5 rounded-lg border text-amber-600 border-amber-300 bg-amber-50">
+                            Feedback Required
+                          </span>
+                        ) : (
+                          <span className="text-xs font-medium px-3 py-1.5 rounded-lg border text-gray-400 border-gray-300 bg-gray-50">
+                            Awaiting Grade
+                          </span>
+                        )}
                       </div>
                     </div>
                   );

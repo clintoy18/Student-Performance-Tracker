@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using ASI.Basecode.Data.Models;
+using System.Linq;
 
 namespace ASI.Basecode.Data
 {
@@ -30,6 +31,7 @@ namespace ASI.Basecode.Data
                 entity.Property(u => u.HashedPassword).IsRequired();
                 entity.Property(u => u.CreatedTime).IsRequired();
                 entity.Property(u => u.Role).IsRequired();
+                entity.Property(u => u.IsDeleted).IsRequired().HasDefaultValue(false);
             });
 
             // Courses
@@ -41,6 +43,7 @@ namespace ASI.Basecode.Data
                 entity.Property(c => c.CourseName).IsRequired().HasMaxLength(100);
                 entity.Property(c => c.CourseDescription).HasMaxLength(1000);
                 entity.Property(c => c.UserId).HasMaxLength(50).IsRequired(false);
+                entity.Property(c => c.IsDeleted).IsRequired().HasDefaultValue(false);
                 entity.Property(c => c.CreatedAt).IsRequired();
 
                 entity.HasOne(c => c.User)
@@ -58,6 +61,7 @@ namespace ASI.Basecode.Data
                 entity.Property(sc => sc.StudentCourseId).IsRequired().HasMaxLength(50);
                 entity.Property(sc => sc.UserId).IsRequired().HasMaxLength(50);
                 entity.Property(sc => sc.CourseCode).IsRequired().HasMaxLength(50);
+                entity.Property(sc => sc.IsDeleted).IsRequired().HasDefaultValue(false);
                 entity.Property(sc => sc.Grade).IsRequired(false);
                 entity.Property(sc => sc.CreatedTime).IsRequired();
 
@@ -81,6 +85,7 @@ namespace ASI.Basecode.Data
                 entity.Property(gf => gf.StudentFeedback).HasMaxLength(1000);
                 entity.Property(gf => gf.UserId).HasMaxLength(50).IsRequired(false);
                 entity.Property(gf => gf.StudentCourseId).HasMaxLength(50).IsRequired(false);
+                entity.Property(gf => gf.IsDeleted).IsRequired().HasDefaultValue(false);
                 entity.Property(gf => gf.CreatedTime).IsRequired();
                 entity.Property(gf => gf.UpdatedTime).IsRequired();
 

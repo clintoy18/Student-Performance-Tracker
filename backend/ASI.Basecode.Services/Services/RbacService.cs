@@ -1,6 +1,7 @@
 using ASI.Basecode.Data.Interfaces;
 using ASI.Basecode.Data.Models;
 using ASI.Basecode.Services.Interfaces;
+using System;
 using System.Threading.Tasks;
 using static ASI.Basecode.Resources.Constants.Enums;
 
@@ -18,6 +19,12 @@ namespace ASI.Basecode.Services.Services
         public UserRoles GetUserRole(string userId)
         {
             var user = _userRepository.GetUser(userId);
+
+            if (user == null)
+            {
+                throw new ArgumentNullException(Resources.Messages.Errors.UserNotExist);
+            }
+
             return user.Role;
         }
 

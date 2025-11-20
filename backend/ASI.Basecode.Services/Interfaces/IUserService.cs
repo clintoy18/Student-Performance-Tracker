@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿#nullable enable
+
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using ASI.Basecode.Data.Models;
 using ASI.Basecode.Services.ServiceModels;
@@ -13,6 +15,7 @@ namespace ASI.Basecode.Services.Interfaces
         User FetchUser(string userId);
         // public User FetchUserNoNullException(string userId);
         // void UpdateUser(RegisterUserViewModel model);
+        public User? FetchUserEvenIfNull(string userId);
         void DeleteUser(string userId);
         void RegisterUserAdmin(RegisterUserAdminModel model);
         void UpdateUserAdmin(RegisterUserAdminModel model);
