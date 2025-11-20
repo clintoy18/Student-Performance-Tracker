@@ -65,7 +65,7 @@ namespace ASI.Basecode.WebApp.Controllers
                 {
                     // Allow null UserId
                     var teacher = c.UserId != null
-                        ? _userService.FetchUser(c.UserId)
+                        ? _userService.FetchUserEvenIfNull(c.UserId)
                         : null;
 
                     return new CourseListViewModel

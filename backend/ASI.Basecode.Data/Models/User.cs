@@ -15,6 +15,7 @@ namespace ASI.Basecode.Data.Models
         public string LastName { get; set; } = null!;
         public string HashedPassword { get; set; } = null!;
         public string? Program { get; set; }
+        public bool IsDeleted { get; set; } = false;
 
         public DateTime CreatedTime { get; set; } = DateTime.UtcNow;
         public UserRoles Role { get; set; } = UserRoles.Student;

@@ -86,7 +86,7 @@ namespace ASI.Basecode.Services.Services
         {
             var gradeFeedback = _repository.GetGradeFeedback(feedbackId);
             if (gradeFeedback == null)
-                throw new ArgumentNullException("Grade feedback does not exist");
+                throw new ArgumentNullException(Resources.Messages.Errors.GradeFeedbackNotExist);
 
             gradeFeedback.Feedback = feedback;
             gradeFeedback.UpdatedTime = DateTime.UtcNow;
@@ -97,7 +97,7 @@ namespace ASI.Basecode.Services.Services
         {
             var gradeFeedback = _repository.GetGradeFeedback(feedbackId);
             if (gradeFeedback == null)
-                throw new ArgumentNullException("Grade feedback not found.");
+                throw new ArgumentNullException(Resources.Messages.Errors.GradeFeedbackNotExist);
 
             _repository.DeleteGradeFeedbackById(feedbackId);
         }
@@ -110,6 +110,10 @@ namespace ASI.Basecode.Services.Services
                 throw new ArgumentNullException("Student does not have a related course to be feedbacked on.");
 
             var gradeFeedback = _repository.GetGradeFeedbackByStudentId(studentUserId, courseCode);
+
+            if (gradeFeedback == null)
+                throw new ArgumentNullException(Resources.Messages.Errors.GradeFeedbackNotExist);
+
             _logger.LogInformation("Retrieved Feedback: {FeedbackJson}", JsonSerializer.Serialize(gradeFeedback));
 
             // Use AutoMapper to handle mapping with null checks
@@ -125,12 +129,23 @@ namespace ASI.Basecode.Services.Services
                 .Include(gf => gf.StudentCourse.Course) // ensure Course is included
                 .ToList();
 
+            if (feedbacks == null)
+            {
+                throw new ArgumentNullException("No feedbacks found");
+            }
+
             return _mapper.Map<List<GradeFeedbackViewModel>>(feedbacks);
         }
 
         public GradeFeedbackViewModel GetGradeFeedbackById(int id)
         {
             var gradeFeedback = _repository.GetGradeFeedback(id);
+
+            if (gradeFeedback == null)
+            {
+                throw new ArgumentNullException("No feedbacks found");
+            }
+
             return _mapper.Map<GradeFeedbackViewModel>(gradeFeedback);
         }
 

@@ -31,15 +31,21 @@ namespace ASI.Basecode.Services.Services
         public CourseViewModel FetchCourse(int courseId)
         {
             var course = _repository.GetCourses().FirstOrDefault(c => c.Id == courseId);
-            return new CourseViewModel
+
+            if (course == null)
             {
-                Id = course.Id,
-                CourseCode = course.CourseCode,
-                CourseName = course.CourseName,
-                CourseDescription = course.CourseDescription,
-                UserId = course.UserId,
-                CreatedAt = course.CreatedAt
-            };
+                throw new ArgumentNullException("Course not found");
+            }
+
+            return new CourseViewModel
+                {
+                    Id = course.Id,
+                    CourseCode = course.CourseCode,
+                    CourseName = course.CourseName,
+                    CourseDescription = course.CourseDescription,
+                    UserId = course.UserId,
+                    CreatedAt = course.CreatedAt
+                };
         }
 
         /// <summary>
@@ -50,29 +56,48 @@ namespace ASI.Basecode.Services.Services
         public CourseViewModel FetchCourseByCourseCode(string courseCode)
         {
             var course = _repository.GetCourses().FirstOrDefault(c => c.CourseCode == courseCode);
-            return new CourseViewModel
+
+            if (course == null)
             {
-                Id = course.Id,
-                CourseCode = course.CourseCode,
-                CourseName = course.CourseName,
-                CourseDescription = course.CourseDescription,
-                UserId = course.UserId,
-                CreatedAt = course.CreatedAt
-            };
+                throw new ArgumentNullException(Resources.Messages.Errors.CourseNotExists);
+            }
+
+            return new CourseViewModel
+                {
+                    Id = course.Id,
+                    CourseCode = course.CourseCode,
+                    CourseName = course.CourseName,
+                    CourseDescription = course.CourseDescription,
+                    UserId = course.UserId,
+                    CreatedAt = course.CreatedAt
+                };
         }
 
         public List<CourseViewModel> FetchCoursesByUser(string userId)
         {
-            var courses = _repository.GetCourses().Where(c => c.UserId == userId).ToList();
-            return courses.Select(course => new CourseViewModel
+            var userExists = _userRepository.UserExists(userId);
+
+            if (!userExists)
             {
-                Id = course.Id,
-                CourseCode = course.CourseCode,
-                CourseName = course.CourseName,
-                CourseDescription = course.CourseDescription,
-                UserId = course.UserId,
-                CreatedAt = course.CreatedAt
-            }).ToList();
+                throw new ArgumentNullException(Resources.Messages.Errors.UserNotExist);
+            }
+
+            var courses = _repository.GetCourses().Where(c => c.UserId == userId).ToList();
+
+            if (courses == null)
+            {
+                throw new ArgumentNullException(Resources.Messages.Errors.CourseNotExists);
+            }
+
+            return courses.Select(course => new CourseViewModel
+                {
+                    Id = course.Id,
+                    CourseCode = course.CourseCode,
+                    CourseName = course.CourseName,
+                    CourseDescription = course.CourseDescription,
+                    UserId = course.UserId,
+                    CreatedAt = course.CreatedAt
+                }).ToList();
         }
 
         public void RegisterCourse(CourseViewModel model)
@@ -85,13 +110,11 @@ namespace ASI.Basecode.Services.Services
 
         public void UpdateCourse(CourseUpdateViewModel model)
         {
-            ArgumentNullException.ThrowIfNull(model);
-
             // Fetch existing course
             var existingCourse = _repository.GetCourses()
-                                            .FirstOrDefault(c => c.Id == model.Id);
+                .FirstOrDefault(c => c.Id == model.Id);
             if (existingCourse == null)
-                throw new Exception("Course not found.");
+                throw new ArgumentNullException(Resources.Messages.Errors.CourseNotExists);
 
             // Map updatable fields while ignoring keys
             _mapper.Map(model, existingCourse);
@@ -105,7 +128,7 @@ namespace ASI.Basecode.Services.Services
         {
             var course = _repository.GetCourses().FirstOrDefault(c => c.Id == courseId);
             if (course == null)
-                throw new Exception("Course not found.");
+                throw new ArgumentNullException(Resources.Messages.Errors.CourseNotExists);
 
             _repository.DeleteCourseByCourseCode(course.CourseCode);
         }
@@ -116,7 +139,7 @@ namespace ASI.Basecode.Services.Services
                 throw new ArgumentException("Course code cannot be null or empty.", nameof(courseCode));
 
             if (!_repository.CourseExists(courseCode))
-                throw new Exception("Course not found.");
+                throw new ArgumentNullException(Resources.Messages.Errors.CourseNotExists);
 
             _repository.DeleteCourseByCourseCode(courseCode);
         }
@@ -124,15 +147,21 @@ namespace ASI.Basecode.Services.Services
         public List<CourseViewModel> GetAllCourses()
         {
             var courses = _repository.GetCourses().ToList();
-            return courses.Select(course => new CourseViewModel
+
+            if (courses == null)
             {
-                Id = course.Id,
-                CourseCode = course.CourseCode,
-                CourseName = course.CourseName,
-                CourseDescription = course.CourseDescription,
-                UserId = course.UserId,
-                CreatedAt = course.CreatedAt
-            }).ToList();
+                throw new ArgumentNullException(Resources.Messages.Errors.CourseNotExists);
+            }
+
+            return courses.Select(course => new CourseViewModel
+                {
+                    Id = course.Id,
+                    CourseCode = course.CourseCode,
+                    CourseName = course.CourseName,
+                    CourseDescription = course.CourseDescription,
+                    UserId = course.UserId,
+                    CreatedAt = course.CreatedAt
+                }).ToList();
         }
 
         public bool CourseExists(string courseCode)
@@ -149,7 +178,19 @@ namespace ASI.Basecode.Services.Services
         {
             var course = _repository.GetCourses().FirstOrDefault(c => c.Id == courseId);
             if (course == null)
-                throw new Exception("Course not found.");
+                throw new ArgumentNullException(Resources.Messages.Errors.CourseNotExists);
+
+            var userExists = _userRepository.UserExists(teacherId);
+            if (!userExists)
+            {
+                throw new ArgumentNullException("Teacher userId not found");
+            }
+
+            var isTeacher = _rbacService.IsTeacher(teacherId);
+            if (!isTeacher)
+            {
+                throw new ArgumentException("UserID supplied is not of role Teacher");
+            }
 
             course.UserId = teacherId;
 
