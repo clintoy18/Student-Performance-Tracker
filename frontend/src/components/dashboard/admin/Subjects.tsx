@@ -231,7 +231,7 @@ export default function Subjects() {
         const url = window.URL.createObjectURL(new Blob([blob]));
         const link = document.createElement("a");
         link.href = url;
-        link.setAttribute("download", `grades-per-course.pdf`);
+        link.setAttribute("download", `student-grades-per-course-summary.pdf`);
         document.body.appendChild(link);
         link.click();
         link.remove();
