@@ -45,7 +45,6 @@ export default function ViewEnrolledStudentsModal({
   const { error: showError } = useToast()
 
   const handleExportGradesPerCourse = async (courseCode: string) => {
-    console.log("Exporting grades for course code:", courseCode);
 
     try {
       const blob = await exportGradesPerCoursePDF(courseCode);
@@ -53,16 +52,13 @@ export default function ViewEnrolledStudentsModal({
       const url = window.URL.createObjectURL(new Blob([blob]));
       const link = document.createElement("a");
       link.href = url;
-      link.setAttribute("download", `grades-${courseCode}.pdf`);
+      link.setAttribute("download", `GRADES-${courseCode}.pdf`);
       document.body.appendChild(link);
       link.click();
       link.remove();
       window.URL.revokeObjectURL(url);
-      console.log("Clicked Export for:", course.CourseCode);
-
     } catch (error) {
       console.error("Error exporting grades per course PDF:", error);
-      console.log("Clicked Export for:", course.CourseCode);
       showError("Failed to create grade report. Maybe there are no enrolled students in this course?")
     }
   };
@@ -84,9 +80,6 @@ export default function ViewEnrolledStudentsModal({
     setError("");
     try {
       const rawData = await getStudentsByCourse(course.CourseCode);
-
-      console.log(rawData);
-      console.log("Sending course code to backend:", course.CourseCode);
 
       const parsedData: IStudentCourse[] = rawData.map((studentCourse) => ({
         StudentCourseId: studentCourse.studentCourseId,

@@ -84,7 +84,7 @@ export const exportCourseGradesSummaryPDF = async () => {
 /// must implemet backend for this.
 export const exportGradesPerCoursePDF = async (courseCode: string) => {
   const response = await admin.get("/pdf/grades-per-course", {
-    param: {courseCode},
+    params: {courseCode},
     responseType: "blob",
   });
   return response.data;
