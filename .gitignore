@@ -61,3 +61,5 @@ obj/
 *.suo
 *.dbmdl
 *.vscod
+config.bat
+node_modules
